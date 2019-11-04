@@ -285,17 +285,125 @@ class test_DataMigration: XCTestCase {
     //--------------------------------------------------------------------------
     // test_copyOnWriteDevice
     func test_copyOnWriteDevice() {
+        do {
+            Platform.log.level = .diagnostic
+            Platform.log.categories = [.dataAlloc, .dataCopy, .dataMutation]
+            
+            // create a named queue on two different discreet devices
+            // cpu devices 1 and 2 are discreet memory versions for testing
+            let device1 = Platform.testCpu1
+            
+            // fill with index on device 1
+            let index = (1, 1)
+            var matrix1 = Matrix<Float>((3, 2))
+            using(device1) {
+                fillWithIndex(&matrix1)
+            }
+            // testing a value causes the data to be copied to the host
+            var value = try matrix1.value(at: index)
+            XCTAssert(value == 3.0)
+            
+            // copy and mutate data
+            // the data will be duplicated wherever the source is
+            var matrix2 = matrix1
+            value = try matrix2.value(at: index)
+            XCTAssert(value == 3.0)
+            
+            // writing to matrix2 causes view mutation and copy on write
+            try matrix2.set(value: 7, at: index)
+            value = try matrix1.value(at: index)
+            XCTAssert(value == 3.0)
+            
+            value = try matrix2.value(at: index)
+            XCTAssert(value == 7.0)
+        } catch {
+            XCTFail(String(describing: error))
+        }
     }
 
     //--------------------------------------------------------------------------
     // test_copyOnWriteCrossDevice
     func test_copyOnWriteCrossDevice() {
+        do {
+            Platform.log.level = .diagnostic
+            Platform.log.categories = [.dataAlloc, .dataCopy, .dataMutation]
+            
+            // create a named queue on two different discreet devices
+            // cpu devices 1 and 2 are discreet memory versions for testing
+            let device1 = Platform.testCpu1
+            let queue1 = device1.queues[0]
+            let device2 = Platform.testCpu2
+            let queue2 = device2.queues[0]
+            
+            let index = (1, 1)
+            var matrix1 = Matrix<Float>((3, 2))
+            
+            // allocate array on device 1 and fill with indexes
+            using(device1) {
+                fillWithIndex(&matrix1)
+            }
+            
+            // getting a value causes the data to be copied to an
+            // array associated with the app thread
+            // The master version is stil on device 1
+            let value = try matrix1.value(at: index)
+            XCTAssert(value == 3.0)
+            
+            // simulate read only access on device 1 and 2
+            // data will be copied to device 2 for the first time
+            _ = try matrix1.readOnly(using: queue1)
+            _ = try matrix1.readOnly(using: queue2)
+            
+            // sum device 1 copy should be 15
+            let sum1 = try using(device1) {
+                try matrix1.sum().asElement()
+            }
+            XCTAssert(sum1 == 15.0)
+            
+            // clear the device 0 master copy
+            using(device1) {
+                fill(&matrix1, with: 0)
+            }
+            
+            // sum device 1 copy should now also be 0
+            // sum device 1 copy should be 15
+            let sum2 = try using(device2) {
+                try matrix1.sum().asElement()
+            }
+            XCTAssert(sum2 == 0)
+            
+        } catch {
+            XCTFail(String(describing: error))
+        }
     }
 
     //--------------------------------------------------------------------------
     // test_copyOnWrite
     // NOTE: uses the default queue
     func test_copyOnWrite() {
+        do {
+            Platform.log.level = .diagnostic
+            //            Platform.log.categories = [.dataAlloc, .dataCopy, .dataMutation]
+            
+            let index = (1, 1)
+            var matrix1 = Matrix<Float>((3, 2))
+            fillWithIndex(&matrix1)
+            var value = try matrix1.value(at: index)
+            XCTAssert(value == 3.0)
+            
+            var matrix2 = matrix1
+            value = try matrix2.value(at: index)
+            XCTAssert(value == 3.0)
+            
+            try matrix2.set(value: 7, at: index)
+            value = try matrix1.value(at: index)
+            XCTAssert(value == 3.0)
+            
+            value = try matrix2.value(at: index)
+            XCTAssert(value == 7.0)
+        } catch {
+            XCTFail(String(describing: error))
+        }
     }
 
     //--------------------------------------------------------------------------

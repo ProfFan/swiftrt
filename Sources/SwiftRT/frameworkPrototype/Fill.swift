@@ -15,7 +15,34 @@
 //
 
 //==============================================================================
+// >>>>>> User API <<<<<<
+/// fill<T>(result:value:
+/// fills the view with the specified value
+public func fill<T>(_ result: inout T, with value: T.Element) where
+    T: TensorView
+{
+    DeviceContext.currentQueue.fill(&result, with: value)
+}
+
+/// fillWithIndex(x:startAt:
+/// fills the view with the spatial sequential index
+public func fillWithIndex<T>(_ result: inout T, startAt index: Int = 0) where
+    T: TensorView, T.Element: AnyNumeric
+{
+    DeviceContext.currentQueue.fillWithIndex(&result, startAt: index)
+}
+
+public extension TensorView where Element: AnyNumeric {
+    func filledWithIndex(startAt index: Int = 0) -> Self {
+        var result = createDense()
+        DeviceContext.currentQueue.fillWithIndex(&result, startAt: index)
+        return result
+    }
+}
+
+//------------------------------------------------------------------------------
 // >>>>>> INTENT <<<<<<
+// User device function
 public extension DeviceFunctions {
     /// fills the view with the scalar value
     func fill<T>(_ result: inout T, with value: T.Element) where T: TensorView {
@@ -37,23 +64,6 @@ public extension DeviceFunctions {
             values[index] = T.Element(any: value)
             value += 1
         }
-    }
-}
-
-// >>>>>> User API <<<<<<
-/// fillWithIndex(x:startAt:
-/// fills the view with the spatial sequential index
-public func fillWithIndex<T>(_ result: inout T, startAt index: Int = 0) where
-    T: TensorView, T.Element: AnyNumeric
-{
-    DeviceContext.currentQueue.fillWithIndex(&result, startAt: index)
-}
-
-public extension TensorView where Element: AnyNumeric {
-    func filledWithIndex(startAt index: Int = 0) -> Self {
-        var result = createDense()
-        DeviceContext.currentQueue.fillWithIndex(&result, startAt: index)
-        return result
     }
 }
 
