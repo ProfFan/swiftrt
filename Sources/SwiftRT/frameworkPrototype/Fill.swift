@@ -17,44 +17,6 @@
 //==============================================================================
 // >>>>>> INTENT <<<<<<
 public extension DeviceFunctions {
-    /// neg
-    /// returns the element-wise negation
-    func neg<T>(x: T, result: inout T) where
-        T: TensorView, T.Element: SignedNumeric
-    {
-        try! x.values().map(to: &result) { -$0 }
-    }
-
-    /// neg
-    /// returns the element-wise negation
-    func neg<T>(x: T) -> T where
-        T: TensorView, T.Element: SignedNumeric
-    {
-//        return x.map { -$0 }
-        fatalError()
-    }
-}
-
-//******************************************************************************
-// >>>>>> GENERATED <<<<<<
-// @Target(type:"CPU", appliedTo:"CpuQueue", protocols:[DeviceFunctions])
-// target generated from Intent by the compiler
-#if canImport(CpuAsync)
-public extension CpuAsynchronousQueue {
-    /// neg
-    func neg<T>(x: T, result: inout T) where
-        T: TensorView, T.Element: SignedNumeric
-    {
-        queue(#function, { try x.values() }, &result) {
-            $0.map(to: &$1) { -$0 }
-        }
-    }
-}
-#endif
-
-//==============================================================================
-// >>>>>> INTENT <<<<<<
-public extension DeviceFunctions {
     /// fills the view with the scalar value
     func fill<T>(_ result: inout T, with value: T.Element) where T: TensorView {
         // TODO: can we hide the values/mutable values collections
@@ -78,6 +40,23 @@ public extension DeviceFunctions {
     }
 }
 
+// >>>>>> User API <<<<<<
+/// fillWithIndex(x:startAt:
+/// fills the view with the spatial sequential index
+public func fillWithIndex<T>(_ result: inout T, startAt index: Int = 0) where
+    T: TensorView, T.Element: AnyNumeric
+{
+    DeviceContext.currentQueue.fillWithIndex(&result, startAt: index)
+}
+
+public extension TensorView where Element: AnyNumeric {
+    func filledWithIndex(startAt index: Int = 0) -> Self {
+        var result = createDense()
+        DeviceContext.currentQueue.fillWithIndex(&result, startAt: index)
+        return result
+    }
+}
+
 //******************************************************************************
 // >>>>>> GENERATED <<<<<<
 // @Target(type:"CPU", appliedTo:"CpuQueue", protocols:[DeviceFunctions])
@@ -89,7 +68,7 @@ public extension CpuAsynchronousQueue {
     /// NOTE: this can be much faster, doesn't need to be ordered access
     func fill<T>(_ result: inout T, with value: T.Element) where T: TensorView {
         queue(#function, {}, &result) {
-//            try result.readWrite().initialize(repeating: value)
+            //            try result.readWrite().initialize(repeating: value)
             for index in $1.indices { $1[index] = value }
         }
     }

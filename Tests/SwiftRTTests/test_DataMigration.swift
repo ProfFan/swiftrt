@@ -193,6 +193,93 @@ class test_DataMigration: XCTestCase {
     //==========================================================================
     // test_mutateOnDevice
     func test_mutateOnDevice() {
+        do {
+            Platform.log.level = .diagnostic
+            Platform.log.categories = [.dataAlloc, .dataCopy, .dataMutation]
+            
+            // create a named queue on two different discreet devices
+            // cpu devices 1 and 2 are discreet memory versions for testing
+            let device1 = Platform.testCpu1
+            let queue1 = device1.queues[0]
+            let device2 = Platform.testCpu2
+            let queue2 = device2.queues[0]
+            
+            // create a Matrix on device 1 and fill with indexes
+            // memory is only allocated on device 1. This also shows how a
+            // temporary can be used in a scope. No memory is copied.
+            var matrix = using(device1) {
+                Matrix<Float>((3, 2)).filledWithIndex()
+            }
+            
+            // retreive value on app thread
+            // memory is allocated in the host app space and the data is copied
+            // from device 1 to the host using queue 0.
+            let value1 = try matrix.value(at: (1, 1))
+            XCTAssert(value1 == 3.0)
+            
+            // simulate a readonly kernel access on device 1.
+            // matrix was not previously modified, so it is up to date
+            // and no data movement is necessary
+            _ = try matrix.readOnly(using: queue1)
+            
+            // sum device 1 copy, which should equal 15.
+            // This `sum` syntax creates a temporary result on device 1,
+            // then `asElement` causes the temporary to be transferred to
+            // the host, the value is retrieved, and the temp is released.
+            // This syntax is good for experiments, but should not be used
+            // for repetitive actions
+            var sum = try using(device1) {
+                try matrix.sum().asElement()
+            }
+            XCTAssert(sum == 15.0)
+            
+            // copy the matrix and simulate a readOnly operation on device2
+            // a device array is allocated on device 2 then the master copy
+            // on device 1 is copied to device 2.
+            // Since device 1 and 2 are in the same service, a device to device
+            // async copy is performed. In the case of Cuda, it would travel
+            // across nvlink and not the PCI bus
+            let matrix2 = matrix
+            _ = try matrix2.readOnly(using: queue2)
+            
+            // copy matrix2 and simulate a readWrite operation on device2
+            // this causes copy on write and mutate on device
+            var matrix3 = matrix2
+            _ = try matrix3.readWrite(using: queue2)
+            
+            // sum device 1 copy should be 15
+            // `sum` creates a temp result tensor, allocates an array on
+            // device 2, and performs the reduction.
+            // Then `asElement` causes a host array to be allocated, and the
+            // the data is copied from device 2 to host, the value is returned
+            // and the temporary tensor is released.
+            sum = try using(device2) {
+                try matrix.sum().asElement()
+            }
+            XCTAssert(sum == 15.0)
+            
+            // matrix is overwritten with a new array on device 1
+            matrix = using(device1) {
+                matrix.filledWithIndex()
+            }
+            
+            // sum matrix on device 2
+            // `sum` creates a temporary result tensor on device 2
+            // a device array for `matrix` is allocated on device 2 and
+            // the matrix data is copied from device 1 to device 2
+            // then `asElement` creates a host array and the result is
+            // copied from device 2 to the host array, and then the tensor
+            // is released.
+            sum = try using(device2) {
+                try matrix.sum().asElement()
+            }
+            XCTAssert(sum == 15.0)
+            
+            // exiting the scopy, matrix and matrix2 are released along
+            // with all resources on all devices.
+        } catch {
+            XCTFail(String(describing: error))
+        }
     }
 
     //--------------------------------------------------------------------------
