@@ -115,8 +115,11 @@ class DeviceContext {
     //--------------------------------------------------------------------------
     /// hostQueue
     public static var hostQueue: DeviceQueue {
-        return DeviceContext.current[0].memory.addressing == .unified ?
-            DeviceContext.current[0].queues[0] : Platform.cpu.queues[0]
+        assert(Platform.cpu.memory.addressing == .unified)
+        
+        let current = DeviceContext.current[0]
+        return current.memory.addressing == .unified ?
+            current.queues[0] : Platform.cpu.queues[0]
     }
 
     //--------------------------------------------------------------------------

@@ -181,7 +181,7 @@ class test_DataMigration: XCTestCase {
             XCTAssert(view.tensorArray.lastAccessCopiedBuffer)
             
             // accessing data without a queue causes transfer to the host
-            // COPY cpu:2_q0 --> uma:cpu:0
+            // COPY discreet_cpu:2_q0 --> cpu:0
             _ = try view.readOnly()
             XCTAssert(view.tensorArray.lastAccessCopiedBuffer)
 

@@ -283,8 +283,7 @@ final public class TensorArray<Element>: ObjectTracking, Logging {
                 try queue.copyAsync(to: other, from: buffer)
 
                 diagnostic("\(copyString) \(name)(\(trackingId)) " +
-                    "uma:\(master.device.name)" +
-                    "\(setText(" --> ", color: .blue))" +
+                    "\(master.device.name)\(setText(" --> ", color: .blue))" +
                     "\(other.device.name)_q\(queue.id) " +
                     "\(String(describing: Element.self))[\(count)]",
                     categories: .dataCopy)
@@ -296,7 +295,7 @@ final public class TensorArray<Element>: ObjectTracking, Logging {
             
             diagnostic("\(copyString) \(name)(\(trackingId)) " +
                 "\(master.device.name)_q\(queue.id)" +
-                "\(setText(" --> ", color: .blue))uma:\(other.device.name) " +
+                "\(setText(" --> ", color: .blue))\(other.device.name) " +
                 "\(String(describing: Element.self))[\(count)]",
                 categories: .dataCopy)
 

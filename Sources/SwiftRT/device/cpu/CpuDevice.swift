@@ -49,9 +49,11 @@ public class CpuDevice<QueueT>: LocalComputeDevice
                 deviceId: Int,
                 logInfo: LogInfo,
                 addressing: MemoryAddressing,
-                timeout: TimeInterval?) {
-        self.name = "cpu:\(deviceId)"
-		self.logInfo = logInfo.flat("cpu:\(deviceId)")
+                timeout: TimeInterval?)
+    {
+        self.name = addressing == .unified ?
+            "cpu:\(deviceId)" : "discreet_cpu:\(deviceId)"
+		self.logInfo = logInfo.flat(self.name)
 		self.id = deviceId
 		self.service = service
         self.timeout = timeout

@@ -45,14 +45,15 @@ final public class Platform: LocalPlatform {
     }
 
     //--------------------------------------------------------------------------
-    // shortcut to the cpu device
+    // shortcut to the first unified memory cpu device
     public static var cpu: ComputeDevice = {
         for service in Platform.local.services.values {
-            if service is CpuServiceProtocol {
+            if service is CpuServiceProtocol &&
+                service.devices[0].memory.addressing == .unified {
                 return service.devices[0]
             }
         }
-        fatalError("missing CPU device. Must be enabled during build")
+        fatalError("Missing CPU device. Must be enabled during build")
     }()
 
     //--------------------------------------------------------------------------
@@ -259,10 +260,7 @@ public extension LocalPlatform {
         }
         
         // if the search failed, then use the cpu
-        _defaultDevice = _defaultDevice ?? requestDevice(serviceName: "cpu")
-        // we had to find at least one device like the cpu
-        assert(_defaultDevice != nil, "There must be at least one device")
-
+        _defaultDevice = _defaultDevice ?? requestDevice()
         let device = _defaultDevice!
         writeLog("default device: [\(device.service.name)] \(device.name)",
             level: .status)
@@ -280,12 +278,16 @@ public extension LocalPlatform {
     func requestDevice(serviceName: String? = nil,
                        deviceId: Int = 0) -> ComputeDevice
     {
-        let serviceName = serviceName ?? defaultDevice.service.name
-        if let service = services[serviceName] {
-            return service.devices[deviceId % service.devices.count]
+        if let name = serviceName {
+            if let service = services[name] {
+                return service.devices[deviceId % service.devices.count]
+            } else {
+                writeLog("Service `\(name)` not found. " +
+                    "Substituting `\(Platform.cpu.service.name)`",
+                    level: .warning)
+                return Platform.cpu
+            }
         } else {
-            writeLog("CPU substituted. Service `\(serviceName)` not found.",
-                level: .warning)
             return Platform.cpu
         }
     }

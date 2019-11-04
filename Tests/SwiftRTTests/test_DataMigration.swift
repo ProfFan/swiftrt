@@ -37,8 +37,8 @@ class test_DataMigration: XCTestCase {
     // stresses view mutation and async copies on device
     func test_stressCopyOnWriteDevice() {
         do {
-//            Platform.log.level = .diagnostic
-//            Platform.log.categories = [.dataAlloc, .dataCopy, .dataMutation]
+            Platform.log.level = .diagnostic
+            Platform.log.categories = [.dataAlloc, .dataCopy, .dataMutation]
             
             let matrix = Matrix<Float>((3, 2), name: "matrix", with: 0..<6)
             let index = (1, 1)
@@ -181,7 +181,7 @@ class test_DataMigration: XCTestCase {
             XCTAssert(view.tensorArray.lastAccessCopiedBuffer)
             
             // accessing data without a queue causes transfer to the host
-            // COPY cpu:2_q0 --> uma:cpu:0
+            // COPY discreet_cpu:2_q0 --> cpu:0
             _ = try view.readOnly()
             XCTAssert(view.tensorArray.lastAccessCopiedBuffer)
 
