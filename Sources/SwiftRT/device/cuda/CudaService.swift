@@ -201,12 +201,6 @@ public func curandGetErrorString(_ status: curandStatus_t) -> String {
 }
 
 //==============================================================================
-/// ReductionOp
-public enum ReductionOp: Int, Codable {
-    case add, mul, min, max, amax, avg, norm1, norm2
-}
-
-//==============================================================================
 /// ReductionContext
 public protocol ReductionContext {
 }

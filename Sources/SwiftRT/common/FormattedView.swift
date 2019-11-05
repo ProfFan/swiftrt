@@ -44,7 +44,7 @@ public extension TensorView where Element: AnyConvertable & CVarArg {
 
         // clamp ranges
         let maxItems = maxItems?.enumerated().map {
-            min($1, extents[$0])
+            $1 <= extents[$0] ? $1 : extents[$0]
         } ?? extents
 
         // set header

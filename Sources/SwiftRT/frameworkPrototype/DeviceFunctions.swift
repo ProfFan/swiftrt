@@ -43,9 +43,25 @@ public protocol DeviceFunctions {
     /// notEqual
     func notEqual<T>(lhs: T, rhs: T, result: inout T.BoolView) where
         T: TensorView, T.Element: Equatable
-    // sum
-    func sum<T>(x: T, along axes: Vector<IndexElement>?, result: inout T) where
-        T: TensorView, T.Element: Numeric
+    /// reduce
+    /// Reduces `x` along the specified axes
+    ///
+    /// - Parameter x: value tensor
+    /// - Parameter into result: the scalar tensor where the result will be written
+    /// - Parameter initialResult: the initial value of the result
+    /// - Parameter along axes: the axes to operate on
+    /// - Parameter opNext: the operation to perform on pairs of elements
+    /// - Parameter opFinal: the operation to perform on the final result
+    /// - Parameter body: closure that performs reduction
+    /// - Precondition: Each value in `axes` must be in the range `-rank..<rank`.
+    func reduce<T>(x: T,
+                   into result: inout T,
+                   initialResult: T.Element,
+                   along axes: [Int]?,
+                   opId: ReductionOp,
+                   opNext: @escaping (T.Element, T.Element) -> T.Element,
+                   opFinal: @escaping (T.Element) -> T.Element)
+        where T: TensorView
 }
 
 //==============================================================================
@@ -53,6 +69,78 @@ public protocol DeviceFunctions {
 public enum NanPropagation: Int, Codable {
     case propagate, noPropagate
 }
+
+//==============================================================================
+/// ReductionOp
+public enum ReductionOp: Int, Codable {
+    case add
+    case mean
+    case mul
+    case min
+    case max
+    case amax
+    case asum
+    case sqrtSumSquares
+    case mulNonZeros
+}
+
+//------------------------------------------------------------------------------
+// >>>>>> INTENT <<<<<<
+// User device function
+public extension DeviceFunctions {
+    // reduce
+    func reduce<T>(x: T,
+                   into result: inout T,
+                   initialResult: T.Element,
+                   along axes: [Int]?,
+                   opId: ReductionOp,
+                   opNext: @escaping (T.Element, T.Element) -> T.Element,
+                   opFinal: @escaping (T.Element) -> T.Element)
+        where T: TensorView
+    {
+        if let axes = axes, axes.count > 0 {
+            assert(axes.count <= x.rank, "rank mismatch")
+            // TODO
+        } else {
+            try! x.values().reduce(to: &result, initialResult, opNext)
+            let buffer = try! result.readWrite()
+            buffer[0] = opFinal(buffer[0])
+        }
+    }
+}
+
+//******************************************************************************
+// >>>>>> GENERATED <<<<<<
+// @Target(type:"CPU", appliedTo:"CpuAsynchronousQueue", protocols:[DeviceFunctions])
+// target generated from Intent by the compiler
+#if canImport(CpuAsync)
+public extension CpuAsynchronousQueue {
+    // reduce
+    func reduce<T>(x: T,
+                   into result: inout T,
+                   initialResult: T.Element,
+                   along axes: [Int]?,
+                   opId: ReductionOp,
+                   opNext: @escaping (T.Element, T.Element) -> T.Element,
+                   opFinal: @escaping (T.Element) -> T.Element)
+        where T: TensorView
+    {
+        if let axes = axes, axes.count > 0 {
+            assert(axes.count <= x.rank, "rank mismatch")
+            queue(#function, { try (x.values(), axes) }, &result)
+            { params, result in
+                // TODO
+            }
+        } else {
+            queue(#function, { try x.values() }, &result) {
+                $0.reduce(to: &$1, initialResult, opNext)
+                $1[$1.startIndex] = opFinal($1[$1.startIndex])
+            }
+        }
+    }
+}
+#endif
+
 
 ////==============================================================================
 //// >>>>>> User API <<<<<<

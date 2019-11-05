@@ -222,6 +222,12 @@ public extension TensorView {
     
     func createDense() -> Self { return createDense(with: self.extents) }
     
+    /// createDenseValue
+    /// helper to create a rank extended value
+    func createDenseValue(name: String? = nil) -> Self {
+        return createDense(with: [Int](repeating: 1, count: rank))
+    }
+
     //--------------------------------------------------------------------------
     /// create(value:
     func create(value: Element, name: String? = nil) -> Self {
