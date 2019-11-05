@@ -395,7 +395,8 @@ public extension TensorView where Element: AnyNumeric {
 //==============================================================================
 // >>>>>> User API <<<<<<
 /// min(x:alongAxes:
-/// min of `x` along the specified axes
+/// returns the minimum element value of `x` along the specified axes
+/// TODO: add optional indices
 ///
 /// - Parameter x: value tensor
 /// - Parameter alongAxes: the axes to operate on
@@ -446,7 +447,7 @@ public extension TensorView where Element: AnyNumeric  & Comparable {
 //==============================================================================
 // >>>>>> User API <<<<<<
 /// max(x:alongAxes:
-/// max of `x` along the specified axes
+/// returns the maximum element value of `x` along the specified axes
 ///
 /// - Parameter x: value tensor
 /// - Parameter alongAxes: the axes to operate on
