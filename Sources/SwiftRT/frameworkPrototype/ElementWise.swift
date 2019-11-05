@@ -60,7 +60,7 @@ public extension TensorView where Element: FloatingPoint {
 // User device function
 public extension DeviceFunctions {
     /// neg
-    /// returns the element-wise negation
+    /// returns the element-wise negation of `x`
     func neg<T>(x: T, result: inout T) where
         T: TensorView, T.Element: SignedNumeric
     {
@@ -80,6 +80,136 @@ public extension CpuAsynchronousQueue {
     {
         queue(#function, { try x.values() }, &result) {
             $0.map(to: &$1) { -$0 }
+        }
+    }
+}
+#endif
+
+//==============================================================================
+// >>>>>> User API <<<<<<
+/// equal
+/// Computes `lhs == rhs` element-wise and returns a `TensorView` of Boolean
+/// values.
+public func equal<T>(lhs: T, rhs: T, result: inout T.BoolView) where
+    T: TensorView, T.Element: Equatable
+{
+    assert(lhs.shape == rhs.shape, "shapes must match")
+    DeviceContext.currentQueue.equal(lhs: lhs, rhs: rhs, result: &result)
+}
+
+public extension TensorView where Element: Equatable {
+    /// - Parameter lhs: left hand tensor
+    /// - Parameter rhs: right hand tensor
+    /// - Returns: a new tensor containing the result
+    @inlinable
+    static func .== (_ lhs: Self, _ rhs: Self) -> BoolView {
+        var result = lhs.createBoolTensor()
+        equal(lhs: lhs, rhs: rhs, result: &result)
+        return result
+    }
+    
+    /// - Parameter lhs: left hand tensor
+    /// - Parameter rhs: right hand tensor
+    /// - Returns: `true` if the tensors are equal
+    @inlinable
+    static func == (lhs: Self, rhs: Self) -> Bool {
+        // the shapes must match or they are not equal
+        guard lhs.shape == rhs.shape else { return false }
+        
+        // if lhs is an alias for rhs, then they match
+        if lhs.tensorArray === rhs.tensorArray &&
+            lhs.viewOffset == rhs.viewOffset { return true }
+        
+        // compare elements
+        return try! (lhs .== rhs).all().asElement()
+    }
+
+    /// - Parameter lhs: left hand tensor
+    /// - Parameter rhs: right hand tensor
+    /// - Returns: `true` if the tensors are not equal
+    @inlinable
+    static func != (lhs: Self, rhs: Self) -> Bool {
+        return !(lhs == rhs)
+    }
+}
+
+//------------------------------------------------------------------------------
+// >>>>>> INTENT <<<<<<
+// User device function
+public extension DeviceFunctions {
+    /// equal
+    func equal<T>(lhs: T, rhs: T, result: inout T.BoolView) where
+        T: TensorView, T.Element: Equatable
+    {
+        try! zip(lhs, rhs).map(to: &result) { $0 == $1 }
+    }
+}
+
+//******************************************************************************
+// >>>>>> GENERATED <<<<<<
+// @Target(type:"CPU", appliedTo:"CpuQueue", protocols:[DeviceFunctions])
+// target generated from Intent by the compiler
+#if canImport(CpuAsync)
+public extension CpuAsynchronousQueue {
+    /// equal
+    func equal<T>(lhs: T, rhs: T, result: inout T.BoolView) where
+        T: TensorView, T.Element: Equatable
+    {
+        queue(#function, { try (lhs.values(), rhs.values()) }, &result) {
+            zip($0.0, $0.1).map(to: &$1) { $0 == $1 }
+        }
+    }
+}
+#endif
+
+//==============================================================================
+// >>>>>> User API <<<<<<
+/// notEqual
+/// Computes `lhs != rhs` element-wise and returns a `TensorView` of Boolean
+/// values.
+public func notEqual<T>(lhs: T, rhs: T, result: inout T.BoolView) where
+    T: TensorView, T.Element: Equatable
+{
+    assert(lhs.shape == rhs.shape, "shapes must match")
+    DeviceContext.currentQueue.notEqual(lhs: lhs, rhs: rhs, result: &result)
+}
+
+public extension TensorView where Element: Equatable {
+    /// - Parameter lhs: left hand tensor
+    /// - Parameter rhs: right hand tensor
+    /// - Returns: a new tensor containing the result
+    @inlinable
+    static func .!= (_ lhs: Self, _ rhs: Self) -> BoolView {
+        var result = lhs.createBoolTensor()
+        notEqual(lhs: lhs, rhs: rhs, result: &result)
+        return result
+    }
+}
+
+//------------------------------------------------------------------------------
+// >>>>>> INTENT <<<<<<
+// User device function
+public extension DeviceFunctions {
+    /// notEqual
+    func notEqual<T>(lhs: T, rhs: T, result: inout T.BoolView) where
+        T: TensorView, T.Element: Equatable
+    {
+        try! zip(lhs, rhs).map(to: &result) { $0 != $1 }
+    }
+}
+
+//******************************************************************************
+// >>>>>> GENERATED <<<<<<
+// @Target(type:"CPU", appliedTo:"CpuQueue", protocols:[DeviceFunctions])
+// target generated from Intent by the compiler
+#if canImport(CpuAsync)
+public extension CpuAsynchronousQueue {
+    /// equal
+    func notEqual<T>(lhs: T, rhs: T, result: inout T.BoolView) where
+        T: TensorView, T.Element: Equatable
+    {
+        queue(#function, { try (lhs.values(), rhs.values()) }, &result) {
+            zip($0.0, $0.1).map(to: &$1) { $0 != $1 }
         }
     }
 }

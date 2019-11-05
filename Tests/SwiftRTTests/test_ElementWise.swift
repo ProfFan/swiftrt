@@ -22,9 +22,32 @@ class test_ElementWise: XCTestCase {
     //==========================================================================
     // support terminal test run
     static var allTests = [
+        ("test_equality", test_equality),
         ("test_neg", test_neg),
     ]
     
+    //--------------------------------------------------------------------------
+    // test_equality
+    func test_equality() {
+        do {
+            // compare by value
+            let m1 = Matrix<Float>((3, 2), name: "matrix", with: 0..<6)
+            let m2 = Matrix<Float>((3, 2), name: "matrix", with: 0..<6)
+            XCTAssert(m1 == m2)
+            
+            // compare via alias detection
+            let m3 = m2
+            XCTAssert(m3 == m2)
+            
+            let m4 = Matrix<Float>((3, 2), name: "matrix", with: 1..<7)
+            let ne = try (m4 .!= m3).any().asElement()
+            XCTAssert(ne)
+            XCTAssert(m4 != m3)
+        } catch {
+            XCTFail(String(describing: error))
+        }
+    }
+
     //--------------------------------------------------------------------------
     // test_neg
     func test_neg() {

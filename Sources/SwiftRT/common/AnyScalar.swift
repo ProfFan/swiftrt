@@ -487,7 +487,7 @@ extension Bool: AnyConvertable {
     public static var isFiniteType: Bool { return true }
     public static var scalarType: ScalarType { return .bool }
     public static func formatString(_ format: (width: Int, precision: Int)?) -> String {
-        return "%\(format?.width ?? 6)S"
+        return "%\(format?.width ?? 6)d"
     }
 
 	public init?(string: String) {
