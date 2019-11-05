@@ -18,7 +18,7 @@
 public extension Sequence {
     /// map a sequence to a tensor
     @inlinable
-    func map<R>(to result: inout R,
+    func map<R>(into result: inout R,
                 _ transform: (Element) -> R.MutableValues.Element) throws where
         R: TensorView
     {
@@ -34,7 +34,7 @@ public extension Sequence {
     
     /// map to a mutable collection
     @inlinable
-    func map<R>(to result: inout R,
+    func map<R>(into result: inout R,
                 _ transform: (Element) -> R.Element) where
         R: MutableCollection
     {
@@ -54,7 +54,7 @@ public extension Zip2Sequence {
     
     /// map tensors
     @inlinable
-    func map<T>(to result: inout T,
+    func map<T>(into result: inout T,
                 _ transform: (Pair) -> T.MutableValues.Element) throws
         where T: TensorView
     {
@@ -71,7 +71,7 @@ public extension Zip2Sequence {
     
     /// map to a mutable collection
     @inlinable
-    func map<Result>(to result: inout Result,
+    func map<Result>(into result: inout Result,
                      _ transform: (Pair) -> Result.Element)
         where Result: MutableCollection
     {
@@ -90,7 +90,7 @@ public extension Zip3Sequence {
     
     /// map tensors
     @inlinable
-    func map<T>(to result: inout T,
+    func map<T>(into result: inout T,
                 _ transform: (Input) -> T.MutableValues.Element) throws
         where T: TensorView
     {
@@ -107,7 +107,7 @@ public extension Zip3Sequence {
     
     /// map to a mutable collection
     @inlinable
-    func map<Result>(to result: inout Result,
+    func map<Result>(into result: inout Result,
                      _ transform: (Input) -> Result.Element)
         where Result: MutableCollection
     {
@@ -134,7 +134,7 @@ public func zip<T1, T2>(_ t1: T1, _ t2: T2) throws ->
 public extension Sequence {
     /// reduce to a tensor
     func reduce<T>(
-        to result: inout T,
+        into result: inout T,
         _ initialResult: Element,
         _ nextPartialResult: (Element, Element) throws -> Element) throws
         where T: TensorView, Element == T.Element
@@ -150,7 +150,7 @@ public extension Sequence {
     /// reduce to a mutable collection
     @inlinable
     func reduce<T>(
-        to result: inout T,
+        into result: inout T,
         _ initialResult: Element,
         _ nextPartialResult: (Element, Element) throws -> Element) rethrows
         where T: MutableCollection, Element == T.Element

@@ -64,8 +64,8 @@ public extension DeviceFunctions {
     func exp<T>(x: T, result: inout T) where
         T: TensorView, T.Element: AnyFloatingPoint
     {
-        try! x.values().map(to: &result) {
-            T.Element(any: Foundation.log($0.asFloat))
+        try! x.values().map(into: &result) {
+            T.Element(any: Foundation.exp($0.asFloat))
         }
     }
 }
@@ -81,7 +81,81 @@ public extension CpuAsynchronousQueue {
         T: TensorView, T.Element: AnyFloatingPoint
     {
         queue(#function, { try x.values() }, &result) {
-            $0.map(to: &$1) {
+            $0.map(into: &$1) {
+                T.Element(any: Foundation.exp($0.asFloat))
+            }
+        }
+    }
+}
+#endif
+
+//==============================================================================
+// >>>>>> User API <<<<<<
+/// log(x)
+/// computes the log of `x`
+///
+/// with placement
+/// - Parameter x: value tensor
+/// - Parameter result: the tensor where the result will be written
+@inlinable @inline(__always)
+//@differentiable(vjp: _vjpLog(_:) where T: TensorFlowFloatingPoint)
+public func log<T>(_ x: T, result: inout T)
+    where T: TensorView, T.Element: AnyFloatingPoint
+{
+    DeviceContext.currentQueue.log(x: x, result: &result)
+}
+
+/// returns new view
+/// - Parameter x: value tensor
+/// - Returns: a new tensor containing the result
+@inlinable @inline(__always)
+//@differentiable(vjp: _vjpLog(_:) where T: TensorFlowFloatingPoint)
+public func log<T>(_ x: T) -> T
+    where T: TensorView, T.Element: AnyFloatingPoint
+{
+    var result = x.createDense()
+    log(x, result: &result)
+    return result
+}
+
+public extension TensorView where Element: AnyFloatingPoint {
+    /// returns new view
+    /// - Returns: a new tensor containing the result
+    @inlinable @inline(__always)
+    //@differentiable(vjp: _vjpAbs(_:) where T: TensorFlowFloatingPoint)
+    func log() -> Self {
+        var result = createDense()
+        SwiftRT.log(self, result: &result)
+        return result
+    }
+}
+
+//------------------------------------------------------------------------------
+// >>>>>> INTENT <<<<<<
+// User device function
+public extension DeviceFunctions {
+    /// log
+    func log<T>(x: T, result: inout T) where
+        T: TensorView, T.Element: AnyFloatingPoint
+    {
+        try! x.values().map(into: &result) {
+            T.Element(any: Foundation.log($0.asFloat))
+        }
+    }
+}
+
+//******************************************************************************
+// >>>>>> GENERATED <<<<<<
+// @Target(type:"CPU", appliedTo:"CpuQueue", protocols:[DeviceFunctions])
+// target generated from Intent by the compiler
+#if canImport(CpuAsync)
+public extension CpuAsynchronousQueue {
+    /// log
+    func log<T>(x: T, result: inout T) where
+        T: TensorView, T.Element: AnyFloatingPoint
+    {
+        queue(#function, { try x.values() }, &result) {
+            $0.map(into: &$1) {
                 T.Element(any: Foundation.log($0.asFloat))
             }
         }
@@ -140,7 +214,7 @@ public extension DeviceFunctions {
     func neg<T>(x: T, result: inout T) where
         T: TensorView, T.Element: SignedNumeric
     {
-        try! x.values().map(to: &result) { -$0 }
+        try! x.values().map(into: &result) { -$0 }
     }
 }
 
@@ -155,7 +229,7 @@ public extension CpuAsynchronousQueue {
         T: TensorView, T.Element: SignedNumeric
     {
         queue(#function, { try x.values() }, &result) {
-            $0.map(to: &$1) { -$0 }
+            $0.map(into: &$1) { -$0 }
         }
     }
 }
@@ -217,7 +291,7 @@ public extension DeviceFunctions {
     func equal<T>(lhs: T, rhs: T, result: inout T.BoolView) where
         T: TensorView, T.Element: Equatable
     {
-        try! zip(lhs, rhs).map(to: &result) { $0 == $1 }
+        try! zip(lhs, rhs).map(into: &result) { $0 == $1 }
     }
 }
 
@@ -232,7 +306,7 @@ public extension CpuAsynchronousQueue {
         T: TensorView, T.Element: Equatable
     {
         queue(#function, { try (lhs.values(), rhs.values()) }, &result) {
-            zip($0.0, $0.1).map(to: &$1) { $0 == $1 }
+            zip($0.0, $0.1).map(into: &$1) { $0 == $1 }
         }
     }
 }
@@ -270,7 +344,7 @@ public extension DeviceFunctions {
     func notEqual<T>(lhs: T, rhs: T, result: inout T.BoolView) where
         T: TensorView, T.Element: Equatable
     {
-        try! zip(lhs, rhs).map(to: &result) { $0 != $1 }
+        try! zip(lhs, rhs).map(into: &result) { $0 != $1 }
     }
 }
 
@@ -285,7 +359,7 @@ public extension CpuAsynchronousQueue {
         T: TensorView, T.Element: Equatable
     {
         queue(#function, { try (lhs.values(), rhs.values()) }, &result) {
-            zip($0.0, $0.1).map(to: &$1) { $0 != $1 }
+            zip($0.0, $0.1).map(into: &$1) { $0 != $1 }
         }
     }
 }
