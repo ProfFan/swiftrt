@@ -571,7 +571,7 @@ public extension TensorView {
                     do {
                         try body(view)
                     } catch {
-                        errorDevice.reportDevice(error: error)
+                        errorDevice.report(error: error)
                     }
                 }
             }

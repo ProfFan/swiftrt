@@ -113,7 +113,7 @@ public extension DeviceFunctions {
                 let buffer = try result.readWrite()
                 buffer[0] = opFinal(buffer[0])
             } catch {
-                device.reportDevice(error: error)
+                device.report(error: error)
             }
         }
     }

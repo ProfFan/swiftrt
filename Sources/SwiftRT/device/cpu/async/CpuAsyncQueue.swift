@@ -116,14 +116,14 @@ public final class CpuAsynchronousQueue: CpuQueueProtocol, LocalDeviceQueue {
                     do {
                         try body(input, &results)
                     } catch {
-                        errorDevice.reportDevice(error: error)
+                        errorDevice.report(error: error)
                     }
                 }
                 diagnostic("\(schedulingString): \(functionName()) complete",
                     categories: .scheduling)
             }
         } catch {
-            self.reportDevice(error: error)
+            self.report(error: error)
         }
     }
 
@@ -141,7 +141,7 @@ public final class CpuAsynchronousQueue: CpuQueueProtocol, LocalDeviceQueue {
             do {
                 try body()
             } catch {
-                errorDevice.reportDevice(error: error)
+                errorDevice.report(error: error)
             }
         }
         

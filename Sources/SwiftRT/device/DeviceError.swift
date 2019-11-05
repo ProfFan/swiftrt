@@ -54,10 +54,10 @@ public extension DeviceErrorHandling {
     }
     
     //--------------------------------------------------------------------------
-    /// reportDevice(error:event:
+    /// report(error:event:
     /// sets and propagates a queue error
     /// - Parameter error: the error to report
-    func reportDevice(error: Error) {
+    func report(error: Error) {
         // set the error state
         lastError = error
         
