@@ -28,6 +28,9 @@ public protocol DeviceFunctions {
     /// equal
     func equal<T>(lhs: T, rhs: T, result: inout T.BoolView) where
         T: TensorView, T.Element: Equatable
+    /// exp
+    func exp<T>(x: T, result: inout T) where
+        T: TensorView, T.Element: AnyFloatingPoint
     /// fill(result:with:
     func fill<T>(_ result: inout T, with value: T.Element) where T: TensorView
     /// fillWithIndex(x:startAt:

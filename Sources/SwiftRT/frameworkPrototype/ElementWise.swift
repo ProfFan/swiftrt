@@ -13,6 +13,82 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 //
+import Foundation
+
+//==============================================================================
+// >>>>>> User API <<<<<<
+/// exp(x)
+/// computes the exponential value of `x`
+///
+/// with placement
+/// - Parameter x: value tensor
+/// - Parameter result: the tensor where the result will be written
+@inlinable @inline(__always)
+//@differentiable(vjp: _vjpLog(_:) where T: TensorFlowFloatingPoint)
+public func exp<T>(_ x: T, result: inout T)
+    where T: TensorView, T.Element: AnyFloatingPoint
+{
+    DeviceContext.currentQueue.exp(x: x, result: &result)
+}
+
+/// returns new view
+/// - Parameter x: value tensor
+/// - Returns: a new tensor containing the result
+@inlinable @inline(__always)
+//@differentiable(vjp: _vjpLog(_:) where T: TensorFlowFloatingPoint)
+public func exp<T>(_ x: T) -> T
+    where T: TensorView, T.Element: AnyFloatingPoint
+{
+    var result = x.createDense()
+    exp(x, result: &result)
+    return result
+}
+
+public extension TensorView where Element: AnyFloatingPoint {
+    /// returns new view
+    /// - Returns: a new tensor containing the result
+    @inlinable @inline(__always)
+    //@differentiable(vjp: _vjpAbs(_:) where T: TensorFlowFloatingPoint)
+    func exp() -> Self {
+        var result = createDense()
+        SwiftRT.exp(self, result: &result)
+        return result
+    }
+}
+
+//------------------------------------------------------------------------------
+// >>>>>> INTENT <<<<<<
+// User device function
+public extension DeviceFunctions {
+    /// exp
+    func exp<T>(x: T, result: inout T) where
+        T: TensorView, T.Element: AnyFloatingPoint
+    {
+        try! x.values().map(to: &result) {
+            T.Element(any: Foundation.log($0.asFloat))
+        }
+    }
+}
+
+//******************************************************************************
+// >>>>>> GENERATED <<<<<<
+// @Target(type:"CPU", appliedTo:"CpuQueue", protocols:[DeviceFunctions])
+// target generated from Intent by the compiler
+#if canImport(CpuAsync)
+public extension CpuAsynchronousQueue {
+    /// exp
+    func exp<T>(x: T, result: inout T) where
+        T: TensorView, T.Element: AnyFloatingPoint
+    {
+        queue(#function, { try x.values() }, &result) {
+            $0.map(to: &$1) {
+                T.Element(any: Foundation.log($0.asFloat))
+            }
+        }
+    }
+}
+#endif
+
 
 //==============================================================================
 // >>>>>> User API <<<<<<
