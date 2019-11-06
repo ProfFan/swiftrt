@@ -54,47 +54,35 @@ class test_IterateView: XCTestCase {
     //==========================================================================
     // test_Matrix
     func test_Matrix() {
-        do {
-            let expected = [Int32](0..<4)
-            let matrix = Matrix<Int32>((2, 2), elements: expected)
-//                        print(matrix.formatted((2,0)))
-            
-            let values = try matrix.array
-            XCTAssert(values == expected, "values do not match")
-        } catch {
-            XCTFail(String(describing: error))
-        }
+        let expected = [Int32](0..<4)
+        let matrix = Matrix<Int32>((2, 2), elements: expected)
+        //                        print(matrix.formatted((2,0)))
+        
+        let values = matrix.array
+        XCTAssert(values == expected, "values do not match")
     }
     
     //==========================================================================
     // test_Volume
     func test_Volume() {
-        do {
-            let expected = [Int32](0..<24)
-            let volume = Volume<Int32>((2, 3, 4), elements: expected)
-            //            print(volume.formatted((2,0)))
-            
-            let values = try volume.array
-            XCTAssert(values == expected, "values do not match")
-        } catch {
-            XCTFail(String(describing: error))
-        }
+        let expected = [Int32](0..<24)
+        let volume = Volume<Int32>((2, 3, 4), elements: expected)
+        //            print(volume.formatted((2,0)))
+        
+        let values = volume.array
+        XCTAssert(values == expected, "values do not match")
     }
     
     //==========================================================================
     // test_VectorSubView
     func test_VectorSubView() {
-        do {
-            let vector = Vector<Int32>(with: 0..<10)
-            let view = vector.view(at: [2], extents: [3])
-            //            print(subView.formatted((2,0)))
-            
-            let expected: [Int32] = [2, 3, 4]
-            let values = try view.array
-            XCTAssert(values == expected, "values do not match")
-        } catch {
-            XCTFail(String(describing: error))
-        }
+        let vector = Vector<Int32>(with: 0..<10)
+        let view = vector.view(at: [2], extents: [3])
+        //            print(subView.formatted((2,0)))
+        
+        let expected: [Int32] = [2, 3, 4]
+        let values = view.array
+        XCTAssert(values == expected, "values do not match")
     }
     
     //==========================================================================
