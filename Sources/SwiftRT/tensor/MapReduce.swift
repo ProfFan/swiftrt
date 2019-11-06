@@ -126,7 +126,7 @@ public extension Zip2Sequence {
     /// map tensors
     @inlinable
     func map<T>(into result: inout T,
-                _ transform: (Pair) -> T.MutableValues.Element) throws
+                _ transform: (Pair) -> T.MutableValues.Element)
         where T: TensorView
     {
         var iterator = self.makeIterator()
@@ -162,7 +162,7 @@ public extension Zip3Sequence {
     /// map tensors
     @inlinable
     func map<T>(into result: inout T,
-                _ transform: (Input) -> T.MutableValues.Element) throws
+                _ transform: (Input) -> T.MutableValues.Element)
         where T: TensorView
     {
         var iterator = self.makeIterator()

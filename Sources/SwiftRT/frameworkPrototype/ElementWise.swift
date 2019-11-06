@@ -292,7 +292,7 @@ public extension DeviceFunctions {
     func equal<T>(lhs: T, rhs: T, result: inout T.BoolView) where
         T: TensorView, T.Element: Equatable
     {
-        try! zip(lhs, rhs).map(into: &result) { $0 == $1 }
+        zip(lhs, rhs).map(into: &result) { $0 == $1 }
     }
 }
 
@@ -345,7 +345,7 @@ public extension DeviceFunctions {
     func notEqual<T>(lhs: T, rhs: T, result: inout T.BoolView) where
         T: TensorView, T.Element: Equatable
     {
-        try! zip(lhs, rhs).map(into: &result) { $0 != $1 }
+        zip(lhs, rhs).map(into: &result) { $0 != $1 }
     }
 }
 

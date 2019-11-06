@@ -26,6 +26,9 @@ public protocol DeviceFunctions {
     /// all
     func all<T>(x: T, along axes: Vector<IndexElement>?, result: inout T) where
         T: TensorView, T.Element == Bool
+    /// Adds two tensors and produces their sum.
+    func add<T>(lhs: T, rhs: T, result: inout T) where
+        T: TensorView, T.Element: Numeric
     /// any
     func any<T>(x: T, along axes: Vector<IndexElement>?, result: inout T) where
         T: TensorView, T.Element == Bool
