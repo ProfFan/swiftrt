@@ -80,8 +80,8 @@ public extension DeviceFunctions {
     func all<T>(x: T, along axes: Vector<IndexElement>?, result: inout T) where
         T: TensorView, T.Element == Bool
     {
-        let xseq = try! x.values()
-        var rseq = try! result.mutableValues()
+        let xseq = x.values()
+        var rseq = result.mutableValues()
         rseq[rseq.startIndex] = xseq.first { $0 == false } == nil
     }
 }
@@ -96,7 +96,7 @@ public extension CpuAsynchronousQueue {
     func all<T>(x: T, along axes: Vector<IndexElement>?, result: inout T) where
         T: TensorView, T.Element == Bool
     {
-        queue(#function, { try x.values() }, &result) {
+        queue(#function, { x.values() }, &result) {
             $1[$1.startIndex] = $0.first { $0 == false } == nil
         }
     }
@@ -167,8 +167,8 @@ public extension DeviceFunctions {
     func any<T>(x: T, along axes: Vector<IndexElement>?, result: inout T) where
         T: TensorView, T.Element == Bool
     {
-        let xseq = try! x.values()
-        var rseq = try! result.mutableValues()
+        let xseq = x.values()
+        var rseq = result.mutableValues()
         rseq[rseq.startIndex] = xseq.first { $0 == true } != nil
     }
 }
@@ -183,7 +183,7 @@ public extension CpuAsynchronousQueue {
     func any<T>(x: T, along axes: Vector<IndexElement>?, result: inout T) where
         T: TensorView, T.Element == Bool
     {
-        queue(#function, { try x.values() }, &result) {
+        queue(#function, { x.values() }, &result) {
             $1[$1.startIndex] = $0.first { $0 == true } != nil
         }
     }
@@ -394,7 +394,7 @@ public extension TensorView where Element: AnyNumeric {
 
 //==============================================================================
 // >>>>>> User API <<<<<<
-/// min(x:alongAxes:
+/// minElement(x:alongAxes:
 /// returns the minimum element value of `x` along the specified axes
 /// TODO: add optional indices
 ///
@@ -403,7 +403,7 @@ public extension TensorView where Element: AnyNumeric {
 /// - Parameter result: the scalar tensor where the result will be written
 /// - Precondition: Each value in `axes` must be in the range `-rank..<rank`.
 @inlinable
-public func min<T>(_ x: T, alongAxes axes: [Int]? = nil, result: inout T)
+public func minElement<T>(_ x: T, alongAxes axes: [Int]? = nil, result: inout T)
     where T: TensorView, T.Element: AnyNumeric & Comparable
 {
     let first = try! T.Element(any: x.readOnly()[0])
@@ -418,16 +418,16 @@ public func min<T>(_ x: T, alongAxes axes: [Int]? = nil, result: inout T)
 
 public extension TensorView where Element: AnyNumeric  & Comparable {
     @inlinable
-    func min(alongAxes: Int...) -> Self {
+    func minElement(alongAxes: Int...) -> Self {
         var result = createDense()
-        SwiftRT.min(self, alongAxes: alongAxes, result: &result)
+        SwiftRT.minElement(self, alongAxes: alongAxes, result: &result)
         return result
     }
     
     @inlinable
-    func min() -> Self {
+    func minElement() -> Self {
         var result = createSingleElement()
-        SwiftRT.min(self, result: &result)
+        SwiftRT.minElement(self, result: &result)
         return result
     }
     
@@ -436,17 +436,17 @@ public extension TensorView where Element: AnyNumeric  & Comparable {
     /// - Returns: a new NDTensor containing the result
     /// - Precondition: Each value in `axes` must be in the range `-rank..<rank`.
     @inlinable
-    func min(squeezingAxes: Int...) -> NDTensor<Element> {
+    func minElement(squeezingAxes: Int...) -> NDTensor<Element> {
         let axes = shape.makePositive(indices: squeezingAxes)
         var result = createDense()
-        SwiftRT.min(self, alongAxes: axes, result: &result)
+        SwiftRT.minElement(self, alongAxes: axes, result: &result)
         return result.squeezed(axes: axes)
     }
 }
 
 //==============================================================================
 // >>>>>> User API <<<<<<
-/// max(x:alongAxes:
+/// maxElement(x:alongAxes:
 /// returns the maximum element value of `x` along the specified axes
 ///
 /// - Parameter x: value tensor
@@ -454,7 +454,7 @@ public extension TensorView where Element: AnyNumeric  & Comparable {
 /// - Parameter result: the scalar tensor where the result will be written
 /// - Precondition: Each value in `axes` must be in the range `-rank..<rank`.
 @inlinable
-public func max<T>(_ x: T, alongAxes axes: [Int]? = nil, result: inout T)
+public func maxElement<T>(_ x: T, alongAxes axes: [Int]? = nil, result: inout T)
     where T: TensorView, T.Element: AnyNumeric & Comparable
 {
     let first = try! T.Element(any: x.readOnly()[0])
@@ -469,16 +469,16 @@ public func max<T>(_ x: T, alongAxes axes: [Int]? = nil, result: inout T)
 
 public extension TensorView where Element: AnyNumeric  & Comparable {
     @inlinable
-    func max(alongAxes: Int...) -> Self {
+    func maxElement(alongAxes: Int...) -> Self {
         var result = createDense()
-        SwiftRT.max(self, alongAxes: alongAxes, result: &result)
+        SwiftRT.maxElement(self, alongAxes: alongAxes, result: &result)
         return result
     }
     
     @inlinable
-    func max() -> Self {
+    func maxElement() -> Self {
         var result = createSingleElement()
-        SwiftRT.max(self, result: &result)
+        SwiftRT.maxElement(self, result: &result)
         return result
     }
     
@@ -487,10 +487,10 @@ public extension TensorView where Element: AnyNumeric  & Comparable {
     /// - Returns: a new NDTensor containing the result
     /// - Precondition: Each value in `axes` must be in the range `-rank..<rank`.
     @inlinable
-    func max(squeezingAxes: Int...) -> NDTensor<Element> {
+    func maxElement(squeezingAxes: Int...) -> NDTensor<Element> {
         let axes = shape.makePositive(indices: squeezingAxes)
         var result = createDense()
-        SwiftRT.max(self, alongAxes: axes, result: &result)
+        SwiftRT.maxElement(self, alongAxes: axes, result: &result)
         return result.squeezed(axes: axes)
     }
 }
@@ -607,7 +607,8 @@ public extension TensorView where Element: FloatingPoint {
 /// - Parameter result: the scalar tensor where the result will be written
 /// - Precondition: Each value in `axes` must be in the range `-rank..<rank`.
 @inlinable
-public func sqrtSumSquares<T>(_ x: T, alongAxes axes: [Int]? = nil, result: inout T)
+public func sqrtSumSquares<T>(_ x: T, alongAxes axes: [Int]? = nil,
+                              result: inout T)
     where T: TensorView, T.Element: FloatingPoint
 {
     DeviceContext.currentQueue.reduce(x: x,

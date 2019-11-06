@@ -129,6 +129,21 @@ class DeviceContext {
     public var logInfo: LogInfo { return devicesStack.last![0].logInfo }
 
     //--------------------------------------------------------------------------
+    @inlinable @inline(__always)
+    public static var lastError: Error? {
+        get { DeviceContext.currentQueue.device.lastError }
+        set { DeviceContext.currentQueue.device.lastError = newValue }
+    }
+    
+    //--------------------------------------------------------------------------
+    /// report(error:event:
+    /// sets and propagates an error on the current device
+    /// - Parameter error: the error to report
+    public static func report(_ error: Error) {
+        DeviceContext.currentQueue.device.report(error: error)
+    }
+
+    //--------------------------------------------------------------------------
     // initializers
     private init() {
         devicesStack = [[Platform.local.defaultDevice]]

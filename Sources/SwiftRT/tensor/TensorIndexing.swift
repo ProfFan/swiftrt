@@ -64,7 +64,7 @@ public struct TensorValueCollection<View>: RandomAccessCollection
     public let endIndex: View.Index
     public let count: Int
 
-    public init(view: View, buffer: UnsafeBufferPointer<View.Element>) throws {
+    public init(view: View, buffer: UnsafeBufferPointer<View.Element>) {
         self.view = view
         self.buffer = buffer
         startIndex = view.startIndex
@@ -72,6 +72,14 @@ public struct TensorValueCollection<View>: RandomAccessCollection
         count = view.shape.elementCount
     }
 
+    public init(view: View) {
+        self.view = view
+        self.buffer = UnsafeBufferPointer<View.Element>(start: nil, count: 0)
+        startIndex = view.startIndex
+        endIndex = view.endIndex
+        count = view.shape.elementCount
+    }
+    
     //--------------------------------------------------------------------------
     // Collection
     @inlinable @inline(__always)
@@ -102,8 +110,16 @@ public struct TensorMutableValueCollection<View>: RandomAccessCollection,
     public let count: Int
     
     public init(view: inout View,
-                buffer: UnsafeMutableBufferPointer<View.Element>) throws {
+                buffer: UnsafeMutableBufferPointer<View.Element>) {
         self.buffer = buffer
+        startIndex = view.startIndex
+        endIndex = view.endIndex
+        count = view.shape.elementCount
+    }
+    
+    public init(view: inout View) {
+        self.buffer = UnsafeMutableBufferPointer<View.Element>(start: nil,
+                                                               count: 0)
         startIndex = view.startIndex
         endIndex = view.endIndex
         count = view.shape.elementCount

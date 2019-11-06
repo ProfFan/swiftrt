@@ -109,7 +109,7 @@ public extension DeviceFunctions {
             // TODO
         } else {
             do {
-                try x.values().reduce(into: &result, initialResult, opNext)
+                x.reduce(into: &result, initialResult, opNext)
                 let buffer = try result.readWrite()
                 buffer[0] = opFinal(buffer[0])
             } catch {
@@ -137,12 +137,12 @@ public extension CpuAsynchronousQueue {
     {
         if let axes = axes, axes.count > 0 {
             assert(axes.count <= x.rank, "rank mismatch")
-            queue(#function, { try (x.values(), axes) }, &result)
+            queue(#function, { (x.values(), axes) }, &result)
             { params, result in
                 // TODO
             }
         } else {
-            queue(#function, { try x.values() }, &result) {
+            queue(#function, { x.values() }, &result) {
                 $0.reduce(into: &$1, initialResult, opNext)
                 $1[$1.startIndex] = opFinal($1[$1.startIndex])
             }

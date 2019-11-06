@@ -320,7 +320,7 @@ public extension TensorView {
     /// an array of viewed elements
     @inlinable @inline(__always)
     func array() throws -> [Element] {
-        return [Element](try values())
+        return [Element](values())
     }
 
     //--------------------------------------------------------------------------

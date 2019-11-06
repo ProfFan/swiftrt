@@ -47,7 +47,7 @@ public extension DeviceFunctions {
     /// fills the view with the scalar value
     func fill<T>(_ result: inout T, with value: T.Element) where T: TensorView {
         // TODO: can we hide the values/mutable values collections
-        var values = try! result.mutableValues()
+        var values = result.mutableValues()
         for index in values.indices {
             values[index] = value
         }
@@ -59,7 +59,7 @@ public extension DeviceFunctions {
     {
         // TODO: can we hide the values/mutable values collections
         var value = startAt
-        var values = try! result.mutableValues()
+        var values = result.mutableValues()
         for index in values.indices {
             values[index] = T.Element(any: value)
             value += 1

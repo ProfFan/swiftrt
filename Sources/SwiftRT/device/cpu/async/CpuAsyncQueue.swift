@@ -212,7 +212,7 @@ public final class CpuAsynchronousQueue: CpuQueueProtocol, LocalDeviceQueue {
     //--------------------------------------------------------------------------
     /// perform indexed copy from source view to result view
     public func copy<T>(from view: T, to result: inout T) where T : TensorView {
-        queue(#function, { try view.values() }, &result) {
+        queue(#function, { view.values() }, &result) {
             $0.map(into: &$1) { $0 }
         }
     }

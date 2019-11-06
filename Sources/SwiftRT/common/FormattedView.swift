@@ -34,12 +34,7 @@ public extension TensorView where Element: AnyConvertable & CVarArg {
         let indentSize = "  "
         let extents = shape.extents
         let lastDimension = shape.lastDimension
-        let values: TensorValueCollection<Self>
-        do {
-            values = try self.values()
-        } catch {
-            return "Failed to retrieve values. " + String(describing: error)
-        }
+        let values = self.values()
         var iterator = values.makeIterator()
 
         // clamp ranges

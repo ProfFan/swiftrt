@@ -34,20 +34,30 @@ public typealias NHWCExtents = (items: Int, rows: Int, cols: Int, channels: Int)
 public extension TensorView {
     //--------------------------------------------------------------------------
     /// returns a collection of read only values
-    func values(using queue: DeviceQueue? = nil) throws
+    func values(using queue: DeviceQueue? = nil)
         -> TensorValueCollection<Self>
     {
-        let buffer = try readOnly(using: queue)
-        return try TensorValueCollection(view: self, buffer: buffer)
+        do {
+            let buffer = try readOnly(using: queue)
+            return TensorValueCollection(view: self, buffer: buffer)
+        } catch {
+            DeviceContext.report(error)
+            return TensorValueCollection(view: self)
+        }
     }
     
     //--------------------------------------------------------------------------
     /// returns a collection of read write values
-    mutating func mutableValues(using queue: DeviceQueue? = nil) throws
+    mutating func mutableValues(using queue: DeviceQueue? = nil)
         -> TensorMutableValueCollection<Self>
     {
-        let buffer = try readWrite(using: queue)
-        return try TensorMutableValueCollection(view: &self, buffer: buffer)
+        do {
+            let buffer = try readWrite(using: queue)
+            return TensorMutableValueCollection(view: &self, buffer: buffer)
+        } catch {
+            DeviceContext.report(error)
+            return TensorMutableValueCollection(view: &self)
+        }
     }
 }
 

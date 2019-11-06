@@ -64,9 +64,7 @@ public extension DeviceFunctions {
     func exp<T>(x: T, result: inout T) where
         T: TensorView, T.Element: AnyFloatingPoint
     {
-        try! x.values().map(into: &result) {
-            T.Element(any: Foundation.exp($0.asFloat))
-        }
+        x.map(into: &result) { T.Element(any: Foundation.exp($0.asFloat)) }
     }
 }
 
@@ -80,7 +78,7 @@ public extension CpuAsynchronousQueue {
     func exp<T>(x: T, result: inout T) where
         T: TensorView, T.Element: AnyFloatingPoint
     {
-        queue(#function, { try x.values() }, &result) {
+        queue(#function, { x.values() }, &result) {
             $0.map(into: &$1) {
                 T.Element(any: Foundation.exp($0.asFloat))
             }
@@ -138,9 +136,7 @@ public extension DeviceFunctions {
     func log<T>(x: T, result: inout T) where
         T: TensorView, T.Element: AnyFloatingPoint
     {
-        try! x.values().map(into: &result) {
-            T.Element(any: Foundation.log($0.asFloat))
-        }
+        x.map(into: &result) { T.Element(any: Foundation.log($0.asFloat)) }
     }
 }
 
@@ -154,7 +150,7 @@ public extension CpuAsynchronousQueue {
     func log<T>(x: T, result: inout T) where
         T: TensorView, T.Element: AnyFloatingPoint
     {
-        queue(#function, { try x.values() }, &result) {
+        queue(#function, { x.values() }, &result) {
             $0.map(into: &$1) {
                 T.Element(any: Foundation.log($0.asFloat))
             }
@@ -214,7 +210,7 @@ public extension DeviceFunctions {
     func neg<T>(x: T, result: inout T) where
         T: TensorView, T.Element: SignedNumeric
     {
-        try! x.values().map(into: &result) { -$0 }
+        x.map(into: &result) { -$0 }
     }
 }
 
@@ -228,7 +224,7 @@ public extension CpuAsynchronousQueue {
     func neg<T>(x: T, result: inout T) where
         T: TensorView, T.Element: SignedNumeric
     {
-        queue(#function, { try x.values() }, &result) {
+        queue(#function, { x.values() }, &result) {
             $0.map(into: &$1) { -$0 }
         }
     }
@@ -271,7 +267,12 @@ public extension TensorView where Element: Equatable {
             lhs.viewOffset == rhs.viewOffset { return true }
         
         // compare elements
-        return try! (lhs .== rhs).all().asElement()
+        do {
+            return try (lhs .== rhs).all().asElement()
+        } catch {
+            DeviceContext.report(error)
+            return false
+        }
     }
 
     /// - Parameter lhs: left hand tensor
@@ -305,7 +306,7 @@ public extension CpuAsynchronousQueue {
     func equal<T>(lhs: T, rhs: T, result: inout T.BoolView) where
         T: TensorView, T.Element: Equatable
     {
-        queue(#function, { try (lhs.values(), rhs.values()) }, &result) {
+        queue(#function, { (lhs.values(), rhs.values()) }, &result) {
             zip($0.0, $0.1).map(into: &$1) { $0 == $1 }
         }
     }
@@ -358,7 +359,7 @@ public extension CpuAsynchronousQueue {
     func notEqual<T>(lhs: T, rhs: T, result: inout T.BoolView) where
         T: TensorView, T.Element: Equatable
     {
-        queue(#function, { try (lhs.values(), rhs.values()) }, &result) {
+        queue(#function, { (lhs.values(), rhs.values()) }, &result) {
             zip($0.0, $0.1).map(into: &$1) { $0 != $1 }
         }
     }

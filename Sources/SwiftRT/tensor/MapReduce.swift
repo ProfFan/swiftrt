@@ -13,6 +13,77 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 //
+
+//==============================================================================
+// map
+public extension TensorView {
+    /// map a tensor into a tensor
+    @inlinable
+    func map<R: TensorView>(
+        into result: inout R,
+        _ transform: (Element) -> R.MutableValues.Element)
+    {
+        guard DeviceContext.lastError == nil else { return }
+        let elements = values()
+        var results = result.mutableValues()
+        for i in elements.indices {
+            for j in results.indices {
+                results[j] = transform(elements[i])
+            }
+        }
+    }
+
+    /// map a tensor to a new tensor
+    @inlinable
+    func map(_ transform: (Element) -> Element) -> Self {
+        var result = createDense()
+        let elements = values()
+        var results = result.mutableValues()
+        for i in elements.indices {
+            for j in results.indices {
+                results[j] = transform(elements[i])
+            }
+        }
+        return result
+    }
+    
+    /// reduce to a tensor
+    func reduce<T>(
+        into result: inout T,
+        _ initialResult: Element,
+        _ nextPartialResult: (Element, Element) -> Element)
+        where T: TensorView, Element == T.Element
+    {
+        let elements = values()
+        var results = result.mutableValues()
+        var partial = initialResult
+
+        for element in elements {
+            partial = nextPartialResult(partial, element)
+        }
+        results[results.startIndex] = partial
+    }
+    
+    /// reduce to a mutable collection
+    @inlinable
+    func reduce(
+        _ initialResult: Element,
+        _ nextPartialResult: (Element, Element) -> Element) -> Self
+    {
+        let elements = values()
+        var result = createDense()
+        var results = result.mutableValues()
+        var partial = initialResult
+
+        for element in elements {
+            partial = nextPartialResult(partial, element)
+        }
+        results[results.startIndex] = partial
+        return result
+    }
+
+}
+
 //==============================================================================
 // map
 public extension Sequence {
@@ -23,7 +94,7 @@ public extension Sequence {
         R: TensorView
     {
         var iterator = self.makeIterator()
-        var results = try result.mutableValues()
+        var results = result.mutableValues()
         
         for i in results.indices {
             if let value = iterator.next() {
@@ -59,7 +130,7 @@ public extension Zip2Sequence {
         where T: TensorView
     {
         var iterator = self.makeIterator()
-        var results = try result.mutableValues()
+        var results = result.mutableValues()
         
         for i in results.indices {
             if let pair = iterator.next() {
@@ -95,7 +166,7 @@ public extension Zip3Sequence {
         where T: TensorView
     {
         var iterator = self.makeIterator()
-        var results = try result.mutableValues()
+        var results = result.mutableValues()
         
         for i in results.indices {
             if let input = iterator.next() {
@@ -122,11 +193,11 @@ public extension Zip3Sequence {
 
 //==============================================================================
 // zip
-public func zip<T1, T2>(_ t1: T1, _ t2: T2) throws ->
+public func zip<T1, T2>(_ t1: T1, _ t2: T2) ->
     Zip2Sequence<TensorValueCollection<T1>, TensorValueCollection<T2>>
     where T1: TensorView, T2: TensorView
 {
-    return try zip(t1.values(), t2.values())
+    return zip(t1.values(), t2.values())
 }
 
 //==============================================================================
@@ -136,13 +207,13 @@ public extension Sequence {
     func reduce<T>(
         into result: inout T,
         _ initialResult: Element,
-        _ nextPartialResult: (Element, Element) throws -> Element) throws
+        _ nextPartialResult: (Element, Element) -> Element)
         where T: TensorView, Element == T.Element
     {
-        var results = try result.mutableValues()
+        var results = result.mutableValues()
         var partial = initialResult
         for value in self {
-            partial = try nextPartialResult(partial, value)
+            partial = nextPartialResult(partial, value)
         }
         results[results.startIndex] = partial
     }
@@ -152,12 +223,12 @@ public extension Sequence {
     func reduce<T>(
         into result: inout T,
         _ initialResult: Element,
-        _ nextPartialResult: (Element, Element) throws -> Element) rethrows
+        _ nextPartialResult: (Element, Element) -> Element)
         where T: MutableCollection, Element == T.Element
     {
         var partial = initialResult
         for value in self {
-            partial = try nextPartialResult(partial, value)
+            partial = nextPartialResult(partial, value)
         }
         result[result.startIndex] = partial
     }
