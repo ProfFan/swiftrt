@@ -20,6 +20,7 @@ public func allTests() -> [XCTestCaseEntry] {
     return [
         testCase(test_ElementWise.allTests),
         testCase(test_DataMigration.allTests),
+        testCase(test_BinaryFunctions.allTest),
 //        testCase(test_Syntax.allTests),
     ]
 }

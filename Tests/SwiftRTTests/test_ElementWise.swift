@@ -51,14 +51,10 @@ class test_ElementWise: XCTestCase {
     //--------------------------------------------------------------------------
     // test_neg
     func test_neg() {
-        do {
-            let range = 0..<6
-            let matrix = Matrix<Float>((3, 2), name: "matrix", with: range)
-            let values = try matrix.neg().array()
-            let expected: [Float] = range.map { -Float($0) }
-            XCTAssert(values == expected)
-        } catch {
-            XCTFail(String(describing: error))
-        }
+        let range = 0..<6
+        let matrix = Matrix<Float>((3, 2), name: "matrix", with: range)
+        let values = matrix.neg().array
+        let expected: [Float] = range.map { -Float($0) }
+        XCTAssert(values == expected)
     }
 }

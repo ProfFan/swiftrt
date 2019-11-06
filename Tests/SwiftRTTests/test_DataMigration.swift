@@ -413,15 +413,10 @@ class test_DataMigration: XCTestCase {
     //   2, 3,
     //   4, 5
     func test_columnMajorDataView() {
-        do {
-            let cmMatrix = Matrix<Int32>((3, 2), layout: .columnMajor,
-                                         elements: [0, 2, 4, 1, 3, 5])
-            
-            let expected = [Int32](0..<6)
-            let values = try cmMatrix.array()
-            XCTAssert(values == expected, "values don't match")
-        } catch {
-            XCTFail(String(describing: error))
-        }
+        let cmMatrix = Matrix<Int32>((3, 2), layout: .columnMajor,
+                                     elements: [0, 2, 4, 1, 3, 5])
+        let expected = [Int32](0..<6)
+        let values = cmMatrix.array
+        XCTAssert(values == expected, "values don't match")
     }
 }

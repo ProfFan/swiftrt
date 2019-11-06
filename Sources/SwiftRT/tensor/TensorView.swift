@@ -319,7 +319,7 @@ public extension TensorView {
     //--------------------------------------------------------------------------
     /// an array of viewed elements
     @inlinable @inline(__always)
-    func array() throws -> [Element] {
+    var array: [Element] {
         return [Element](values())
     }
 
