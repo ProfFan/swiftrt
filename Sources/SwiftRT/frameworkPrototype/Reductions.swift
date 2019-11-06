@@ -53,7 +53,7 @@ public extension TensorView where Element == Bool {
     
     @inlinable
     func all() -> Self {
-        var result = createDenseValue()
+        var result = createSingleElement()
         SwiftRT.all(self, result: &result)
         return result
     }
@@ -140,7 +140,7 @@ public extension TensorView where Element == Bool {
     
     @inlinable
     func any() -> Self {
-        var result = createDenseValue()
+        var result = createSingleElement()
         SwiftRT.any(self, result: &result)
         return result
     }
@@ -222,7 +222,7 @@ public extension TensorView where Element: AnyNumeric {
     
     @inlinable
     func sum() -> Self {
-        var result = createDenseValue()
+        var result = createSingleElement()
         SwiftRT.sum(self, result: &result)
         return result
     }
@@ -273,7 +273,7 @@ public extension TensorView where Element: FloatingPoint {
 
     @inlinable
     func mean() -> Self {
-        var result = createDenseValue()
+        var result = createSingleElement()
         SwiftRT.mean(self, result: &result)
         return result
     }
@@ -323,7 +323,7 @@ public extension TensorView where Element: AnyNumeric {
     
     @inlinable
     func prod() -> Self {
-        var result = createDenseValue()
+        var result = createSingleElement()
         SwiftRT.prod(self, result: &result)
         return result
     }
@@ -374,7 +374,7 @@ public extension TensorView where Element: AnyNumeric {
     
     @inlinable
     func prodNonZeros() -> Self {
-        var result = createDenseValue()
+        var result = createSingleElement()
         SwiftRT.prodNonZeros(self, result: &result)
         return result
     }
@@ -426,7 +426,7 @@ public extension TensorView where Element: AnyNumeric  & Comparable {
     
     @inlinable
     func min() -> Self {
-        var result = createDenseValue()
+        var result = createSingleElement()
         SwiftRT.min(self, result: &result)
         return result
     }
@@ -477,7 +477,7 @@ public extension TensorView where Element: AnyNumeric  & Comparable {
     
     @inlinable
     func max() -> Self {
-        var result = createDenseValue()
+        var result = createSingleElement()
         SwiftRT.max(self, result: &result)
         return result
     }
@@ -529,7 +529,7 @@ public extension TensorView where Element: AnyNumeric  & Comparable {
     
     @inlinable
     func absmax() -> Self {
-        var result = createDenseValue()
+        var result = createSingleElement()
         SwiftRT.absmax(self, result: &result)
         return result
     }
@@ -579,7 +579,7 @@ public extension TensorView where Element: FloatingPoint {
     
     @inlinable
     func abssum() -> Self {
-        var result = createDenseValue()
+        var result = createSingleElement()
         SwiftRT.abssum(self, result: &result)
         return result
     }
@@ -629,7 +629,7 @@ public extension TensorView where Element: FloatingPoint {
     
     @inlinable
     func sqrtSumSquares() -> Self {
-        var result = createDenseValue()
+        var result = createSingleElement()
         SwiftRT.sqrtSumSquares(self, result: &result)
         return result
     }

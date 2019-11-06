@@ -74,7 +74,10 @@ public protocol TensorView: Logging {
     var tensorArray: TensorArray<Element> { get set }
     /// the linear element offset where the view begins
     var viewOffset: Int { get set }
-
+    /// a static array of 1's with count == rank
+    /// used for creating reduction result tensors
+    var singleElementExtents: [Int] { get }
+    
     //--------------------------------------------------------------------------
     /// fully specified used for creating views
     init(shape: DataShape,
@@ -222,20 +225,23 @@ public extension TensorView {
     
     func createDense() -> Self { return createDense(with: self.extents) }
     
-    /// createDenseValue
+    //--------------------------------------------------------------------------
+    /// createSingleElement
     /// helper to create a rank extended value
-    func createDenseValue(name: String? = nil) -> Self {
-        return createDense(with: [Int](repeating: 1, count: rank))
+    func createSingleElement(name: String? = nil) -> Self {
+        let shape = DataShape(extents: singleElementExtents,
+                              strides: singleElementExtents)
+        let name = name ?? String(describing: Self.self)
+        let array = TensorArray<Element>(count: 1, name: name)
+        return Self(shape: shape,
+                    tensorArray: array, viewOffset: 0,
+                    isShared: false)
     }
 
     //--------------------------------------------------------------------------
     /// create(value:
     func create(value: Element, name: String? = nil) -> Self {
-        let name = name ?? String(describing: Self.self)
-        let array = TensorArray<Element>(count: 1, name: name)
-        var view = Self(shape: self.shape.dense,
-                        tensorArray: array, viewOffset: 0,
-                        isShared: false)
+        var view = createSingleElement(name: name)
         try! view.readWrite()[0] = value
         return view
     }

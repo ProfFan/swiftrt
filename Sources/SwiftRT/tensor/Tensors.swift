@@ -113,6 +113,7 @@ public struct ScalarValue<Element>: ScalarView {
     public let shape: DataShape
     public var tensorArray: TensorArray<Element>
     public var viewOffset: Int
+    public let singleElementExtents = [1]
     
     public init(shape: DataShape,
                 tensorArray: TensorArray<Element>,
@@ -234,7 +235,8 @@ public struct Vector<Element>: VectorView {
     public let shape: DataShape
     public var tensorArray: TensorArray<Element>
     public var viewOffset: Int
-    
+    public let singleElementExtents = [1]
+
     public init(shape: DataShape,
                 tensorArray: TensorArray<Element>,
                 viewOffset: Int,
@@ -382,7 +384,8 @@ public struct Matrix<Element>: MatrixView {
     public let shape: DataShape
     public var tensorArray: TensorArray<Element>
     public var viewOffset: Int
-    
+    public let singleElementExtents = [1, 1]
+
     public init(shape: DataShape,
                 tensorArray: TensorArray<Element>,
                 viewOffset: Int,
@@ -512,6 +515,7 @@ public struct Volume<Element>: VolumeView {
     public let shape: DataShape
     public var tensorArray: TensorArray<Element>
     public var viewOffset: Int
+    public let singleElementExtents = [1, 1, 1]
 
     public init(shape: DataShape,
                 tensorArray: TensorArray<Element>,
@@ -625,6 +629,7 @@ public struct NDTensor<Element>: NDTensorView {
     public let shape: DataShape
     public var tensorArray: TensorArray<Element>
     public var viewOffset: Int
+    public let singleElementExtents: [Int]
 
     public init(shape: DataShape,
                 tensorArray: TensorArray<Element>,
@@ -635,6 +640,7 @@ public struct NDTensor<Element>: NDTensorView {
         self.tensorArray = tensorArray
         self.viewOffset = viewOffset
         self.isShared = isShared
+        self.singleElementExtents = [Int](repeating: 1, count: shape.rank)
     }
 }
 
@@ -766,6 +772,7 @@ public struct NCHWTensor<Element>: NCHWTensorView {
     public let shape: DataShape
     public var tensorArray: TensorArray<Element>
     public var viewOffset: Int
+    public let singleElementExtents = [1, 1, 1, 1]
 
     public init(shape: DataShape,
                 tensorArray: TensorArray<Element>,
@@ -907,6 +914,7 @@ public struct NHWCTensor<Element>: NHWCTensorView {
     public let shape: DataShape
     public var tensorArray: TensorArray<Element>
     public var viewOffset: Int
+    public let singleElementExtents = [1, 1, 1, 1]
 
     public init(shape: DataShape,
                 tensorArray: TensorArray<Element>,
