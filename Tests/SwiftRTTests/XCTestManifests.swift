@@ -21,7 +21,7 @@ public func allTests() -> [XCTestCaseEntry] {
         testCase(test_ElementWise.allTests),
         testCase(test_DataMigration.allTests),
         testCase(test_BinaryFunctions.allTest),
-//        testCase(test_Syntax.allTests),
+        testCase(test_IterateView.allTests),
     ]
 }
 #endif

@@ -88,8 +88,8 @@ public protocol TensorView: Logging {
     //--------------------------------------------------------------------------
     /// creates a new dense tensor of the same type with the specified extents
     func createDense(with extents: [Int], name: String?) -> Self
-    /// creates a new dense tensor of the same type with the specified value
-    func create(value: Element, name: String?) -> Self
+    /// creates a new dense tensor of the same extent with the specified value
+    func create(repeating: Element, name: String?) -> Self
     /// creates a new dense tensor where `Element` equals `Bool`
     /// with the specified extents
     func createBoolTensor(with extents: [Int]) -> BoolView
@@ -216,8 +216,8 @@ public extension TensorView {
     //--------------------------------------------------------------------------
     /// createDense
     func createDense(with extents: [Int], name: String? = nil) -> Self {
-        let shape = DataShape(extents: extents)
         let name = name ?? String(describing: Self.self)
+        let shape = DataShape(extents: extents)
         let array = TensorArray<Element>(count: shape.elementCount, name: name)
         return Self(shape: shape, tensorArray: array, viewOffset: 0,
                     isShared: false)
@@ -229,19 +229,24 @@ public extension TensorView {
     /// createSingleElement
     /// helper to create a rank extended value
     func createSingleElement(name: String? = nil) -> Self {
+        let name = name ?? String(describing: Self.self)
         let shape = DataShape(extents: singleElementExtents,
                               strides: singleElementExtents)
-        let name = name ?? String(describing: Self.self)
         let array = TensorArray<Element>(count: 1, name: name)
-        return Self(shape: shape,
-                    tensorArray: array, viewOffset: 0,
+        return Self(shape: shape, tensorArray: array, viewOffset: 0,
                     isShared: false)
     }
 
     //--------------------------------------------------------------------------
-    /// create(value:
-    func create(value: Element, name: String? = nil) -> Self {
-        var view = createSingleElement(name: name)
+    /// create(repeating:
+    func create(repeating value: Element, name: String? = nil) -> Self {
+        let name = name ?? String(describing: Self.self)
+        let strides = [Int](repeating: 0, count: rank)
+        let shape = DataShape(extents: extents, strides: strides)
+        let array = TensorArray<Element>(count: 1, name: name)
+        var view = Self(shape: shape, tensorArray: array, viewOffset: 0,
+                        isShared: false)
+        // we know we can get the cpu buffer
         try! view.readWrite()[0] = value
         return view
     }

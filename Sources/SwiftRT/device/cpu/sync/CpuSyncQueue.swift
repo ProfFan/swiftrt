@@ -133,11 +133,7 @@ public final class CpuSynchronousQueue: CpuQueueProtocol, LocalDeviceQueue {
         // if the queue is in an error state, no additional work
         // will be queued
         guard lastError == nil else { return }
-        do {
-            try view.values().map(to: &result) { $0 }
-        } catch {
-            device.report(error: error)
-        }
+        view.map(into: &result) { $0 }
     }
 
     //--------------------------------------------------------------------------

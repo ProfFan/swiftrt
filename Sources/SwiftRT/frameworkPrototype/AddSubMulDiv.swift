@@ -75,27 +75,23 @@ public extension TensorView where Element: Numeric {
     }
 }
 
-public extension TensorView where Element: FloatingPoint & AnyFloatingPoint {
-    /// operator (Self + element)
+public extension TensorView where Element: Numeric {
     /// - Parameter lhs: left hand tensor
     /// - Parameter rhs: right hand scalar. If the extents are smaller than
     ///   `lhs` then broadcasting is performed via repeated indexing.
     /// - Returns: a new tensor containing the result
     @inlinable @inline(__always)
     static func +(lhs: Self, rhs: Element) -> Self {
-        return add(lhs, lhs.create(value: rhs))
+        return add(lhs, lhs.create(repeating: rhs))
     }
-}
 
-public extension TensorView where Element: BinaryInteger {
-    /// operator (Self + scalar)
     /// - Parameter lhs: left hand tensor
     /// - Parameter rhs: right hand scalar. If the extents are smaller than
     ///   `lhs` then broadcasting is performed via repeated indexing.
     /// - Returns: a new tensor containing the result
     @inlinable @inline(__always)
-    static func +(lhs: Self, rhs: Element) -> Self {
-        return add(lhs, lhs.create(value: rhs))
+    static func += (lhs: inout Self, rhs: Element) {
+        lhs = lhs + rhs
     }
 }
 
@@ -158,7 +154,6 @@ public func subtract<T>(_ lhs: T, _ rhs: T) -> T
 }
 
 public extension TensorView where Element: Numeric {
-    /// operator
     /// - Parameter lhs: left hand tensor
     /// - Parameter rhs: right hand tensor. If the extents are smaller than
     ///   `lhs` then broadcasting is performed via repeated indexing.
@@ -167,29 +162,23 @@ public extension TensorView where Element: Numeric {
     static func - (lhs: Self, rhs: Self) -> Self {
         return subtract(lhs, rhs)
     }
-}
 
-public extension TensorView where Element: FloatingPoint {
-    /// operator (Self - scalar)
     /// - Parameter lhs: left hand tensor
     /// - Parameter rhs: right hand scalar. If the extents are smaller than
     ///   `lhs` then broadcasting is performed via repeated indexing.
     /// - Returns: a new tensor containing the result
     @inlinable @inline(__always)
     static func - (lhs: Self, rhs: Element) -> Self {
-        return subtract(lhs, lhs.create(value: rhs))
+        return subtract(lhs, lhs.create(repeating: rhs))
     }
-}
 
-public extension TensorView where Element: BinaryInteger {
-    /// operator (Self - scalar)
     /// - Parameter lhs: left hand tensor
     /// - Parameter rhs: right hand scalar. If the extents are smaller than
     ///   `lhs` then broadcasting is performed via repeated indexing.
     /// - Returns: a new tensor containing the result
     @inlinable @inline(__always)
-    static func - (lhs: Self, rhs: Element) -> Self {
-        return subtract(lhs, lhs.create(value: rhs))
+    static func -= (lhs: inout Self, rhs: Element) {
+        lhs = lhs - rhs
     }
 }
 
@@ -251,7 +240,6 @@ public func mul<T>(_ lhs: T, _ rhs: T) -> T
 }
 
 public extension TensorView where Element: Numeric {
-    /// operator
     /// - Parameter lhs: left hand tensor
     /// - Parameter rhs: right hand tensor. If the extents are smaller than
     ///   `lhs` then broadcasting is performed via repeated indexing.
@@ -260,29 +248,23 @@ public extension TensorView where Element: Numeric {
     static func * (lhs: Self, rhs: Self) -> Self {
         return mul(lhs, rhs)
     }
-}
 
-public extension TensorView where Element: FloatingPoint {
-    /// operator (Self - scalar)
     /// - Parameter lhs: left hand tensor
     /// - Parameter rhs: right hand scalar. If the extents are smaller than
     ///   `lhs` then broadcasting is performed via repeated indexing.
     /// - Returns: a new tensor containing the result
     @inlinable @inline(__always)
     static func * (lhs: Self, rhs: Element) -> Self {
-        return mul(lhs, lhs.create(value: rhs))
+        return mul(lhs, lhs.create(repeating: rhs))
     }
-}
 
-public extension TensorView where Element: BinaryInteger {
-    /// operator (Self - scalar)
     /// - Parameter lhs: left hand tensor
     /// - Parameter rhs: right hand scalar. If the extents are smaller than
     ///   `lhs` then broadcasting is performed via repeated indexing.
     /// - Returns: a new tensor containing the result
     @inlinable @inline(__always)
-    static func * (lhs: Self, rhs: Element) -> Self {
-        return mul(lhs, lhs.create(value: rhs))
+    static func *= (lhs: inout Self, rhs: Element) {
+        lhs = lhs * rhs
     }
 }
 
@@ -359,8 +341,16 @@ public extension TensorView where Element: FloatingPoint {
     /// - Returns: a new tensor containing the result
     @inlinable @inline(__always)
     static func / (lhs: Self, rhs: Element) -> Self {
-        let scalarTensor = lhs.create(value: rhs)
-        return div(lhs, scalarTensor)
+        return div(lhs, lhs.create(repeating: rhs))
+    }
+
+    /// - Parameter lhs: left hand tensor
+    /// - Parameter rhs: right hand scalar. If the extents are smaller than
+    ///   `lhs` then broadcasting is performed via repeated indexing.
+    /// - Returns: a new tensor containing the result
+    @inlinable @inline(__always)
+    static func /= (lhs: inout Self, rhs: Element) {
+        lhs = lhs / rhs
     }
 }
 
