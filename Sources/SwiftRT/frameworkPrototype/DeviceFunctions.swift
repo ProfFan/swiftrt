@@ -32,6 +32,9 @@ public protocol DeviceFunctions {
     /// any
     func any<T>(x: T, along axes: Vector<IndexElement>?, result: inout T) where
         T: TensorView, T.Element == Bool
+    /// div
+    func div<T>(lhs: T, rhs: T, result: inout T) where
+        T: TensorView, T.Element: FloatingPoint
     /// equal
     func equal<T>(lhs: T, rhs: T, result: inout T.BoolView) where
         T: TensorView, T.Element: Equatable
@@ -46,6 +49,9 @@ public protocol DeviceFunctions {
     /// log
     func log<T>(x: T, result: inout T) where
         T: TensorView, T.Element: AnyFloatingPoint
+    /// mul
+    func mul<T>(lhs: T, rhs: T, result: inout T) where
+        T: TensorView, T.Element: Numeric
     /// neg
     /// returns the element-wise negation of `x`
     func neg<T>(x: T, result: inout T) where
@@ -53,6 +59,10 @@ public protocol DeviceFunctions {
     /// notEqual
     func notEqual<T>(lhs: T, rhs: T, result: inout T.BoolView) where
         T: TensorView, T.Element: Equatable
+    /// sub
+    func subtract<T>(lhs: T, rhs: T, result: inout T) where
+        T: TensorView, T.Element: Numeric
+
 
     /// reduce
     /// Reduces `x` along the specified axes
