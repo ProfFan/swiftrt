@@ -227,6 +227,16 @@ public extension TensorView {
                   viewOffset: other.viewOffset,
                   isShared: other.isShared)
     }
+    
+    //--------------------------------------------------------------------------
+    /// concatenated tensors
+    init(concatenating others: Self..., along axis: Int = 0) {
+        self = Self(concatenating: others, along: axis)
+    }
+
+    init(concatenating others: [Self], along axis: Int = 0) {
+        self = others[0]
+    }
 
     //--------------------------------------------------------------------------
     /// createDense

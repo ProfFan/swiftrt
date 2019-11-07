@@ -16,6 +16,52 @@
 
 //==============================================================================
 // >>>>>> User API <<<<<<
+///
+/// - Parameter others: array of tensors whose elements will be joined
+/// - Parameter axis: dimension to append the elements
+func concat<T>(others: [T], along axis: Int = 0, result: inout T) where
+    T: TensorView
+{
+    DeviceContext.currentQueue.concat(others: others, along: axis,
+                                      result: &result)
+}
+
+public extension TensorView {
+    func concat(others: [Self], along axis: Int = 0) -> Self {
+        var result = createDense()
+        DeviceContext.currentQueue.concat(others: others, along: axis,
+                                          result: &result)
+        return result
+    }
+}
+
+//------------------------------------------------------------------------------
+// >>>>>> INTENT <<<<<<
+// User device function
+public extension DeviceFunctions {
+    func concat<T>(others: [T], along axis: Int, result: inout T) where
+        T: TensorView
+    {
+    }
+}
+
+//******************************************************************************
+// >>>>>> GENERATED <<<<<<
+// @Target(type:"CPU", appliedTo:"CpuQueue", protocols:[DeviceFunctions])
+// target generated from Intent by the compiler
+#if canImport(CpuAsync)
+public extension CpuAsynchronousQueue {
+    func concat<T>(others: [T], along axis: Int, result: inout T) where
+        T: TensorView
+    {
+//        queue(#function, {}, &result) {
+//        }
+    }
+}
+#endif
+
+//==============================================================================
+// >>>>>> User API <<<<<<
 /// fill<T>(result:value:
 /// fills the view with the specified value
 public func fill<T>(_ result: inout T, with value: T.Element) where

@@ -297,7 +297,6 @@ public extension CpuAsynchronousQueue {
 }
 #endif
 
-
 //==============================================================================
 // >>>>>> User API <<<<<<
 /// neg(x)
@@ -494,6 +493,71 @@ public extension CpuAsynchronousQueue {
     {
         queue(#function, { (lhs.values(), rhs.values()) }, &result) {
             zip($0.0, $0.1).map(into: &$1) { $0 != $1 }
+        }
+    }
+}
+#endif
+
+//==============================================================================
+// >>>>>> User API <<<<<<
+/// squared(x)
+/// computes the elementwise squares of `x`
+///
+/// with placement
+/// - Parameter x: value tensor
+/// - Parameter result: the tensor where the result will be written
+@inlinable @inline(__always)
+public func squared<T>(_ x: T, result: inout T)
+    where T: TensorView, T.Element: Numeric
+{
+    DeviceContext.currentQueue.squared(x: x, result: &result)
+}
+
+/// returns new view
+/// - Parameter x: value tensor
+/// - Parameter result: the tensor where the result will be written
+@inlinable @inline(__always)
+public func squared<T>(_ x: T) -> T
+    where T: TensorView, T.Element: Numeric
+{
+    var result = x.createDense()
+    squared(x, result: &result)
+    return result
+}
+
+public extension TensorView where Element: Numeric {
+    /// returns new view
+    /// - Returns: a new tensor containing the result
+    @inlinable @inline(__always)
+    func squared() -> Self {
+        var result = createDense()
+        SwiftRT.squared(self, result: &result)
+        return result
+    }
+}
+
+//------------------------------------------------------------------------------
+// >>>>>> INTENT <<<<<<
+// User device function
+public extension DeviceFunctions {
+    func squared<T>(x: T, result: inout T) where
+        T: TensorView, T.Element: Numeric
+    {
+        x.map(into: &result) { $0 * $0 }
+    }
+}
+
+//******************************************************************************
+// >>>>>> GENERATED <<<<<<
+// @Target(type:"CPU", appliedTo:"CpuQueue", protocols:[DeviceFunctions])
+// target generated from Intent by the compiler
+#if canImport(CpuAsync)
+public extension CpuAsynchronousQueue {
+    func squared<T>(x: T, result: inout T) where
+        T: TensorView, T.Element: Numeric
+    {
+        queue(#function, { x.values() }, &result) {
+            $0.map(into: &$1) { $0 * $0 }
         }
     }
 }

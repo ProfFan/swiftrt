@@ -81,7 +81,13 @@ public extension TensorView where Element: Numeric {
     static func +(lhs: Self, rhs: Element) -> Self {
         return add(lhs, lhs.create(repeating: rhs))
     }
-
+    /// - Parameter lhs: left hand scalar
+    /// - Parameter rhs: right hand tensor
+    /// - Returns: a new tensor containing the result
+    @inlinable @inline(__always)
+    static func +(lhs: Element, rhs: Self) -> Self {
+        return add(rhs.create(repeating: lhs), rhs)
+    }
     /// - Parameter lhs: left hand tensor
     /// - Parameter rhs: right hand scalar. If the extents are smaller than
     ///   `lhs` then broadcasting is performed via repeated indexing.
@@ -168,7 +174,13 @@ public extension TensorView where Element: Numeric {
     static func - (lhs: Self, rhs: Element) -> Self {
         return subtract(lhs, lhs.create(repeating: rhs))
     }
-
+    /// - Parameter lhs: left hand scalar
+    /// - Parameter rhs: right hand tensor
+    /// - Returns: a new tensor containing the result
+    @inlinable @inline(__always)
+    static func -(lhs: Element, rhs: Self) -> Self {
+        return subtract(rhs.create(repeating: lhs), rhs)
+    }
     /// - Parameter lhs: left hand tensor
     /// - Parameter rhs: right hand scalar. If the extents are smaller than
     ///   `lhs` then broadcasting is performed via repeated indexing.
@@ -255,6 +267,14 @@ public extension TensorView where Element: Numeric {
         return mul(lhs, lhs.create(repeating: rhs))
     }
 
+    /// - Parameter lhs: left hand scalar
+    /// - Parameter rhs: right hand tensor
+    /// - Returns: a new tensor containing the result
+    @inlinable @inline(__always)
+    static func * (lhs: Element, rhs: Self) -> Self {
+        return mul(rhs.create(repeating: lhs), rhs)
+    }
+    
     /// - Parameter lhs: left hand tensor
     /// - Parameter rhs: right hand scalar. If the extents are smaller than
     ///   `lhs` then broadcasting is performed via repeated indexing.
@@ -340,7 +360,13 @@ public extension TensorView where Element: FloatingPoint {
     static func / (lhs: Self, rhs: Element) -> Self {
         return div(lhs, lhs.create(repeating: rhs))
     }
-
+    /// - Parameter lhs: left hand scalar
+    /// - Parameter rhs: right hand tensor
+    /// - Returns: a new tensor containing the result
+    @inlinable @inline(__always)
+    static func / (lhs: Element, rhs: Self) -> Self {
+        return div(rhs.create(repeating: lhs), rhs)
+    }
     /// - Parameter lhs: left hand tensor
     /// - Parameter rhs: right hand scalar. If the extents are smaller than
     ///   `lhs` then broadcasting is performed via repeated indexing.

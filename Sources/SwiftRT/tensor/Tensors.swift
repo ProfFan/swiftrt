@@ -30,6 +30,7 @@ public typealias NCHWPosition = (i: Int, ch: Int, r: Int, c: Int)
 public typealias NCHWExtents = (items: Int, channels: Int, rows: Int, cols: Int)
 public typealias NHWCPosition = (i: Int, r: Int, c: Int, ch: Int)
 public typealias NHWCExtents = (items: Int, rows: Int, cols: Int, channels: Int)
+let countMismatch = "the number of initial elements must equal the tensor size"
 
 public extension TensorView {
     //--------------------------------------------------------------------------
@@ -230,6 +231,7 @@ public extension VectorView {
     {
         let shape = DataShape(extents: [elements.count])
         let name = name ?? String(describing: Self.self)
+        assert(shape.elementCount == elements.count, countMismatch)
         let array = TensorArray<Element>(elements: elements, name: name)
         self.init(shape: shape, tensorArray: array,
                   viewOffset: 0, isShared: false)
@@ -378,6 +380,7 @@ public extension MatrixView {
         let shape = layout == .rowMajor ?
             DataShape(extents: extents) :
             DataShape(extents: extents).columnMajor()
+        assert(shape.elementCount == elements.count, countMismatch)
         let name = name ?? String(describing: Self.self)
         let array = TensorArray<Element>(elements: elements, name: name)
         self.init(shape: shape, tensorArray: array,
@@ -510,6 +513,7 @@ public extension VolumeView {
         let extents = [extents.depths, extents.rows, extents.cols]
         let shape = DataShape(extents: extents)
         let name = name ?? String(describing: Self.self)
+        assert(shape.elementCount == elements.count, countMismatch)
         let array = TensorArray<Element>(elements: elements, name: name)
         self.init(shape: shape, tensorArray: array,
                   viewOffset: 0, isShared: false)
@@ -623,6 +627,7 @@ public extension NDTensorView {
     {
         let shape = DataShape(extents: extents)
         let name = name ?? String(describing: Self.self)
+        assert(shape.elementCount == elements.count, countMismatch)
         let array = TensorArray<Element>(elements: elements, name: name)
         self.init(shape: shape, tensorArray: array,
                   viewOffset: 0, isShared: false)
@@ -767,6 +772,7 @@ public extension NCHWTensorView {
                        extents.rows, extents.cols]
         let shape = DataShape(extents: extents)
         let name = name ?? String(describing: Self.self)
+        assert(shape.elementCount == elements.count, countMismatch)
         let array = TensorArray<Element>(elements: elements, name: name)
         self.init(shape: shape, tensorArray: array,
                   viewOffset: 0, isShared: false)
@@ -909,6 +915,7 @@ public extension NHWCTensorView {
                        extents.cols, extents.channels]
         let shape = DataShape(extents: extents)
         let name = name ?? String(describing: Self.self)
+        assert(shape.elementCount == elements.count, countMismatch)
         let array = TensorArray<Element>(elements: elements, name: name)
         self.init(shape: shape, tensorArray: array,
                   viewOffset: 0, isShared: false)

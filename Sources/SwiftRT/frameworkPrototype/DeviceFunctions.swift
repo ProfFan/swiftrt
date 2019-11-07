@@ -32,6 +32,9 @@ public protocol DeviceFunctions {
     /// any
     func any<T>(x: T, along axes: Vector<IndexElement>?, result: inout T) where
         T: TensorView, T.Element == Bool
+    /// concat
+    func concat<T>(others: [T], along axis: Int, result: inout T) where
+        T: TensorView
     /// div
     func div<T>(lhs: T, rhs: T, result: inout T) where
         T: TensorView, T.Element: FloatingPoint
@@ -68,7 +71,9 @@ public protocol DeviceFunctions {
     /// subtract
     func subtract<T>(lhs: T, rhs: T, result: inout T) where
         T: TensorView, T.Element: Numeric
-
+    /// squared
+    func squared<T>(x: T, result: inout T)
+        where T: TensorView, T.Element: Numeric
 
     /// reduce
     /// Reduces `x` along the specified axes
