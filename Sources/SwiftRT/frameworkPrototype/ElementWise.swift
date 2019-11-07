@@ -44,33 +44,17 @@ public func maximum<T>(_ lhs: T, _ rhs: T) -> T
     return result
 }
 
-public extension TensorView where Element: Comparable {
-    /// - Parameter lhs: left hand tensor
-    /// - Parameter rhs: right hand tensor. If the extents are smaller than
-    ///   `lhs` then broadcasting is performed via repeated indexing.
-    /// - Returns: a new tensor containing the result
-    @inlinable @inline(__always)
-    static func .> (lhs: Self, rhs: Self) -> Self {
-        return maximum(lhs, rhs)
-    }
-
-    /// - Parameter lhs: left hand tensor
-    /// - Parameter rhs: right hand scalar. If the extents are smaller than
-    ///   `lhs` then broadcasting is performed via repeated indexing.
-    /// - Returns: a new tensor containing the result
-    @inlinable @inline(__always)
-    static func .> (lhs: Self, rhs: Element) -> Self {
-        return maximum(lhs, lhs.create(repeating: rhs))
-    }
-    
-    /// - Parameter lhs: left hand tensor
-    /// - Parameter rhs: right hand scalar. If the extents are smaller than
-    ///   `lhs` then broadcasting is performed via repeated indexing.
-    /// - Returns: a new tensor containing the result
-    @inlinable @inline(__always)
-    static func .>= (lhs: inout Self, rhs: Element) {
-        lhs = lhs .> rhs
-    }
+/// returns new view
+/// - Parameter lhs: left hand tensor
+/// - Parameter rhs: right hand scalar
+/// - Returns: a new tensor containing the result
+@inlinable @inline(__always)
+public func maximum<T>(_ lhs: T, _ rhs: T.Element) -> T
+    where T: TensorView, T.Element: Comparable
+{
+    var result = lhs.createDense()
+    maximum(lhs: lhs, rhs: lhs.create(repeating: rhs), result: &result)
+    return result
 }
 
 //------------------------------------------------------------------------------
@@ -117,6 +101,19 @@ public func minimum<T>(lhs: T, rhs: T, result: inout T) where
 
 /// returns new view
 /// - Parameter lhs: left hand tensor
+/// - Parameter rhs: right hand scalar
+/// - Returns: a new tensor containing the result
+@inlinable @inline(__always)
+public func minimum<T>(_ lhs: T, _ rhs: T.Element) -> T
+    where T: TensorView, T.Element: Comparable
+{
+    var result = lhs.createDense()
+    minimum(lhs: lhs, rhs: lhs.create(repeating: rhs), result: &result)
+    return result
+}
+
+/// returns new view
+/// - Parameter lhs: left hand tensor
 /// - Parameter rhs: right hand tensor. If the extents are smaller than
 ///   `lhs` then broadcasting is performed via repeated indexing.
 /// - Returns: a new tensor containing the result
@@ -127,35 +124,6 @@ public func minimum<T>(_ lhs: T, _ rhs: T) -> T
     var result = lhs.createDense()
     minimum(lhs: lhs, rhs: rhs, result: &result)
     return result
-}
-
-public extension TensorView where Element: Comparable {
-    /// - Parameter lhs: left hand tensor
-    /// - Parameter rhs: right hand tensor. If the extents are smaller than
-    ///   `lhs` then broadcasting is performed via repeated indexing.
-    /// - Returns: a new tensor containing the result
-    @inlinable @inline(__always)
-    static func .< (lhs: Self, rhs: Self) -> Self {
-        return minimum(lhs, rhs)
-    }
-    
-    /// - Parameter lhs: left hand tensor
-    /// - Parameter rhs: right hand scalar. If the extents are smaller than
-    ///   `lhs` then broadcasting is performed via repeated indexing.
-    /// - Returns: a new tensor containing the result
-    @inlinable @inline(__always)
-    static func .< (lhs: Self, rhs: Element) -> Self {
-        return minimum(lhs, lhs.create(repeating: rhs))
-    }
-    
-    /// - Parameter lhs: left hand tensor
-    /// - Parameter rhs: right hand scalar. If the extents are smaller than
-    ///   `lhs` then broadcasting is performed via repeated indexing.
-    /// - Returns: a new tensor containing the result
-    @inlinable @inline(__always)
-    static func .<= (lhs: inout Self, rhs: Element) {
-        lhs = lhs .< rhs
-    }
 }
 
 //------------------------------------------------------------------------------

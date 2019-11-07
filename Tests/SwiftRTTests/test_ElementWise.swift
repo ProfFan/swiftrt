@@ -70,6 +70,16 @@ class test_ElementWise: XCTestCase {
     }
     
     //--------------------------------------------------------------------------
+    // test_maximumScalar
+    func test_maximumScalar() {
+        let m1 = Matrix<Float>((3, 2), name: "matrix", with: [0, 1, 2])
+        let result = maximum(m1, 1)
+        let values = result.array
+        let expected: [Float] = [0, 1, 1]
+        XCTAssert(values == expected)
+    }
+    
+    //--------------------------------------------------------------------------
     // test_minimum
     func test_minimum() {
         let m1 = Matrix<Float>((3, 2), name: "matrix",
