@@ -136,7 +136,7 @@ public extension TensorView where Element: Comparable {
     /// - Returns: a new tensor containing the result
     @inlinable @inline(__always)
     static func .< (lhs: Self, rhs: Self) -> Self {
-        return maximum(lhs, rhs)
+        return minimum(lhs, rhs)
     }
     
     /// - Parameter lhs: left hand tensor
@@ -145,7 +145,7 @@ public extension TensorView where Element: Comparable {
     /// - Returns: a new tensor containing the result
     @inlinable @inline(__always)
     static func .< (lhs: Self, rhs: Element) -> Self {
-        return maximum(lhs, lhs.create(repeating: rhs))
+        return minimum(lhs, lhs.create(repeating: rhs))
     }
     
     /// - Parameter lhs: left hand tensor
