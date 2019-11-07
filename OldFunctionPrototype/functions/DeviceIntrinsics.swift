@@ -142,7 +142,6 @@ public protocol DeviceIntrinsics {
     func max<T>(x: T, along axes: [Int], result: inout T) where
         T: TensorView, T.Element: Numeric
     /// Computes the element-wise maximum of two tensors.
-    /// - Note: `max` supports broadcasting.
     func maximum<T>(lhs: T, rhs: T, result: inout T) where
         T: TensorView, T.Element: Comparable
     /// Returns the arithmetic mean along the specified axes. The reduced
@@ -159,7 +158,6 @@ public protocol DeviceIntrinsics {
     func min<T>(x: T, along axes: [Int], result: inout T) where
         T: TensorView, T.Element: Numeric
     /// Computes the element-wise minimum of two tensors.
-    /// - Note: `max` supports broadcasting.
     func minimum<T>(lhs: T, rhs: T, result: inout T) where
         T: TensorView, T.Element: Comparable
     /// Returns the remainder of dividing the first TensorView by the second.

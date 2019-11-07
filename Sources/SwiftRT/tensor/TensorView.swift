@@ -146,6 +146,21 @@ public enum TensorFormat: Int, Codable {
 
 //==============================================================================
 // TensorView default implementation
+public extension TensorView where Element: AnyScalar {
+    /// element
+    /// - Returns: the first element in the tensor as a value
+    var element: Element {
+        assert(shape.elementCount == 1)
+        do {
+            return try readOnly()[0]
+        } catch {
+            DeviceContext.report(error)
+            return Element()
+        }
+    }
+}
+//==============================================================================
+// TensorView default implementation
 public extension TensorView {
     //--------------------------------------------------------------------------
     /// the extents of the view
@@ -357,14 +372,6 @@ public extension TensorView {
                                  tensorArray: tensorArray,
                                  viewOffset: viewOffset,
                                  isShared: isShared)
-    }
-    
-    //--------------------------------------------------------------------------
-    /// asElement
-    /// - Returns: the first element in the tensor as a value
-    func asElement() throws -> Element {
-        assert(shape.elementCount == 1)
-        return try readOnly()[0]
     }
 
     //--------------------------------------------------------------------------

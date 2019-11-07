@@ -24,28 +24,26 @@ class test_ElementWise: XCTestCase {
     static var allTests = [
         ("test_equality", test_equality),
         ("test_neg", test_neg),
+        ("test_maximum", test_maximum),
+        ("test_minimum", test_minimum),
     ]
     
     //--------------------------------------------------------------------------
     // test_equality
     func test_equality() {
-        do {
-            // compare by value
-            let m1 = Matrix<Float>((3, 2), name: "matrix", with: 0..<6)
-            let m2 = Matrix<Float>((3, 2), name: "matrix", with: 0..<6)
-            XCTAssert(m1 == m2)
-            
-            // compare via alias detection
-            let m3 = m2
-            XCTAssert(m3 == m2)
-            
-            let m4 = Matrix<Float>((3, 2), name: "matrix", with: 1..<7)
-            let ne = try (m4 .!= m3).any().asElement()
-            XCTAssert(ne)
-            XCTAssert(m4 != m3)
-        } catch {
-            XCTFail(String(describing: error))
-        }
+        // compare by value
+        let m1 = Matrix<Float>((3, 2), name: "matrix", with: 0..<6)
+        let m2 = Matrix<Float>((3, 2), name: "matrix", with: 0..<6)
+        XCTAssert(m1 == m2)
+        
+        // compare via alias detection
+        let m3 = m2
+        XCTAssert(m3 == m2)
+        
+        let m4 = Matrix<Float>((3, 2), name: "matrix", with: 1..<7)
+        let ne = (m4 .!= m3).any().element
+        XCTAssert(ne)
+        XCTAssert(m4 != m3)
     }
 
     //--------------------------------------------------------------------------
@@ -55,6 +53,32 @@ class test_ElementWise: XCTestCase {
         let matrix = Matrix<Float>((3, 2), name: "matrix", with: range)
         let values = matrix.neg().array
         let expected: [Float] = range.map { -Float($0) }
+        XCTAssert(values == expected)
+    }
+    
+    //--------------------------------------------------------------------------
+    // test_maximum
+    func test_maximum() {
+        let m1 = Matrix<Float>((3, 2), name: "matrix",
+                                   with: [0, 1, -2, -3, -4, 5])
+        let m2 = Matrix<Float>((3, 2), name: "matrix",
+                                   with: [0, -7, 2, 3, 4, 5])
+        let result = maximum(m1, m2)
+        let values = result.array
+        let expected: [Float] = [0, 1, 2, 3, 4, 5]
+        XCTAssert(values == expected)
+    }
+    
+    //--------------------------------------------------------------------------
+    // test_minimum
+    func test_minimum() {
+        let m1 = Matrix<Float>((3, 2), name: "matrix",
+                               with: [0, 1, 2, -3, 4, -5])
+        let m2 = Matrix<Float>((3, 2), name: "matrix",
+                               with: [0, -1, -2, 3, -4, 5])
+        let result = minimum(m1, m2)
+        let values = result.array
+        let expected: [Float] = [0, -1, -2, -3, -4, -5]
         XCTAssert(values == expected)
     }
 }

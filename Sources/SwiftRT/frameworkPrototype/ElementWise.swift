@@ -16,6 +16,176 @@
 import Foundation
 
 //==============================================================================
+/// maximum
+/// Computes the element-wise maximum of two tensors.
+/// - Parameter lhs: left hand tensor
+/// - Parameter rhs: right hand tensor. If the extents are smaller than `lhs`
+///   then broadcasting will be performed via repeated indexing.
+/// - Parameter result: the tensor where the result will be written
+@inlinable @inline(__always)
+//@differentiable(vjp: _vjpAdd(lhs:rhs:) where Element : TensorFlowFloatingPoint)
+public func maximum<T>(lhs: T, rhs: T, result: inout T) where
+    T: TensorView, T.Element: Comparable
+{
+    DeviceContext.currentQueue.maximum(lhs: lhs, rhs: rhs, result: &result)
+}
+
+/// returns new view
+/// - Parameter lhs: left hand tensor
+/// - Parameter rhs: right hand tensor. If the extents are smaller than
+///   `lhs` then broadcasting is performed via repeated indexing.
+/// - Returns: a new tensor containing the result
+@inlinable @inline(__always)
+public func maximum<T>(_ lhs: T, _ rhs: T) -> T
+    where T: TensorView, T.Element: Comparable
+{
+    var result = lhs.createDense()
+    maximum(lhs: lhs, rhs: rhs, result: &result)
+    return result
+}
+
+public extension TensorView where Element: Comparable {
+    /// - Parameter lhs: left hand tensor
+    /// - Parameter rhs: right hand tensor. If the extents are smaller than
+    ///   `lhs` then broadcasting is performed via repeated indexing.
+    /// - Returns: a new tensor containing the result
+    @inlinable @inline(__always)
+    static func .> (lhs: Self, rhs: Self) -> Self {
+        return maximum(lhs, rhs)
+    }
+
+    /// - Parameter lhs: left hand tensor
+    /// - Parameter rhs: right hand scalar. If the extents are smaller than
+    ///   `lhs` then broadcasting is performed via repeated indexing.
+    /// - Returns: a new tensor containing the result
+    @inlinable @inline(__always)
+    static func .> (lhs: Self, rhs: Element) -> Self {
+        return maximum(lhs, lhs.create(repeating: rhs))
+    }
+    
+    /// - Parameter lhs: left hand tensor
+    /// - Parameter rhs: right hand scalar. If the extents are smaller than
+    ///   `lhs` then broadcasting is performed via repeated indexing.
+    /// - Returns: a new tensor containing the result
+    @inlinable @inline(__always)
+    static func .>= (lhs: inout Self, rhs: Element) {
+        lhs = lhs .> rhs
+    }
+}
+
+//------------------------------------------------------------------------------
+// >>>>>> INTENT <<<<<<
+// User device function
+public extension DeviceFunctions {
+    func maximum<T>(lhs: T, rhs: T, result: inout T) where
+        T: TensorView, T.Element: Comparable
+    {
+        zip(lhs, rhs).map(into: &result) { $0 <= $1 ? $0 : $1 }
+    }
+}
+
+//******************************************************************************
+// >>>>>> GENERATED <<<<<<
+// @Target(type:"CPU", appliedTo:"CpuQueue", protocols:[DeviceFunctions])
+// target generated from Intent by the compiler
+#if canImport(CpuAsync)
+public extension CpuAsynchronousQueue {
+    func maximum<T>(lhs: T, rhs: T, result: inout T) where
+        T: TensorView, T.Element: Comparable
+    {
+        queue(#function, { (lhs.values(), rhs.values()) }, &result) {
+            zip($0.0, $0.1).map(into: &$1) { $0 >= $1 ? $0 : $1 }
+        }
+    }
+}
+#endif
+
+//==============================================================================
+/// minimum
+/// Computes the element-wise maximum of two tensors.
+/// - Parameter lhs: left hand tensor
+/// - Parameter rhs: right hand tensor. If the extents are smaller than `lhs`
+///   then broadcasting will be performed via repeated indexing.
+/// - Parameter result: the tensor where the result will be written
+@inlinable @inline(__always)
+//@differentiable(vjp: _vjpAdd(lhs:rhs:) where Element : TensorFlowFloatingPoint)
+public func minimum<T>(lhs: T, rhs: T, result: inout T) where
+    T: TensorView, T.Element: Comparable
+{
+    DeviceContext.currentQueue.minimum(lhs: lhs, rhs: rhs, result: &result)
+}
+
+/// returns new view
+/// - Parameter lhs: left hand tensor
+/// - Parameter rhs: right hand tensor. If the extents are smaller than
+///   `lhs` then broadcasting is performed via repeated indexing.
+/// - Returns: a new tensor containing the result
+@inlinable @inline(__always)
+public func minimum<T>(_ lhs: T, _ rhs: T) -> T
+    where T: TensorView, T.Element: Comparable
+{
+    var result = lhs.createDense()
+    minimum(lhs: lhs, rhs: rhs, result: &result)
+    return result
+}
+
+public extension TensorView where Element: Comparable {
+    /// - Parameter lhs: left hand tensor
+    /// - Parameter rhs: right hand tensor. If the extents are smaller than
+    ///   `lhs` then broadcasting is performed via repeated indexing.
+    /// - Returns: a new tensor containing the result
+    @inlinable @inline(__always)
+    static func .< (lhs: Self, rhs: Self) -> Self {
+        return maximum(lhs, rhs)
+    }
+    
+    /// - Parameter lhs: left hand tensor
+    /// - Parameter rhs: right hand scalar. If the extents are smaller than
+    ///   `lhs` then broadcasting is performed via repeated indexing.
+    /// - Returns: a new tensor containing the result
+    @inlinable @inline(__always)
+    static func .< (lhs: Self, rhs: Element) -> Self {
+        return maximum(lhs, lhs.create(repeating: rhs))
+    }
+    
+    /// - Parameter lhs: left hand tensor
+    /// - Parameter rhs: right hand scalar. If the extents are smaller than
+    ///   `lhs` then broadcasting is performed via repeated indexing.
+    /// - Returns: a new tensor containing the result
+    @inlinable @inline(__always)
+    static func .<= (lhs: inout Self, rhs: Element) {
+        lhs = lhs .< rhs
+    }
+}
+
+//------------------------------------------------------------------------------
+// >>>>>> INTENT <<<<<<
+// User device function
+public extension DeviceFunctions {
+    func minimum<T>(lhs: T, rhs: T, result: inout T) where
+        T: TensorView, T.Element: Comparable
+    {
+        zip(lhs, rhs).map(into: &result) { $0 <= $1 ? $0 : $1 }
+    }
+}
+
+//******************************************************************************
+// >>>>>> GENERATED <<<<<<
+// @Target(type:"CPU", appliedTo:"CpuQueue", protocols:[DeviceFunctions])
+// target generated from Intent by the compiler
+#if canImport(CpuAsync)
+public extension CpuAsynchronousQueue {
+    func minimum<T>(lhs: T, rhs: T, result: inout T) where
+        T: TensorView, T.Element: Comparable
+    {
+        queue(#function, { (lhs.values(), rhs.values()) }, &result) {
+            zip($0.0, $0.1).map(into: &$1) { $0 <= $1 ? $0 : $1 }
+        }
+    }
+}
+#endif
+
+//==============================================================================
 // >>>>>> User API <<<<<<
 /// exp(x)
 /// computes the exponential value of `x`
@@ -243,7 +413,7 @@ public func equal<T>(lhs: T, rhs: T, result: inout T.BoolView) where
     DeviceContext.currentQueue.equal(lhs: lhs, rhs: rhs, result: &result)
 }
 
-public extension TensorView where Element: Equatable {
+public extension TensorView where Element: Equatable & AnyScalar {
     /// - Parameter lhs: left hand tensor
     /// - Parameter rhs: right hand tensor
     /// - Returns: a new tensor containing the result
@@ -267,12 +437,7 @@ public extension TensorView where Element: Equatable {
             lhs.viewOffset == rhs.viewOffset { return true }
         
         // compare elements
-        do {
-            return try (lhs .== rhs).all().asElement()
-        } catch {
-            DeviceContext.report(error)
-            return false
-        }
+        return (lhs .== rhs).all().element
     }
 
     /// - Parameter lhs: left hand tensor

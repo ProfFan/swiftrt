@@ -49,6 +49,12 @@ public protocol DeviceFunctions {
     /// log
     func log<T>(x: T, result: inout T) where
         T: TensorView, T.Element: AnyFloatingPoint
+    /// Computes the element-wise maximum of two tensors.
+    func maximum<T>(lhs: T, rhs: T, result: inout T) where
+        T: TensorView, T.Element: Comparable
+    /// Computes the element-wise minimum of two tensors.
+    func minimum<T>(lhs: T, rhs: T, result: inout T) where
+        T: TensorView, T.Element: Comparable
     /// mul
     func mul<T>(lhs: T, rhs: T, result: inout T) where
         T: TensorView, T.Element: Numeric
@@ -59,7 +65,7 @@ public protocol DeviceFunctions {
     /// notEqual
     func notEqual<T>(lhs: T, rhs: T, result: inout T.BoolView) where
         T: TensorView, T.Element: Equatable
-    /// sub
+    /// subtract
     func subtract<T>(lhs: T, rhs: T, result: inout T) where
         T: TensorView, T.Element: Numeric
 

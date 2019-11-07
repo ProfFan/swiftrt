@@ -228,8 +228,8 @@ class test_DataMigration: XCTestCase {
             // the host, the value is retrieved, and the temp is released.
             // This syntax is good for experiments, but should not be used
             // for repetitive actions
-            var sum = try using(device1) {
-                try matrix.sum().asElement()
+            var sum = using(device1) {
+                matrix.sum().element
             }
             XCTAssert(sum == 15.0)
             
@@ -253,8 +253,8 @@ class test_DataMigration: XCTestCase {
             // Then `asElement` causes a host array to be allocated, and the
             // the data is copied from device 2 to host, the value is returned
             // and the temporary tensor is released.
-            sum = try using(device2) {
-                try matrix.sum().asElement()
+            sum = using(device2) {
+                matrix.sum().element
             }
             XCTAssert(sum == 15.0)
             
@@ -270,8 +270,8 @@ class test_DataMigration: XCTestCase {
             // then `asElement` creates a host array and the result is
             // copied from device 2 to the host array, and then the tensor
             // is released.
-            sum = try using(device2) {
-                try matrix.sum().asElement()
+            sum = using(device2) {
+                matrix.sum().element
             }
             XCTAssert(sum == 15.0)
             
@@ -355,8 +355,8 @@ class test_DataMigration: XCTestCase {
             _ = try matrix1.readOnly(using: queue2)
             
             // sum device 1 copy should be 15
-            let sum1 = try using(device1) {
-                try matrix1.sum().asElement()
+            let sum1 = using(device1) {
+                matrix1.sum().element
             }
             XCTAssert(sum1 == 15.0)
             
@@ -367,8 +367,8 @@ class test_DataMigration: XCTestCase {
             
             // sum device 1 copy should now also be 0
             // sum device 1 copy should be 15
-            let sum2 = try using(device2) {
-                try matrix1.sum().asElement()
+            let sum2 = using(device2) {
+                matrix1.sum().element
             }
             XCTAssert(sum2 == 0)
             

@@ -73,9 +73,6 @@ public extension TensorView where Element: Numeric {
     static func + (lhs: Self, rhs: Self) -> Self {
         return add(lhs, rhs)
     }
-}
-
-public extension TensorView where Element: Numeric {
     /// - Parameter lhs: left hand tensor
     /// - Parameter rhs: right hand scalar. If the extents are smaller than
     ///   `lhs` then broadcasting is performed via repeated indexing.
