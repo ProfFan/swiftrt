@@ -23,8 +23,10 @@ class test_ElementWise: XCTestCase {
     // support terminal test run
     static var allTests = [
         ("test_equality", test_equality),
+        ("test_log", test_log),
         ("test_neg", test_neg),
         ("test_maximum", test_maximum),
+        ("test_maximumScalar", test_maximumScalar),
         ("test_minimum", test_minimum),
     ]
     
@@ -46,6 +48,16 @@ class test_ElementWise: XCTestCase {
         XCTAssert(m4 != m3)
     }
 
+    //--------------------------------------------------------------------------
+    // test_log
+    func test_log() {
+        let range = 0..<6
+        let matrix = Matrix<Float>((3, 2), name: "matrix", with: range)
+        let values = log(matrix).array
+        let expected: [Float] = range.map { Foundation.log(Float($0)) }
+        XCTAssert(values == expected)
+    }
+    
     //--------------------------------------------------------------------------
     // test_neg
     func test_neg() {
