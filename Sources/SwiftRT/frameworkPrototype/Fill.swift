@@ -27,11 +27,15 @@ func concat<T>(others: [T], along axis: Int = 0, result: inout T) where
 }
 
 public extension TensorView {
-    func concat(others: [Self], along axis: Int = 0) -> Self {
+    func concat(_ others: [Self], along axis: Int = 0) -> Self {
         var result = createDense()
         DeviceContext.currentQueue.concat(others: others, along: axis,
                                           result: &result)
         return result
+    }
+
+    func concat(_ others: Self..., along axis: Int = 0) -> Self {
+        return concat(others, along: axis)
     }
 }
 
