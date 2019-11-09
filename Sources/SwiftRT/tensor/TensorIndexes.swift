@@ -15,33 +15,6 @@
 //
 import Foundation
 
-
-//==============================================================================
-/// ScalarIndex
-public struct ScalarIndex: TensorIndexing {
-    // properties
-    public var viewIndex: Int = 0
-    public var dataIndex: Int = 0
-    
-    //--------------------------------------------------------------------------
-    // initializers
-    public init<T>(view: T, at position: ScalarPosition) where T: TensorView {}
-    public init<T>(endOf view: T) where T: TensorView { }
-    
-    //--------------------------------------------------------------------------
-    /// increment
-    /// incremental update of indexes used for iteration
-    @inlinable @inline(__always)
-    public func increment() -> ScalarIndex { return self }
-    
-    //--------------------------------------------------------------------------
-    /// advanced(by n:
-    /// bidirectional jump or movement
-    @inlinable @inline(__always)
-    public func advanced(by n: Int) -> ScalarIndex { return self }
-}
-
-
 //==============================================================================
 /// VectorIndex
 public struct VectorIndex: TensorIndexing {

@@ -17,9 +17,7 @@ import Foundation
 
 //==============================================================================
 // shaped positions and extents used for indexing and selection
-public enum MatrixLayout { case rowMajor, columnMajor }
 public typealias NDPosition = [Int]
-public typealias ScalarPosition = Int
 public typealias VectorPosition = Int
 public typealias VectorExtents = Int
 public typealias MatrixPosition = (r: Int, c: Int)
@@ -30,8 +28,13 @@ public typealias NCHWPosition = (i: Int, ch: Int, r: Int, c: Int)
 public typealias NCHWExtents = (items: Int, channels: Int, rows: Int, cols: Int)
 public typealias NHWCPosition = (i: Int, r: Int, c: Int, ch: Int)
 public typealias NHWCExtents = (items: Int, rows: Int, cols: Int, channels: Int)
+
+public enum MatrixLayout { case rowMajor, columnMajor }
+
 let countMismatch = "the number of initial elements must equal the tensor size"
 
+//==============================================================================
+// 
 public extension TensorView {
     //--------------------------------------------------------------------------
     /// returns a collection of read only values
@@ -64,83 +67,12 @@ public extension TensorView {
 
 //==============================================================================
 // Codable extensions
-extension ScalarValue: Codable where Element: Codable {}
 extension Vector: Codable where Element: Codable {}
 extension Matrix: Codable where Element: Codable {}
 extension Volume: Codable where Element: Codable {}
 extension NDTensor: Codable where Element: Codable {}
 extension NHWCTensor: Codable where Element: Codable {}
 extension NCHWTensor: Codable where Element: Codable {}
-
-//==============================================================================
-// ScalarView
-public protocol ScalarView: TensorView {}
-
-public extension ScalarView {
-    //--------------------------------------------------------------------------
-    var startIndex: ScalarIndex { return ScalarIndex(endOf: self) }
-    var endIndex: ScalarIndex { return ScalarIndex(view: self, at: 0) }
-
-    //--------------------------------------------------------------------------
-    /// BoolView
-    func createBoolTensor(with extents: [Int]) -> ScalarValue<Bool> {
-        let shape = DataShape(extents: extents)
-        let array = TensorArray<Bool>(count: shape.elementCount,
-                                      name: String(describing: Self.self))
-        return ScalarValue<Bool>(shape: shape, tensorArray: array,
-                                 viewOffset: 0,isShared: false)
-    }
-
-    //--------------------------------------------------------------------------
-    /// IndexView
-    func createIndexTensor(with extents: [Int]) -> ScalarValue<IndexElement> {
-        let shape = DataShape(extents: extents)
-        let name = String(describing: Self.self)
-        let array = TensorArray<IndexElement>(count: shape.elementCount,
-                                              name: name)
-        return ScalarValue<IndexElement>(shape: shape, tensorArray: array,
-                                         viewOffset: 0, isShared: false)
-    }
-}
-
-public extension ScalarView {
-    //--------------------------------------------------------------------------
-    /// with single value
-    init(_ element: Element, name: String? = nil) {
-        let shape = DataShape(extents: [1])
-        let name = name ?? String(describing: Self.self)
-        let array = TensorArray<Element>(elements: [element], name: name)
-        self.init(shape: shape, tensorArray: array,
-                  viewOffset: 0, isShared: false)
-    }
-}
-
-//------------------------------------------------------------------------------
-// ScalarValue
-public struct ScalarValue<Element>: ScalarView {
-    // properties
-    public let isShared: Bool
-    public let format: TensorFormat = .scalar
-    public let shape: DataShape
-    public var tensorArray: TensorArray<Element>
-    public var viewOffset: Int
-    public let singleElementExtents = [1]
-    
-    public init(shape: DataShape,
-                tensorArray: TensorArray<Element>,
-                viewOffset: Int,
-                isShared: Bool)
-    {
-        self.shape = shape
-        self.tensorArray = tensorArray
-        self.viewOffset = viewOffset
-        self.isShared = isShared
-    }
-}
-
-extension ScalarValue: CustomStringConvertible where Element: AnyConvertable {
-    public var description: String { return formatted() }
-}
 
 //==============================================================================
 // VectorView
