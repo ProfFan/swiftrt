@@ -21,6 +21,7 @@ class test_IterateView: XCTestCase {
     //==========================================================================
     // support terminal test run
     static var allTests = [
+        ("test_Vector", test_VectorRange),
         ("test_Vector", test_Vector),
         ("test_Matrix", test_Matrix),
         ("test_Volume", test_Volume),
@@ -38,7 +39,21 @@ class test_IterateView: XCTestCase {
         ("test_repeatingMatrix", test_repeatingMatrix),
         ("test_repeatingMatrixSubView", test_repeatingMatrixSubView),
     ]
-    
+
+    //==========================================================================
+    // test_VectorRange
+    func test_VectorRange() {
+        let vector = Vector<Int32>(with: 0...10)
+        let values = vector[...(-2)].array
+        XCTAssert(values == [Int32](0...8))
+        let values2 = vector[(-4)...(-2)].array
+        XCTAssert(values2 == [Int32](6...8))
+
+        let v1values = vector[(0..., 2)].array
+        XCTAssert(v1values == [Int32](arrayLiteral: 0, 2, 4, 6, 8))
+//        let v2 = vector[(to: -1, by: 2)]
+    }
+
     //==========================================================================
     // test_Vector
     func test_Vector() {

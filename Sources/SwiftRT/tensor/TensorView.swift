@@ -302,15 +302,14 @@ public extension TensorView {
     /// createView
     /// Returns a view of the tensorArray relative to this view
     private func createView(at offset: [Int], extents: [Int],
-                            isReference: Bool) -> Self {
+                            strides: [Int], isReference: Bool) -> Self {
         // validate
         assert(offset.count == shape.rank && extents.count == shape.rank)
         assert(shape.contains(offset: offset, extents: extents))
-        let viewShape = DataShape(extents: extents, strides: shape.strides)
 
         // the subview offset is the current plus the offset of index
         let dataOffset = viewOffset + shape.linearIndex(of: offset)
-        return Self(shape: viewShape,
+        return Self(shape: DataShape(extents: extents, strides: strides),
                     tensorArray: tensorArray,
                     viewOffset: dataOffset,
                     isShared: isReference)
@@ -552,7 +551,17 @@ public extension TensorView {
     /// Create a sub view of the tensorArray relative to this view
     func view(at offset: [Int], extents: [Int]) -> Self {
         // the view created will have the same isShared state as the parent
-        return createView(at: offset, extents: extents, isReference: isShared)
+        return createView(at: offset, extents: extents,
+                          strides: shape.strides, isReference: isShared)
+    }
+    
+    //--------------------------------------------------------------------------
+    /// view
+    /// Create a sub view of the tensorArray relative to this view
+    func view(at offset: [Int], extents: [Int], strides: [Int]) -> Self {
+        // the view created will have the same isShared state as the parent
+        return createView(at: offset, extents: extents,
+                          strides: strides, isReference: isShared)
     }
     
     //--------------------------------------------------------------------------
@@ -570,7 +579,8 @@ public extension TensorView {
             viewExtents = [count] + shape.extents.suffix(from: 1)
         }
         
-        return createView(at: index, extents: viewExtents, isReference: isShared)
+        return createView(at: index, extents: viewExtents,
+                          strides: shape.strides, isReference: isShared)
     }
     
     //--------------------------------------------------------------------------

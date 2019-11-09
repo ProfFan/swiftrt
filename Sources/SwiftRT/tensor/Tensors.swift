@@ -34,7 +34,7 @@ public enum MatrixLayout { case rowMajor, columnMajor }
 let countMismatch = "the number of initial elements must equal the tensor size"
 
 //==============================================================================
-// 
+//
 public extension TensorView {
     //--------------------------------------------------------------------------
     /// returns a collection of read only values
@@ -137,6 +137,7 @@ public extension VectorView {
 }
 
 //==============================================================================
+// initializers
 public extension VectorView {
     //-------------------------------------
     /// with single value
@@ -169,6 +170,40 @@ public extension VectorView {
                   viewOffset: 0, isShared: false)
     }
 }
+
+//==============================================================================
+// subscripting
+public func makePositive<R>(range: R, count: Int) -> Range<Int> where
+    R: RangeExpression, R.Bound == Int
+{
+    let r = range.relative(to: -count..<count)
+    let lower = r.lowerBound < 0 ? r.lowerBound + (count - 1) : r.lowerBound
+    let upper = r.upperBound < 0 ? r.upperBound + (count - 1) : r.upperBound
+    return lower..<upper
+}
+
+public func makeStepped(_ strides: [Int], step: Int) -> [Int] {
+    return []
+}
+
+public extension VectorView {
+    subscript<R>(r: R) -> Self where
+        R: RangeExpression, R.Bound == Int
+    {
+        let range = makePositive(range: r, count: extents[0])
+        return view(at: [range.lowerBound], extents: [range.count])
+    }
+
+    subscript<R>(r: (R, by: Int)) -> Self where
+        R: RangeExpression, R.Bound == Int
+    {
+        let range = makePositive(range: r.0, count: extents[0])
+        return view(at: [range.lowerBound],
+                    extents: [range.count],
+                    strides: makeStepped(shape.strides, step: r.1))
+    }
+}
+
 
 //==============================================================================
 // Vector
