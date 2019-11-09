@@ -15,7 +15,7 @@
 //
 import Foundation
 
-public final class CpuAsynchronousQueue: CpuQueueProtocol, LocalDeviceQueue {
+public final class CpuAsynchronousQueue: DeviceQueue, CpuQueueProtocol, LocalDeviceQueue {
 	// protocol properties
 	public private(set) var trackingId = 0
     public var defaultQueueEventOptions = QueueEventOptions()
@@ -24,7 +24,7 @@ public final class CpuAsynchronousQueue: CpuQueueProtocol, LocalDeviceQueue {
 	public let name: String
     public var logInfo: LogInfo
     public var timeout: TimeInterval?
-    public var executeSynchronously: Bool = false
+    public var executeSynchronously: Bool = true
     public var deviceErrorHandler: DeviceErrorHandler?
     public var _lastError: Error?
     public var _errorMutex: Mutex = Mutex()
@@ -89,7 +89,7 @@ public final class CpuAsynchronousQueue: CpuQueueProtocol, LocalDeviceQueue {
         _ functionName: @autoclosure () -> String,
         _ inputs: () throws -> Inputs,
         _ result: inout R,
-        _ body: @escaping (Inputs, inout R.MutableValues) throws
+        _ body: @escaping (Inputs, inout R.MutableValues)
         -> Void) where R: TensorView
     {
         // if the queue is in an error state, no additional work
@@ -107,26 +107,57 @@ public final class CpuAsynchronousQueue: CpuQueueProtocol, LocalDeviceQueue {
             var results = try sharedView.mutableValues(using: self)
             
             if executeSynchronously {
-                try body(input, &results)
+                body(input, &results)
             } else {
                 // queue the work
-                // report to device so we don't take a reference to `self`
-                let errorDevice = device
                 commandQueue.async {
-                    do {
-                        try body(input, &results)
-                    } catch {
-                        errorDevice.report(error: error)
-                    }
+                    body(input, &results)
                 }
                 diagnostic("\(schedulingString): \(functionName()) complete",
                     categories: .scheduling)
             }
         } catch {
-            self.report(error: error)
+            self.report(error)
         }
     }
 
+    //--------------------------------------------------------------------------
+    /// queues a closure on the queue for execution
+    /// This will catch and propagate the last asynchronous error thrown.
+    public func queue<Inputs, Outputs>(
+        _ functionName: @autoclosure () -> String,
+        _ inputs: () throws -> Inputs,
+        _ outputs: () throws -> Outputs,
+        _ body: @escaping (Inputs, inout Outputs) -> Void)
+    {
+        // if the queue is in an error state, no additional work
+        // will be queued
+        guard lastError == nil else { return }
+        
+        // schedule the work
+        diagnostic("\(schedulingString): \(functionName())",
+            categories: .scheduling)
+        
+        // get the parameter sequences
+        do {
+            let input = try inputs()
+            var output = try outputs()
+
+            if executeSynchronously {
+                body(input, &output)
+            } else {
+                // queue the work
+                commandQueue.async {
+                    body(input, &output)
+                }
+                diagnostic("\(schedulingString): \(functionName()) complete",
+                    categories: .scheduling)
+            }
+        } catch {
+            self.report(error)
+        }
+    }
+    
     //--------------------------------------------------------------------------
     /// queues a closure on the queue for execution
     /// This will catch and propagate the last asynchronous error thrown.
@@ -141,7 +172,7 @@ public final class CpuAsynchronousQueue: CpuQueueProtocol, LocalDeviceQueue {
             do {
                 try body()
             } catch {
-                errorDevice.report(error: error)
+                errorDevice.report(error)
             }
         }
         

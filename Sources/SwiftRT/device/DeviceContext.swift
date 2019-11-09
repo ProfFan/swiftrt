@@ -140,7 +140,7 @@ class DeviceContext {
     /// sets and propagates an error on the current device
     /// - Parameter error: the error to report
     public static func report(_ error: Error) {
-        DeviceContext.currentQueue.device.report(error: error)
+        DeviceContext.currentQueue.device.report(error)
     }
 
     //--------------------------------------------------------------------------

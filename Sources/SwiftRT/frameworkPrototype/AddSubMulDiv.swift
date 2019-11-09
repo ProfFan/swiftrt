@@ -101,7 +101,7 @@ public extension TensorView where Element: Numeric {
 //------------------------------------------------------------------------------
 // >>>>>> INTENT <<<<<<
 // User device function
-public extension DeviceFunctions {
+public extension DeviceQueue {
     func add<T>(lhs: T, rhs: T, result: inout T) where
         T: TensorView, T.Element: Numeric
     {
@@ -111,7 +111,7 @@ public extension DeviceFunctions {
 
 //******************************************************************************
 // >>>>>> GENERATED <<<<<<
-// @Target(type:"CPU", appliedTo:"CpuQueue", protocols:[DeviceFunctions])
+// @Target(type:"CPU", appliedTo:"CpuQueue", protocols:[DeviceQueue])
 // target generated from Intent by the compiler
 #if canImport(CpuAsync)
 public extension CpuAsynchronousQueue {
@@ -194,7 +194,7 @@ public extension TensorView where Element: Numeric {
 //------------------------------------------------------------------------------
 // >>>>>> INTENT <<<<<<
 // User device function
-public extension DeviceFunctions {
+public extension DeviceQueue {
     func subtract<T>(lhs: T, rhs: T, result: inout T) where
         T: TensorView, T.Element: Numeric
     {
@@ -204,7 +204,7 @@ public extension DeviceFunctions {
 
 //******************************************************************************
 // >>>>>> GENERATED <<<<<<
-// @Target(type:"CPU", appliedTo:"CpuQueue", protocols:[DeviceFunctions])
+// @Target(type:"CPU", appliedTo:"CpuQueue", protocols:[DeviceQueue])
 // target generated from Intent by the compiler
 #if canImport(CpuAsync)
 public extension CpuAsynchronousQueue {
@@ -288,7 +288,7 @@ public extension TensorView where Element: Numeric {
 //------------------------------------------------------------------------------
 // >>>>>> INTENT <<<<<<
 // User device function
-public extension DeviceFunctions {
+public extension DeviceQueue {
     func mul<T>(lhs: T, rhs: T, result: inout T) where
         T: TensorView, T.Element: Numeric
     {
@@ -298,7 +298,7 @@ public extension DeviceFunctions {
 
 //******************************************************************************
 // >>>>>> GENERATED <<<<<<
-// @Target(type:"CPU", appliedTo:"CpuQueue", protocols:[DeviceFunctions])
+// @Target(type:"CPU", appliedTo:"CpuQueue", protocols:[DeviceQueue])
 // target generated from Intent by the compiler
 #if canImport(CpuAsync)
 public extension CpuAsynchronousQueue {
@@ -380,7 +380,7 @@ public extension TensorView where Element: FloatingPoint {
 //------------------------------------------------------------------------------
 // >>>>>> INTENT <<<<<<
 // User device function
-public extension DeviceFunctions {
+public extension DeviceQueue {
     func div<T>(lhs: T, rhs: T, result: inout T) where
         T: TensorView, T.Element: FloatingPoint
     {
@@ -390,7 +390,7 @@ public extension DeviceFunctions {
 
 //******************************************************************************
 // >>>>>> GENERATED <<<<<<
-// @Target(type:"CPU", appliedTo:"CpuQueue", protocols:[DeviceFunctions])
+// @Target(type:"CPU", appliedTo:"CpuQueue", protocols:[DeviceQueue])
 // target generated from Intent by the compiler
 #if canImport(CpuAsync)
 public extension CpuAsynchronousQueue {

@@ -26,10 +26,8 @@ public extension TensorView {
         guard DeviceContext.lastError == nil else { return }
         let elements = values()
         var results = result.mutableValues()
-        for i in elements.indices {
-            for j in results.indices {
-                results[j] = transform(elements[i])
-            }
+        zip(elements.indices, results.indices).forEach {
+            results[$1] = transform(elements[$0])
         }
     }
 
@@ -39,10 +37,8 @@ public extension TensorView {
         var result = createDense()
         let elements = values()
         var results = result.mutableValues()
-        for i in elements.indices {
-            for j in results.indices {
-                results[j] = transform(elements[i])
-            }
+        zip(elements.indices, results.indices).forEach {
+            results[$1] = transform(elements[$0])
         }
         return result
     }

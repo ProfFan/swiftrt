@@ -22,6 +22,7 @@ class test_ElementWise: XCTestCase {
     //==========================================================================
     // support terminal test run
     static var allTests = [
+        ("test_concat", test_concat),
         ("test_equality", test_equality),
         ("test_log", test_log),
         ("test_neg", test_neg),
@@ -34,23 +35,34 @@ class test_ElementWise: XCTestCase {
     //--------------------------------------------------------------------------
     // test_concat
     func test_concat() {
+//        Platform.local.servicePriority = [cpuSynchronousServiceName]
+        
         let t1 = Matrix<Float>((2, 3), with: 1...6)
         let t2 = Matrix<Float>((2, 3), with: 7...12)
         let c1 = t1.concat(t2)
-        let c1Result = c1.array
-        let expected = (1...12).map { Float($0) }
-        XCTAssert(c1Result == expected)
         XCTAssert(c1.extents == [4, 3])
+        let c1Result = c1.array
+        let c1Expected: [Float] = [
+            1,   2, 3,
+            4,   5, 6,
+            7,   8, 9,
+            10, 11, 12,
+        ]
+        XCTAssert(c1Result == c1Expected)
 
         let c2 = t1.concat(t2, along: 1)
-        let c2Result = c2.array
-        XCTAssert(c2Result == expected)
         XCTAssert(c2.extents == [2, 6])
+        let c2Result = c2.array
+        let c2Expected: [Float] = [
+            1, 2, 3, 7, 8, 9,
+            4, 5, 6, 10, 11, 12
+        ]
+        XCTAssert(c2Result == c2Expected)
         
         let c3 = Matrix<Float>(concatenating: t1, t2, along: 0)
-        let c3Result = c3.array
-        XCTAssert(c3Result == expected)
         XCTAssert(c3.extents == [4, 3])
+        let c3Result = c3.array
+        XCTAssert(c3Result == c1Expected)
     }
 
     //--------------------------------------------------------------------------

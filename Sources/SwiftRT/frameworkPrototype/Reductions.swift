@@ -75,7 +75,7 @@ public extension TensorView where Element == Bool {
 //------------------------------------------------------------------------------
 // >>>>>> INTENT <<<<<<
 // User device function
-public extension DeviceFunctions {
+public extension DeviceQueue {
     /// all
     func all<T>(x: T, along axes: Vector<IndexElement>?, result: inout T) where
         T: TensorView, T.Element == Bool
@@ -88,7 +88,7 @@ public extension DeviceFunctions {
 
 //******************************************************************************
 // >>>>>> GENERATED <<<<<<
-// @Target(type:"CPU", appliedTo:"CpuAsynchronousQueue", protocols:[DeviceFunctions])
+// @Target(type:"CPU", appliedTo:"CpuAsynchronousQueue", protocols:[DeviceQueue])
 // target generated from Intent by the compiler
 #if canImport(CpuAsync)
 public extension CpuAsynchronousQueue {
@@ -162,7 +162,7 @@ public extension TensorView where Element == Bool {
 //------------------------------------------------------------------------------
 // >>>>>> INTENT <<<<<<
 // User device function
-public extension DeviceFunctions {
+public extension DeviceQueue {
     /// any
     func any<T>(x: T, along axes: Vector<IndexElement>?, result: inout T) where
         T: TensorView, T.Element == Bool
@@ -175,7 +175,7 @@ public extension DeviceFunctions {
 
 //******************************************************************************
 // >>>>>> GENERATED <<<<<<
-// @Target(type:"CPU", appliedTo:"CpuAsynchronousQueue", protocols:[DeviceFunctions])
+// @Target(type:"CPU", appliedTo:"CpuAsynchronousQueue", protocols:[DeviceQueue])
 // target generated from Intent by the compiler
 #if canImport(CpuAsync)
 public extension CpuAsynchronousQueue {

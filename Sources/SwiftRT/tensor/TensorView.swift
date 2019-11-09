@@ -230,25 +230,47 @@ public extension TensorView {
     
     //--------------------------------------------------------------------------
     /// concatenated tensors
-    init(concatenating others: Self..., along axis: Int = 0) {
-        self = Self(concatenating: others, along: axis)
+    init(concatenating others: Self...,
+        along axis: Int = 0,
+        name: String? = nil)
+    {
+        self = Self(concatenating: others, along: axis, name: name)
     }
 
-    init(concatenating others: [Self], along axis: Int = 0) {
-        self = others[0]
+    init(concatenating others: [Self],
+         along axis: Int = 0,
+         name: String? = nil)
+    {
+        let name = name ?? String(describing: Self.self)
+
+        // compute the shape
+        let joined = others[0].shape
+            .joined(with: others[1...].map { $0.shape }, along: axis)
+        
+        let array = TensorArray<Element>(count: joined.elementCount, name: name)
+        self = Self(shape: joined, tensorArray: array, viewOffset: 0,
+                    isShared: false)
+        SwiftRT.concat(tensors: others, along: axis, result: &self)
     }
 
     //--------------------------------------------------------------------------
-    /// createDense
-    func createDense(with extents: [Int], name: String? = nil) -> Self {
+    /// createDense(shape:
+    func createDense(with shape: DataShape, name: String? = nil) -> Self {
         let name = name ?? String(describing: Self.self)
-        let shape = DataShape(extents: extents)
         let array = TensorArray<Element>(count: shape.elementCount, name: name)
         return Self(shape: shape, tensorArray: array, viewOffset: 0,
                     isShared: false)
     }
     
-    func createDense() -> Self { return createDense(with: self.extents) }
+    //--------------------------------------------------------------------------
+    /// createDense(extents:
+    func createDense(with extents: [Int], name: String? = nil) -> Self {
+        return createDense(with: DataShape(extents: extents))
+    }
+    
+    //--------------------------------------------------------------------------
+    /// createDense()
+    func createDense() -> Self { return createDense(with: self.shape) }
     
     //--------------------------------------------------------------------------
     /// createSingleElement
@@ -599,7 +621,7 @@ public extension TensorView {
                     do {
                         try body(view)
                     } catch {
-                        errorDevice.report(error: error)
+                        errorDevice.report(error)
                     }
                 }
             }

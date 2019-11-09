@@ -203,6 +203,6 @@ public final class CpuSynchronousQueue: CpuQueueProtocol, LocalDeviceQueue {
     public func throwTestError() {
         assert(Thread.current === creatorThread, queueThreadViolationMessage)
         let error = DeviceError.queueError(idPath: [], message: "testError")
-        device.report(error: error)
+        device.report(error)
     }
 }

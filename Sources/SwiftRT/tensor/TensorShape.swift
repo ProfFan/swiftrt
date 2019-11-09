@@ -80,6 +80,21 @@ public struct DataShape: Equatable, Codable {
     }
     
     //--------------------------------------------------------------------------
+    /// joined
+    /// - Parameter others: array of data shapes to join
+    /// - Parameter axis: the joining axis
+    /// - Returns: returns a new shape that is the join with the others
+    public func joined(with others: [DataShape], along axis: Int) ->
+        DataShape
+    {
+        assert(others.first(where: { $0.rank != rank }) == nil,
+               "all DataShapes must have equal rank")
+        var newExtents = extents
+        newExtents[axis] += others.reduce(0) { $0 + $1.extents[axis] }
+        return DataShape(extents: newExtents)
+    }
+    
+    //--------------------------------------------------------------------------
     // denseStrides
     private static func denseStrides(for extents: [Int]) -> [Int] {
         guard extents.count > 0 else { return [] }
