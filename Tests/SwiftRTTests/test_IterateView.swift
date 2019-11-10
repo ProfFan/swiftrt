@@ -49,8 +49,8 @@ class test_IterateView: XCTestCase {
         let values2 = vector[(-4)...(-2)].array
         XCTAssert(values2 == [Int32](6...8))
 
-        let v1values = vector[(0..., 2)].array
-        XCTAssert(v1values == [Int32](arrayLiteral: 0, 2, 4, 6, 8))
+//        let v1values = vector[(0..., 2)].array
+//        XCTAssert(v1values == [Int32](arrayLiteral: 0, 2, 4, 6, 8))
 //        let v2 = vector[(to: -1, by: 2)]
     }
 

@@ -99,11 +99,10 @@ public protocol TensorView: Logging {
 
     //--------------------------------------------------------------------------
     /// returns a collection of viewed elements
-    func values(using queue: DeviceQueue?) throws -> Values
+    func values(using queue: DeviceQueue?) -> Values
 
     /// returns a collection of mutable viewed elements
-    mutating func mutableValues(using queue: DeviceQueue?) throws
-        -> MutableValues
+    mutating func mutableValues(using queue: DeviceQueue?) -> MutableValues
 }
 
 //==============================================================================

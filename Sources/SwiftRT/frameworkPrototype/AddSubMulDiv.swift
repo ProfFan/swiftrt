@@ -118,7 +118,10 @@ public extension CpuAsynchronousQueue {
     func add<T>(lhs: T, rhs: T, result: inout T) where
         T: TensorView, T.Element: Numeric
     {
-        queue(#function, { (lhs.values(), rhs.values()) }, &result) {
+        queue(#function, {
+            (lhs.values(using: self),
+             rhs.values(using: self))
+        }, &result) {
             zip($0.0, $0.1).map(into: &$1) { $0 + $1 }
         }
     }
@@ -211,7 +214,10 @@ public extension CpuAsynchronousQueue {
     func subtract<T>(lhs: T, rhs: T, result: inout T) where
         T: TensorView, T.Element: Numeric
     {
-        queue(#function, { (lhs.values(), rhs.values()) }, &result) {
+        queue(#function, {
+            (lhs.values(using: self),
+             rhs.values(using: self))
+        }, &result) {
             zip($0.0, $0.1).map(into: &$1) { $0 - $1 }
         }
     }
@@ -305,7 +311,10 @@ public extension CpuAsynchronousQueue {
     func mul<T>(lhs: T, rhs: T, result: inout T) where
         T: TensorView, T.Element: Numeric
     {
-        queue(#function, { (lhs.values(), rhs.values()) }, &result) {
+        queue(#function, {
+            (lhs.values(using: self),
+             rhs.values(using: self))
+        }, &result) {
             zip($0.0, $0.1).map(into: &$1) { $0 * $1 }
         }
     }
@@ -397,7 +406,10 @@ public extension CpuAsynchronousQueue {
     func div<T>(lhs: T, rhs: T, result: inout T) where
         T: TensorView, T.Element: FloatingPoint
     {
-        queue(#function, { (lhs.values(), rhs.values()) }, &result) {
+        queue(#function, {
+            (lhs.values(using: self),
+             rhs.values(using: self))
+        }, &result) {
             zip($0.0, $0.1).map(into: &$1) { $0 / $1 }
         }
     }

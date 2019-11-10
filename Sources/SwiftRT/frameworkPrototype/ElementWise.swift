@@ -77,7 +77,10 @@ public extension CpuAsynchronousQueue {
     func maximum<T>(lhs: T, rhs: T, result: inout T) where
         T: TensorView, T.Element: Comparable
     {
-        queue(#function, { (lhs.values(), rhs.values()) }, &result) {
+        queue(#function, {
+            (lhs.values(using: self),
+             rhs.values(using: self))
+        }, &result) {
             zip($0.0, $0.1).map(into: &$1) { $0 >= $1 ? $0 : $1 }
         }
     }
@@ -146,7 +149,10 @@ public extension CpuAsynchronousQueue {
     func minimum<T>(lhs: T, rhs: T, result: inout T) where
         T: TensorView, T.Element: Comparable
     {
-        queue(#function, { (lhs.values(), rhs.values()) }, &result) {
+        queue(#function, {
+            (lhs.values(using: self),
+             rhs.values(using: self))
+        }, &result) {
             zip($0.0, $0.1).map(into: &$1) { $0 <= $1 ? $0 : $1 }
         }
     }
@@ -216,7 +222,7 @@ public extension CpuAsynchronousQueue {
     func exp<T>(x: T, result: inout T) where
         T: TensorView, T.Element: AnyFloatingPoint
     {
-        queue(#function, { x.values() }, &result) {
+        queue(#function, { x.values(using: self) }, &result) {
             $0.map(into: &$1) {
                 T.Element(any: Foundation.exp($0.asFloat))
             }
@@ -288,7 +294,7 @@ public extension CpuAsynchronousQueue {
     func log<T>(x: T, result: inout T) where
         T: TensorView, T.Element: AnyFloatingPoint
     {
-        queue(#function, { x.values() }, &result) {
+        queue(#function, { x.values(using: self) }, &result) {
             $0.map(into: &$1) {
                 T.Element(any: Foundation.log($0.asFloat))
             }
@@ -361,7 +367,7 @@ public extension CpuAsynchronousQueue {
     func neg<T>(x: T, result: inout T) where
         T: TensorView, T.Element: SignedNumeric
     {
-        queue(#function, { x.values() }, &result) {
+        queue(#function, { x.values(using: self) }, &result) {
             $0.map(into: &$1) { -$0 }
         }
     }
@@ -438,7 +444,10 @@ public extension CpuAsynchronousQueue {
     func equal<T>(lhs: T, rhs: T, result: inout T.BoolView) where
         T: TensorView, T.Element: Equatable
     {
-        queue(#function, { (lhs.values(), rhs.values()) }, &result) {
+        queue(#function, {
+            (lhs.values(using: self),
+             rhs.values(using: self))
+        }, &result) {
             zip($0.0, $0.1).map(into: &$1) { $0 == $1 }
         }
     }
@@ -491,7 +500,10 @@ public extension CpuAsynchronousQueue {
     func notEqual<T>(lhs: T, rhs: T, result: inout T.BoolView) where
         T: TensorView, T.Element: Equatable
     {
-        queue(#function, { (lhs.values(), rhs.values()) }, &result) {
+        queue(#function, {
+            (lhs.values(using: self),
+             rhs.values(using: self))
+        }, &result) {
             zip($0.0, $0.1).map(into: &$1) { $0 != $1 }
         }
     }
@@ -556,7 +568,7 @@ public extension CpuAsynchronousQueue {
     func squared<T>(x: T, result: inout T) where
         T: TensorView, T.Element: Numeric
     {
-        queue(#function, { x.values() }, &result) {
+        queue(#function, { x.values(using: self) }, &result) {
             $0.map(into: &$1) { $0 * $0 }
         }
     }

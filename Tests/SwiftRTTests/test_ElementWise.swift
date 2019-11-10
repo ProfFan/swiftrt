@@ -29,6 +29,7 @@ class test_ElementWise: XCTestCase {
         ("test_maximum", test_maximum),
         ("test_maximumScalar", test_maximumScalar),
         ("test_minimum", test_minimum),
+        ("test_minimumScalar", test_minimumScalar),
         ("test_squared", test_squared),
     ]
 
@@ -129,10 +130,10 @@ class test_ElementWise: XCTestCase {
     //--------------------------------------------------------------------------
     // test_maximumScalar
     func test_maximumScalar() {
-        let m1 = Matrix<Float>((3, 2), name: "matrix", with: [0, 1, 2])
-        let result = maximum(m1, 1)
+        let m1 = Matrix<Float>((3, 2), name: "matrix", with: 0...5)
+        let result = maximum(m1, 2)
         let values = result.array
-        let expected: [Float] = [0, 1, 1]
+        let expected: [Float] = [2, 2, 2, 3, 4, 5]
         XCTAssert(values == expected)
     }
     
@@ -146,6 +147,16 @@ class test_ElementWise: XCTestCase {
         let result = minimum(m1, m2)
         let values = result.array
         let expected: [Float] = [0, -1, -2, -3, -4, -5]
+        XCTAssert(values == expected)
+    }
+    
+    //--------------------------------------------------------------------------
+    // test_minimumScalar
+    func test_minimumScalar() {
+        let m1 = Matrix<Float>((3, 2), name: "matrix", with: 0...5)
+        let result = minimum(m1, 3)
+        let values = result.array
+        let expected: [Float] = [0, 1, 2, 3, 3, 3]
         XCTAssert(values == expected)
     }
 }

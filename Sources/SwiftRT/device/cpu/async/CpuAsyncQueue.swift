@@ -104,7 +104,7 @@ public final class CpuAsynchronousQueue: DeviceQueue, CpuQueueProtocol, LocalDev
             // get the parameter sequences
             let input = try inputs()
             var sharedView = try result.sharedView(using: self)
-            var results = try sharedView.mutableValues(using: self)
+            var results = sharedView.mutableValues(using: self)
             
             if executeSynchronously {
                 body(input, &results)
