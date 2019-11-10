@@ -265,7 +265,10 @@ public extension TensorView {
     //--------------------------------------------------------------------------
     /// createDense(extents:
     func createDense(with extents: [Int], name: String? = nil) -> Self {
-        return createDense(with: DataShape(extents: extents))
+        let newShape = isContiguous ?
+            DataShape(extents: extents, strides: self.shape.strides) :
+            DataShape(extents: extents)
+        return createDense(with: newShape, name: name)
     }
     
     //--------------------------------------------------------------------------

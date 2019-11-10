@@ -21,7 +21,7 @@ class test_IterateView: XCTestCase {
     //==========================================================================
     // support terminal test run
     static var allTests = [
-        ("test_Vector", test_VectorRange),
+        ("test_VectorRange", test_VectorRange),
         ("test_Vector", test_Vector),
         ("test_Matrix", test_Matrix),
         ("test_Volume", test_Volume),
