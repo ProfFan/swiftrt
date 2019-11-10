@@ -176,9 +176,10 @@ public extension VectorView {
 public func makePositive<R>(range: R, count: Int) -> Range<Int> where
     R: RangeExpression, R.Bound == Int
 {
-    let r = range.relative(to: -count..<count)
-    let lower = r.lowerBound < 0 ? r.lowerBound + (count - 1) : r.lowerBound
-    let upper = r.upperBound < 0 ? r.upperBound + (count - 1) : r.upperBound
+    let count = count - 1
+    let r = range.relative(to: -count..<count + 1)
+    let lower = r.lowerBound < 0 ? r.lowerBound + count : r.lowerBound
+    let upper = r.upperBound < 0 ? r.upperBound + count : r.upperBound
     return lower..<upper
 }
 
@@ -198,8 +199,7 @@ public extension VectorView {
         R: RangeExpression, R.Bound == Int
     {
         let range = makePositive(range: r.0, count: extents[0])
-        return view(at: [range.lowerBound],
-                    extents: [range.count],
+        return view(at: [range.lowerBound], extents: [range.count],
                     strides: makeStepped(shape.strides, step: r.1))
     }
 }
