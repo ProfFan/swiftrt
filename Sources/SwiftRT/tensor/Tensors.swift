@@ -96,8 +96,12 @@ public func makeStepped(view extents: [Int],
                         parent strides: [Int],
                         steps: [Int]) -> (extents: [Int], strides: [Int])
 {
-    return (zip(extents, steps).map { $0 / $1 },
-            zip(strides, steps).map { $0 * $1 })
+    assert(extents.count == strides.count && extents.count == steps.count)
+    let subExtents = zip(extents, steps).map {
+        $0 / $1 + ($0 % $1 == 0 ? 0 : 1)
+    }
+    let subStrides = zip(strides, steps).map { $0 * $1 }
+    return (subExtents, subStrides)
 }
 
 //==============================================================================
@@ -210,20 +214,14 @@ public extension VectorView {
 // range subscripting
 public extension VectorView {
     @inlinable @inline(__always)
-    subscript(r: UnboundedRange) -> Self { self[0...] }
-
-    @inlinable @inline(__always)
-    subscript(r: (UnboundedRange, by: Int)) -> Self { self[(0..., r.1)] }
-
-    @inlinable @inline(__always)
     subscript<R>(r: R) -> Self where R: RangeExpression, R.Bound == Int {
         let range = makePositive(range: r, count: extents[0])
         return view(at: [range.lowerBound], extents: [range.count])
     }
-
-    @inlinable
-    subscript<R>(r: (R, by: Int)) -> Self where
-        R: RangeExpression, R.Bound == Int
+    
+    @inlinable @inline(__always)
+    subscript<R>(r: (R, by: Int)) -> Self
+        where R: RangeExpression, R.Bound == Int
     {
         let range = makePositive(range: r.0, count: extents[0])
         let viewPosition = [range.lowerBound]
@@ -382,6 +380,46 @@ public extension MatrixView {
         let array = TensorArray<Element>(elements: elements, name: name)
         self.init(shape: shape, tensorArray: array,
                   viewOffset: 0, isShared: false)
+    }
+}
+
+//==============================================================================
+// range subscripting
+public extension MatrixView {
+    @inlinable @inline(__always)
+    subscript<R>(r: R, c: UnboundedRange) -> Self
+        where R: RangeExpression, R.Bound == Int { self[r, 0...] }
+
+    @inlinable @inline(__always)
+    subscript<R>(r: UnboundedRange, c: R) -> Self
+        where R: RangeExpression, R.Bound == Int { self[0..., c] }
+    
+    @inlinable @inline(__always)
+    subscript<R, C>(r: R, c: C) -> Self where
+        R: RangeExpression, R.Bound == Int,
+        C: RangeExpression, C.Bound == Int
+    {
+        let rRange = makePositive(range: r, count: extents[0])
+        let cRange = makePositive(range: c, count: extents[1])
+        let viewPosition = [rRange.lowerBound, cRange.lowerBound]
+        let viewExtents = [rRange.count, cRange.count]
+        return view(at: viewPosition, extents: viewExtents)
+    }
+    
+    @inlinable @inline(__always)
+    subscript<R, C>(r: (R, by: Int), c: (C, by: Int)) -> Self where
+        R: RangeExpression, R.Bound == Int,
+        C: RangeExpression, C.Bound == Int
+    {
+        let rRange = makePositive(range: r.0, count: extents[0])
+        let cRange = makePositive(range: c.0, count: extents[1])
+        let viewPosition = [rRange.lowerBound, cRange.lowerBound]
+        let viewExtents = [rRange.count, cRange.count]
+        let steps = [r.1, c.1]
+        let (subExtents, subStrides) = makeStepped(view: viewExtents,
+                                                   parent: shape.strides,
+                                                   steps: steps)
+        return view(at: viewPosition, extents: subExtents, strides: subStrides)
     }
 }
 

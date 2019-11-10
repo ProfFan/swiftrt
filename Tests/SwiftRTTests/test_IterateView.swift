@@ -21,10 +21,12 @@ class test_IterateView: XCTestCase {
     //==========================================================================
     // support terminal test run
     static var allTests = [
+        ("test_Vector", test_Vector),
         ("test_VectorRange", test_VectorRange),
         ("test_VectorSteppedRange", test_VectorSteppedRange),
-        ("test_Vector", test_Vector),
         ("test_Matrix", test_Matrix),
+        ("test_MatrixRange", test_MatrixRange),
+        ("test_MatrixSteppedRange", test_MatrixSteppedRange),
         ("test_Volume", test_Volume),
         ("test_VectorSubView", test_VectorSubView),
         ("test_MatrixSubView", test_MatrixSubView),
@@ -40,27 +42,6 @@ class test_IterateView: XCTestCase {
         ("test_repeatingMatrix", test_repeatingMatrix),
         ("test_repeatingMatrixSubView", test_repeatingMatrixSubView),
     ]
-
-    //==========================================================================
-    // test_VectorRange
-    func test_VectorRange() {
-        let vector = Vector<Int32>(with: 0...10)
-        let values = vector[...].array
-        XCTAssert(values == [Int32](0...10))
-        
-        // negative values work back from the end
-        let values2 = vector[(-4)...(-2)].array
-        XCTAssert(values2 == [Int32](6...8))
-    }
-
-    //==========================================================================
-    // test_VectorSteppedRange
-    func test_VectorSteppedRange() {
-        let vector = Vector<Int32>(with: 0...10)
-        let values = vector[(..., 2)].array
-        let expected: [Int32] = [0, 2, 4, 6, 8]
-        XCTAssert(values == expected)
-    }
     
     //==========================================================================
     // test_Vector
@@ -73,6 +54,45 @@ class test_IterateView: XCTestCase {
         let values = vector.array
         XCTAssert(values == expected, "values do not match")
     }
+
+    //==========================================================================
+    // test_VectorRange
+    func test_VectorRange() {
+        let vector = Vector<Int32>(with: 0...10)
+        let values = vector[0...].array
+        XCTAssert(values == [Int32](0...10))
+        
+        // negative values work back from the end
+        let values2 = vector[(-4)...(-2)].array
+        XCTAssert(values2 == [Int32](6...8))
+    }
+
+    //==========================================================================
+    // test_VectorSteppedRange
+    func test_VectorSteppedRange() {
+        let vector = Vector<Int32>(with: 0...10)
+        let v1 = vector[(1..<3, 2)].array
+        XCTAssert(v1.count == 1)
+        let v2 = vector[(1..<4, 2)].array
+        XCTAssert(v2.count == 2)
+        let v3 = vector[(1..<5, 2)].array
+        XCTAssert(v3.count == 2)
+        
+        let v4 = vector[(1..<5, 3)].array
+        XCTAssert(v4.count == 2)
+        let e4: [Int32] = [1, 4]
+        XCTAssert(v4 == e4)
+
+        let v5 = vector[(1..<6, 3)].array
+        XCTAssert(v5.count == 2)
+        let e5: [Int32] = [1, 4]
+        XCTAssert(v5 == e5)
+
+        let v6 = vector[(1..<8, 3)].array
+        XCTAssert(v6.count == 3)
+        let e6: [Int32] = [1, 4, 7]
+        XCTAssert(v6 == e6)
+    }
     
     //==========================================================================
     // test_Matrix
@@ -83,6 +103,29 @@ class test_IterateView: XCTestCase {
         
         let values = matrix.array
         XCTAssert(values == expected, "values do not match")
+    }
+    
+    //==========================================================================
+    // test_MatrixRange
+    func test_MatrixRange() {
+        let m = Matrix<Int32>((2, 5), with: 0..<10)
+        let v1 = m[...1, 1...3].array
+        let expected1: [Int32] = [1, 2, 3, 6, 7, 8]
+        XCTAssert(v1 == expected1)
+        
+        let m2 = Matrix<Int32>((5, 5), with: 0..<25)
+        let v2 = m2[1..<4, 1..<4].array
+        let expected2: [Int32] = [6, 7, 8, 11, 12, 13, 16, 17, 18]
+        XCTAssert(v2 == expected2)
+    }
+    
+    //==========================================================================
+    // test_MatrixSteppedRange
+    func test_MatrixSteppedRange() {
+        let m = Matrix<Int32>((2, 5), with: 0..<10)
+        let v1 = m[(0..., by: 1), (1...3, by: 2)].array
+        let expected1: [Int32] = [1, 3, 6, 8]
+        XCTAssert(v1 == expected1)
     }
     
     //==========================================================================
