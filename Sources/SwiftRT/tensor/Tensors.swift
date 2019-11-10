@@ -74,6 +74,7 @@ public extension TensorView {
 /// - Parameter count: the number of elements in the collection that
 /// the range calculation should be relative to.
 /// - Returns: a positive range relative to the specified bounding `count`
+@inlinable @inline(__always)
 public func makePositive<R>(range: R, count: Int) -> Range<Int> where
     R: RangeExpression, R.Bound == Int
 {
@@ -90,6 +91,7 @@ public func makePositive<R>(range: R, count: Int) -> Range<Int> where
 /// - Parameter parent: the strides of the parent view
 /// - Parameter steps: the step interval along each dimension
 /// - Returns: the extents and strides to be used to create a subview
+@inlinable @inline(__always)
 public func makeStepped(view extents: [Int],
                         parent strides: [Int],
                         steps: [Int]) -> (extents: [Int], strides: [Int])
@@ -207,14 +209,19 @@ public extension VectorView {
 //==============================================================================
 // range subscripting
 public extension VectorView {
+    @inlinable @inline(__always)
     subscript(r: UnboundedRange) -> Self { self[0...] }
+
+    @inlinable @inline(__always)
     subscript(r: (UnboundedRange, by: Int)) -> Self { self[(0..., r.1)] }
 
+    @inlinable @inline(__always)
     subscript<R>(r: R) -> Self where R: RangeExpression, R.Bound == Int {
         let range = makePositive(range: r, count: extents[0])
         return view(at: [range.lowerBound], extents: [range.count])
     }
 
+    @inlinable
     subscript<R>(r: (R, by: Int)) -> Self where
         R: RangeExpression, R.Bound == Int
     {
