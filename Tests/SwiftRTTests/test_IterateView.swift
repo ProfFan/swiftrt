@@ -22,6 +22,7 @@ class test_IterateView: XCTestCase {
     // support terminal test run
     static var allTests = [
         ("test_VectorRange", test_VectorRange),
+        ("test_VectorSteppedRange", test_VectorSteppedRange),
         ("test_Vector", test_Vector),
         ("test_Matrix", test_Matrix),
         ("test_Volume", test_Volume),
@@ -44,16 +45,23 @@ class test_IterateView: XCTestCase {
     // test_VectorRange
     func test_VectorRange() {
         let vector = Vector<Int32>(with: 0...10)
-        let values = vector[...(-2)].array
-        XCTAssert(values == [Int32](0...8))
+        let values = vector[...].array
+        XCTAssert(values == [Int32](0...10))
+        
+        // negative values work back from the end
         let values2 = vector[(-4)...(-2)].array
         XCTAssert(values2 == [Int32](6...8))
-
-//        let v1values = vector[(0..., 2)].array
-//        XCTAssert(v1values == [Int32](arrayLiteral: 0, 2, 4, 6, 8))
-//        let v2 = vector[(to: -1, by: 2)]
     }
 
+    //==========================================================================
+    // test_VectorSteppedRange
+    func test_VectorSteppedRange() {
+        let vector = Vector<Int32>(with: 0...10)
+        let values = vector[(..., 2)].array
+        let expected: [Int32] = [0, 2, 4, 6, 8]
+        XCTAssert(values == expected)
+    }
+    
     //==========================================================================
     // test_Vector
     func test_Vector() {

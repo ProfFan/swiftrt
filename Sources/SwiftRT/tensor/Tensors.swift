@@ -66,6 +66,39 @@ public extension TensorView {
 }
 
 //==============================================================================
+// tensor subscripting helpers
+
+/// makePositive(range:count:
+/// - Parameter range: a range expression specifying the bounds of
+/// the desired range. Negative bounds are relative to the end of the range
+/// - Parameter count: the number of elements in the collection that
+/// the range calculation should be relative to.
+/// - Returns: a positive range relative to the specified bounding `count`
+public func makePositive<R>(range: R, count: Int) -> Range<Int> where
+    R: RangeExpression, R.Bound == Int
+{
+    let count = count - 1
+    let r = range.relative(to: -count..<count + 1)
+    let lower = r.lowerBound < 0 ? r.lowerBound + count : r.lowerBound
+    let upper = r.upperBound < 0 ? r.upperBound + count : r.upperBound
+    return lower..<upper
+}
+
+/// makeStepped(view:parent:steps:
+/// computes the extents and strides for creating a stepped subview
+/// - Parameter view: the extents of the desired view in parent coordinates
+/// - Parameter parent: the strides of the parent view
+/// - Parameter steps: the step interval along each dimension
+/// - Returns: the extents and strides to be used to create a subview
+public func makeStepped(view extents: [Int],
+                        parent strides: [Int],
+                        steps: [Int]) -> (extents: [Int], strides: [Int])
+{
+    return (zip(extents, steps).map { $0 / $1 },
+            zip(strides, steps).map { $0 * $1 })
+}
+
+//==============================================================================
 // Codable extensions
 extension Vector: Codable where Element: Codable {}
 extension Matrix: Codable where Element: Codable {}
@@ -172,25 +205,12 @@ public extension VectorView {
 }
 
 //==============================================================================
-// subscripting
-public func makePositive<R>(range: R, count: Int) -> Range<Int> where
-    R: RangeExpression, R.Bound == Int
-{
-    let count = count - 1
-    let r = range.relative(to: -count..<count + 1)
-    let lower = r.lowerBound < 0 ? r.lowerBound + count : r.lowerBound
-    let upper = r.upperBound < 0 ? r.upperBound + count : r.upperBound
-    return lower..<upper
-}
-
-public func makeStepped(_ strides: [Int], step: Int) -> [Int] {
-    return []
-}
-
+// range subscripting
 public extension VectorView {
-    subscript<R>(r: R) -> Self where
-        R: RangeExpression, R.Bound == Int
-    {
+    subscript(r: UnboundedRange) -> Self { self[0...] }
+    subscript(r: (UnboundedRange, by: Int)) -> Self { self[(0..., r.1)] }
+
+    subscript<R>(r: R) -> Self where R: RangeExpression, R.Bound == Int {
         let range = makePositive(range: r, count: extents[0])
         return view(at: [range.lowerBound], extents: [range.count])
     }
@@ -199,11 +219,14 @@ public extension VectorView {
         R: RangeExpression, R.Bound == Int
     {
         let range = makePositive(range: r.0, count: extents[0])
-        return view(at: [range.lowerBound], extents: [range.count],
-                    strides: makeStepped(shape.strides, step: r.1))
+        let viewPosition = [range.lowerBound]
+        let viewExtents = [range.count]
+        let (subExtents, subStrides) = makeStepped(view: viewExtents,
+                                                   parent: shape.strides,
+                                                   steps: [r.1])
+        return view(at: viewPosition, extents: subExtents, strides: subStrides)
     }
 }
-
 
 //==============================================================================
 // Vector
