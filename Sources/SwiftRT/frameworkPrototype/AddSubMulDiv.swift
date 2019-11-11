@@ -64,7 +64,6 @@ public func add<T>(_ lhs: T, _ rhs: T) -> T
 }
 
 public extension TensorView where Element: Numeric {
-    /// operator
     /// - Parameter lhs: left hand tensor
     /// - Parameter rhs: right hand tensor. If the extents are smaller than
     ///   `lhs` then broadcasting is performed via repeated indexing.

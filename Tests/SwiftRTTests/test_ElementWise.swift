@@ -99,9 +99,13 @@ class test_ElementWise: XCTestCase {
     func test_neg() {
         let range = 0..<6
         let matrix = Matrix<Float>((3, 2), name: "matrix", with: range)
-        let values = matrix.neg().array
         let expected: [Float] = range.map { -Float($0) }
+
+        let values = matrix.neg().array
         XCTAssert(values == expected)
+        
+        let values2 = -matrix
+        XCTAssert(values2.array == expected)
     }
     
     //--------------------------------------------------------------------------

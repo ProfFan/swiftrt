@@ -342,6 +342,12 @@ public extension TensorView where Element: FloatingPoint {
         SwiftRT.neg(self, result: &result)
         return result
     }
+    /// - Parameter lhs: left hand tensor
+    /// - Parameter rhs: right hand tensor. If the extents are smaller than
+    ///   `lhs` then broadcasting is performed via repeated indexing.
+    /// - Returns: a new tensor containing the result
+    @inlinable @inline(__always)
+    static prefix func - (x: Self) -> Self { return x.neg() }
 }
 
 //------------------------------------------------------------------------------
