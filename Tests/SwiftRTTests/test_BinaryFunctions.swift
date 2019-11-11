@@ -54,10 +54,15 @@ class test_BinaryFunctions: XCTestCase {
     // test_addScalar
     func test_addScalar() {
         let m1 = Matrix<Float>((3, 2), name: "matrix", with: 1...6)
+        let expected: [Float] = [2, 3, 4, 5, 6, 7]
+
         let result = m1 + 1
         let values = result.array
-        let expected: [Float] = [2, 3, 4, 5, 6, 7]
         XCTAssert(values == expected)
+
+        let result2 = 1 + m1
+        let values2 = result2.array
+        XCTAssert(values2 == expected)
     }
     
     //--------------------------------------------------------------------------
@@ -85,10 +90,16 @@ class test_BinaryFunctions: XCTestCase {
     // test_subtractScalar
     func test_subtractScalar() {
         let m1 = Matrix<Float>((3, 2), name: "matrix", with: 1...6)
+
         let result = m1 - 1
         let values = result.array
         let expected: [Float] = [0, 1, 2, 3, 4, 5]
         XCTAssert(values == expected)
+
+        let result2 = 1 - m1
+        let values2 = result2.array
+        let expected2: [Float] = [0, -1, -2, -3, -4, -5]
+        XCTAssert(values2 == expected2)
     }
     
     //--------------------------------------------------------------------------

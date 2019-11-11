@@ -223,6 +223,14 @@ public extension CpuAsynchronousQueue {
 }
 #endif
 
+//let lh = lhs.values(using: self)
+//let rh = rhs.values(using: self)
+//var res = result.mutableValues(using: self)
+//
+//zip(res.indices, lh.indices, rh.indices).forEach { i in
+//    res[i.0] = lh[i.1] - rh[i.2]
+//}
+
 //==============================================================================
 /// Element wise multiply tensors with broadcasting
 

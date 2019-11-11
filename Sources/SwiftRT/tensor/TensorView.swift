@@ -257,7 +257,9 @@ public extension TensorView {
     func createDense(with shape: DataShape, name: String? = nil) -> Self {
         let name = name ?? String(describing: Self.self)
         let array = TensorArray<Element>(count: shape.elementCount, name: name)
-        return Self(shape: shape, tensorArray: array, viewOffset: 0,
+        return Self(shape: shape.dense,
+                    tensorArray: array,
+                    viewOffset: 0,
                     isShared: false)
     }
     
