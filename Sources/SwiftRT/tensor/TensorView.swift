@@ -73,7 +73,7 @@ public protocol TensorView: Logging {
     /// class reference to the underlying byte buffer
     var tensorArray: TensorArray<Element> { get set }
     /// the linear element offset where the view begins
-    var viewOffset: Int { get set }
+    var viewOffset: Int { get }
     /// a static array of 1's with count == rank
     /// used for creating reduction result tensors
     var singleElementExtents: [Int] { get }

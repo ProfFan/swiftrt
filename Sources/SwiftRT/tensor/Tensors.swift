@@ -241,7 +241,7 @@ public struct Vector<Element>: VectorView {
     public let format: TensorFormat = .vector
     public let shape: DataShape
     public var tensorArray: TensorArray<Element>
-    public var viewOffset: Int
+    public let viewOffset: Int
     public let singleElementExtents = [1]
 
     public init(shape: DataShape,
@@ -431,7 +431,7 @@ public struct Matrix<Element>: MatrixView {
     public let format: TensorFormat = .matrix
     public let shape: DataShape
     public var tensorArray: TensorArray<Element>
-    public var viewOffset: Int
+    public let viewOffset: Int
     public let singleElementExtents = [1, 1]
 
     public init(shape: DataShape,
@@ -563,7 +563,7 @@ public struct Volume<Element>: VolumeView {
     public let format: TensorFormat = .volume
     public let shape: DataShape
     public var tensorArray: TensorArray<Element>
-    public var viewOffset: Int
+    public let viewOffset: Int
     public let singleElementExtents = [1, 1, 1]
 
     public init(shape: DataShape,
@@ -678,7 +678,7 @@ public struct NDTensor<Element>: NDTensorView {
     public var format: TensorFormat = .vector
     public let shape: DataShape
     public var tensorArray: TensorArray<Element>
-    public var viewOffset: Int
+    public let viewOffset: Int
     public let singleElementExtents: [Int]
 
     public init(shape: DataShape,
@@ -822,7 +822,7 @@ public struct NCHWTensor<Element>: NCHWTensorView {
     public let format: TensorFormat = .nchw
     public let shape: DataShape
     public var tensorArray: TensorArray<Element>
-    public var viewOffset: Int
+    public let viewOffset: Int
     public let singleElementExtents = [1, 1, 1, 1]
 
     public init(shape: DataShape,
@@ -965,7 +965,7 @@ public struct NHWCTensor<Element>: NHWCTensorView {
     public let format: TensorFormat = .nhwc
     public let shape: DataShape
     public var tensorArray: TensorArray<Element>
-    public var viewOffset: Int
+    public let viewOffset: Int
     public let singleElementExtents = [1, 1, 1, 1]
 
     public init(shape: DataShape,
