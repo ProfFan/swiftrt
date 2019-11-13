@@ -34,38 +34,6 @@ public enum MatrixLayout { case rowMajor, columnMajor }
 let countMismatch = "the number of initial elements must equal the tensor size"
 
 //==============================================================================
-//
-public extension TensorView {
-    //--------------------------------------------------------------------------
-    /// returns a collection of read only values
-    func values(using queue: DeviceQueue? = nil)
-        -> TensorValueCollection<Self>
-    {
-        do {
-            let buffer = try readOnly(using: queue)
-            return TensorValueCollection(view: self, buffer: buffer)
-        } catch {
-            DeviceContext.report(error)
-            return TensorValueCollection(view: self)
-        }
-    }
-    
-    //--------------------------------------------------------------------------
-    /// returns a collection of read write values
-    mutating func mutableValues(using queue: DeviceQueue? = nil)
-        -> TensorMutableValueCollection<Self>
-    {
-        do {
-            let buffer = try readWrite(using: queue)
-            return TensorMutableValueCollection(view: &self, buffer: buffer)
-        } catch {
-            DeviceContext.report(error)
-            return TensorMutableValueCollection(view: &self)
-        }
-    }
-}
-
-//==============================================================================
 // tensor subscripting helpers
 
 /// makePositive(range:count:

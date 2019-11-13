@@ -16,6 +16,10 @@
 import Foundation
 
 //==============================================================================
+// assert messages
+public let _messageTensorExtentsMismatch = "tensor extents mismatch"
+
+//==============================================================================
 /// NanPropagation
 public enum NanPropagation: Int, Codable {
     case propagate, noPropagate
@@ -82,12 +86,12 @@ public extension CpuAsynchronousQueue {
     {
         if let axes = axes, axes.count > 0 {
             assert(axes.count <= x.rank, "rank mismatch")
-            queue(#function, { (x.values(), axes) }, &result)
+            queue(#function, { (x.elements(using: self), axes) }, &result)
             { params, result in
                 // TODO
             }
         } else {
-            queue(#function, { x.values() }, &result) {
+            queue(#function, { x.elements(using: self) }, &result) {
                 $0.reduce(into: &$1, initialResult, opNext)
                 $1[$1.startIndex] = opFinal($1[$1.startIndex])
             }

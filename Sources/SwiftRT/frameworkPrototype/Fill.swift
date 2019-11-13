@@ -80,7 +80,7 @@ public extension CpuAsynchronousQueue {
         T: TensorView
     {
         let inputs: () throws -> ([TensorValueCollection<T>]) = {
-            tensors.map { $0.values(using: self) }
+            tensors.map { $0.elements(using: self) }
         }
 
         let outputs: () throws -> ([TensorMutableValueCollection<T>]) = {
@@ -90,7 +90,7 @@ public extension CpuAsynchronousQueue {
             
             for tensor in tensors {
                 var view = shared.view(at: index, extents: tensor.extents)
-                outCollections.append(view.mutableValues(using: self))
+                outCollections.append(view.mutableElements(using: self))
                 index[axis] += tensor.extents[axis]
             }
             return outCollections
@@ -140,7 +140,7 @@ public extension DeviceQueue {
     /// fills the view with the scalar value
     func fill<T>(_ result: inout T, with value: T.Element) where T: TensorView {
         // TODO: can we hide the values/mutable values collections
-        var values = result.mutableValues()
+        var values = result.mutableElements()
         for index in values.indices {
             values[index] = value
         }
@@ -152,7 +152,7 @@ public extension DeviceQueue {
     {
         // TODO: can we hide the values/mutable values collections
         var value = startAt
-        var values = result.mutableValues()
+        var values = result.mutableElements()
         for index in values.indices {
             values[index] = T.Element(any: value)
             value += 1

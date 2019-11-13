@@ -24,10 +24,10 @@ public extension TensorView {
         _ transform: (Element) -> R.MutableValues.Element)
     {
         guard DeviceContext.lastError == nil else { return }
-        let elements = values()
-        var results = result.mutableValues()
-        zip(elements.indices, results.indices).forEach {
-            results[$1] = transform(elements[$0])
+        let values = elements()
+        var results = result.mutableElements()
+        zip(values.indices, results.indices).forEach {
+            results[$1] = transform(values[$0])
         }
     }
 
@@ -35,10 +35,10 @@ public extension TensorView {
     @inlinable
     func map(_ transform: (Element) -> Element) -> Self {
         var result = createDense()
-        let elements = values()
-        var results = result.mutableValues()
-        zip(elements.indices, results.indices).forEach {
-            results[$1] = transform(elements[$0])
+        let values = elements()
+        var results = result.mutableElements()
+        zip(values.indices, results.indices).forEach {
+            results[$1] = transform(values[$0])
         }
         return result
     }
@@ -50,14 +50,11 @@ public extension TensorView {
         _ nextPartialResult: (Element, Element) -> Element)
         where T: TensorView, Element == T.Element
     {
-        let elements = values()
-        var results = result.mutableValues()
         var partial = initialResult
+        elements().forEach { partial = nextPartialResult(partial, $0) }
 
-        for element in elements {
-            partial = nextPartialResult(partial, element)
-        }
-        results[results.startIndex] = partial
+        var collection = result.mutableElements()
+        collection[collection.startIndex] = partial
     }
     
     /// reduce to a mutable collection
@@ -66,15 +63,12 @@ public extension TensorView {
         _ initialResult: Element,
         _ nextPartialResult: (Element, Element) -> Element) -> Self
     {
-        let elements = values()
-        var result = createDense()
-        var results = result.mutableValues()
         var partial = initialResult
+        elements().forEach { partial = nextPartialResult(partial, $0) }
 
-        for element in elements {
-            partial = nextPartialResult(partial, element)
-        }
-        results[results.startIndex] = partial
+        var result = createDense()
+        var collection = result.mutableElements()
+        collection[collection.startIndex] = partial
         return result
     }
 
@@ -90,7 +84,7 @@ public extension Sequence {
         R: TensorView
     {
         var iterator = self.makeIterator()
-        var results = result.mutableValues()
+        var results = result.mutableElements()
         
         for i in results.indices {
             if let value = iterator.next() {
@@ -126,7 +120,7 @@ public extension Zip2Sequence {
         where T: TensorView
     {
         var iterator = self.makeIterator()
-        var results = result.mutableValues()
+        var results = result.mutableElements()
         
         for i in results.indices {
             if let pair = iterator.next() {
@@ -162,7 +156,7 @@ public extension Zip3Sequence {
         where T: TensorView
     {
         var iterator = self.makeIterator()
-        var results = result.mutableValues()
+        var results = result.mutableElements()
         
         for i in results.indices {
             if let input = iterator.next() {
@@ -193,7 +187,7 @@ public func zip<T1, T2>(_ t1: T1, _ t2: T2) ->
     Zip2Sequence<TensorValueCollection<T1>, TensorValueCollection<T2>>
     where T1: TensorView, T2: TensorView
 {
-    return zip(t1.values(), t2.values())
+    return zip(t1.elements(), t2.elements())
 }
 
 //==============================================================================
@@ -206,7 +200,7 @@ public extension Sequence {
         _ nextPartialResult: (Element, Element) -> Element)
         where T: TensorView, Element == T.Element
     {
-        var results = result.mutableValues()
+        var results = result.mutableElements()
         var partial = initialResult
         for value in self {
             partial = nextPartialResult(partial, value)

@@ -99,10 +99,44 @@ public protocol TensorView: Logging {
 
     //--------------------------------------------------------------------------
     /// returns a collection of viewed elements
-    func values(using queue: DeviceQueue?) -> Values
+    func elements(using queue: DeviceQueue?) -> Values
 
     /// returns a collection of mutable viewed elements
-    mutating func mutableValues(using queue: DeviceQueue?) -> MutableValues
+    mutating func mutableElements(using queue: DeviceQueue?) -> MutableValues
+}
+
+//==============================================================================
+//
+public extension TensorView {
+    //--------------------------------------------------------------------------
+    /// returns a collection of read only elements
+    func elements(using queue: DeviceQueue? = nil)
+        -> TensorValueCollection<Self>
+    {
+        do {
+            let buffer = try readOnly(using: queue)
+            return TensorValueCollection(view: self, buffer: buffer)
+        } catch {
+            DeviceContext.report(error)
+            return TensorValueCollection(view: self)
+        }
+    }
+    
+    var elements: TensorValueCollection<Self> { return elements() }
+    
+    //--------------------------------------------------------------------------
+    /// returns a collection of read write values
+    mutating func mutableElements(using queue: DeviceQueue? = nil)
+        -> TensorMutableValueCollection<Self>
+    {
+        do {
+            let buffer = try readWrite(using: queue)
+            return TensorMutableValueCollection(view: &self, buffer: buffer)
+        } catch {
+            DeviceContext.report(error)
+            return TensorMutableValueCollection(view: &self)
+        }
+    }
 }
 
 //==============================================================================
@@ -375,7 +409,7 @@ public extension TensorView {
     /// an array of viewed elements
     @inlinable @inline(__always)
     var array: [Element] {
-        return [Element](values())
+        return [Element](elements())
     }
 
     //--------------------------------------------------------------------------

@@ -34,7 +34,7 @@ public extension TensorView where Element: AnyConvertable & CVarArg {
         let indentSize = "  "
         let extents = shape.extents
         let lastDimension = shape.lastDimension
-        let values = self.values()
+        let values = self.elements()
         var iterator = values.makeIterator()
 
         // clamp ranges

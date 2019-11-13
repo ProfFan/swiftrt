@@ -46,6 +46,7 @@ infix operator .=
 public func add<T>(_ lhs: T, _ rhs: T, result: inout T)
     where T: TensorView, T.Element: Numeric
 {
+    assert(lhs.extents == rhs.extents, _messageTensorExtentsMismatch)
     DeviceContext.currentQueue.add(lhs: lhs, rhs: rhs, result: &result)
 }
 
@@ -118,8 +119,8 @@ public extension CpuAsynchronousQueue {
         T: TensorView, T.Element: Numeric
     {
         queue(#function, {
-            (lhs.values(using: self),
-             rhs.values(using: self))
+            (lhs.elements(using: self),
+             rhs.elements(using: self))
         }, &result) {
             zip($0.0, $0.1).map(into: &$1) { $0 + $1 }
         }
@@ -141,6 +142,7 @@ public extension CpuAsynchronousQueue {
 public func subtract<T>(_ lhs: T, _ rhs: T, result: inout T)
     where T: TensorView, T.Element: Numeric
 {
+    assert(lhs.extents == rhs.extents, _messageTensorExtentsMismatch)
     DeviceContext.currentQueue.subtract(lhs: lhs, rhs: rhs, result: &result)
 }
 
@@ -191,6 +193,14 @@ public extension TensorView where Element: Numeric {
     static func -= (lhs: inout Self, rhs: Element) {
         lhs = lhs - rhs
     }
+    /// - Parameter lhs: left hand tensor
+    /// - Parameter rhs: right hand scalar. If the extents are smaller than
+    ///   `lhs` then broadcasting is performed via repeated indexing.
+    /// - Returns: a new tensor containing the result
+    @inlinable @inline(__always)
+    static func -= (lhs: inout Self, rhs: Self) {
+        lhs = lhs - rhs
+    }
 }
 
 //------------------------------------------------------------------------------
@@ -214,22 +224,14 @@ public extension CpuAsynchronousQueue {
         T: TensorView, T.Element: Numeric
     {
         queue(#function, {
-            (lhs.values(using: self),
-             rhs.values(using: self))
+            (lhs.elements(using: self),
+             rhs.elements(using: self))
         }, &result) {
             zip($0.0, $0.1).map(into: &$1) { $0 - $1 }
         }
     }
 }
 #endif
-
-//let lh = lhs.values(using: self)
-//let rh = rhs.values(using: self)
-//var res = result.mutableValues(using: self)
-//
-//zip(res.indices, lh.indices, rh.indices).forEach { i in
-//    res[i.0] = lh[i.1] - rh[i.2]
-//}
 
 //==============================================================================
 /// Element wise multiply tensors with broadcasting
@@ -244,6 +246,7 @@ public extension CpuAsynchronousQueue {
 public func mul<T>(_ lhs: T, _ rhs: T, result: inout T)
     where T: TensorView, T.Element: Numeric
 {
+    assert(lhs.extents == rhs.extents, _messageTensorExtentsMismatch)
     DeviceContext.currentQueue.mul(lhs: lhs, rhs: rhs, result: &result)
 }
 
@@ -319,8 +322,8 @@ public extension CpuAsynchronousQueue {
         T: TensorView, T.Element: Numeric
     {
         queue(#function, {
-            (lhs.values(using: self),
-             rhs.values(using: self))
+            (lhs.elements(using: self),
+             rhs.elements(using: self))
         }, &result) {
             zip($0.0, $0.1).map(into: &$1) { $0 * $1 }
         }
@@ -341,6 +344,7 @@ public extension CpuAsynchronousQueue {
 public func div<T>(_ lhs: T, _ rhs: T, result: inout T)
     where T: TensorView, T.Element: FloatingPoint
 {
+    assert(lhs.extents == rhs.extents, _messageTensorExtentsMismatch)
     DeviceContext.currentQueue.div(lhs: lhs, rhs: rhs, result: &result)
 }
 
@@ -414,8 +418,8 @@ public extension CpuAsynchronousQueue {
         T: TensorView, T.Element: FloatingPoint
     {
         queue(#function, {
-            (lhs.values(using: self),
-             rhs.values(using: self))
+            (lhs.elements(using: self),
+             rhs.elements(using: self))
         }, &result) {
             zip($0.0, $0.1).map(into: &$1) { $0 / $1 }
         }

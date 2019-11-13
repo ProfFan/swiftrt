@@ -150,7 +150,7 @@ class test_IterateView: XCTestCase {
             let count = 1024 * 1024
             let vector = Vector<Int32>(any: 0..<count)
             //            print(matrix.formatted((2,0)))
-            let values = try vector.values()
+            let values = try vector.elements()
             
             self.measure {
                 for _ in values {}
@@ -172,7 +172,7 @@ class test_IterateView: XCTestCase {
             let matrix = Matrix<Int32>((rows, cols), any: 0..<(rows * cols))
             //            print(matrix.formatted((2,0)))
             
-            let values = try matrix.values()
+            let values = try matrix.elements()
 
             self.measure {
                 for _ in values {}
@@ -196,7 +196,7 @@ class test_IterateView: XCTestCase {
                                        any: 0..<(depths * rows * cols))
             //            print(matrix.formatted((2,0)))
             
-            let values = try matrix.values()
+            let values = try matrix.elements()
             
             self.measure {
                 for _ in values {}

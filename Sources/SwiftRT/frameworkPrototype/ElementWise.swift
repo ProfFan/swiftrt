@@ -27,6 +27,8 @@ import Foundation
 public func maximum<T>(lhs: T, rhs: T, result: inout T) where
     T: TensorView, T.Element: Comparable
 {
+    assert(lhs.extents == rhs.extents && lhs.extents == result.extents,
+           _messageTensorExtentsMismatch)
     DeviceContext.currentQueue.maximum(lhs: lhs, rhs: rhs, result: &result)
 }
 
@@ -78,8 +80,8 @@ public extension CpuAsynchronousQueue {
         T: TensorView, T.Element: Comparable
     {
         queue(#function, {
-            (lhs.values(using: self),
-             rhs.values(using: self))
+            (lhs.elements(using: self),
+             rhs.elements(using: self))
         }, &result) {
             zip($0.0, $0.1).map(into: &$1) { $0 >= $1 ? $0 : $1 }
         }
@@ -99,6 +101,8 @@ public extension CpuAsynchronousQueue {
 public func minimum<T>(lhs: T, rhs: T, result: inout T) where
     T: TensorView, T.Element: Comparable
 {
+    assert(lhs.extents == rhs.extents && lhs.extents == result.extents,
+           _messageTensorExtentsMismatch)
     DeviceContext.currentQueue.minimum(lhs: lhs, rhs: rhs, result: &result)
 }
 
@@ -150,8 +154,8 @@ public extension CpuAsynchronousQueue {
         T: TensorView, T.Element: Comparable
     {
         queue(#function, {
-            (lhs.values(using: self),
-             rhs.values(using: self))
+            (lhs.elements(using: self),
+             rhs.elements(using: self))
         }, &result) {
             zip($0.0, $0.1).map(into: &$1) { $0 <= $1 ? $0 : $1 }
         }
@@ -172,6 +176,7 @@ public extension CpuAsynchronousQueue {
 public func exp<T>(_ x: T, result: inout T)
     where T: TensorView, T.Element: AnyFloatingPoint
 {
+    assert(x.extents == result.extents, _messageTensorExtentsMismatch)
     DeviceContext.currentQueue.exp(x: x, result: &result)
 }
 
@@ -222,7 +227,7 @@ public extension CpuAsynchronousQueue {
     func exp<T>(x: T, result: inout T) where
         T: TensorView, T.Element: AnyFloatingPoint
     {
-        queue(#function, { x.values(using: self) }, &result) {
+        queue(#function, { x.elements(using: self) }, &result) {
             $0.map(into: &$1) {
                 T.Element(any: Foundation.exp($0.asFloat))
             }
@@ -244,6 +249,7 @@ public extension CpuAsynchronousQueue {
 public func log<T>(_ x: T, result: inout T)
     where T: TensorView, T.Element: AnyFloatingPoint
 {
+    assert(x.extents == result.extents, _messageTensorExtentsMismatch)
     DeviceContext.currentQueue.log(x: x, result: &result)
 }
 
@@ -294,7 +300,7 @@ public extension CpuAsynchronousQueue {
     func log<T>(x: T, result: inout T) where
         T: TensorView, T.Element: AnyFloatingPoint
     {
-        queue(#function, { x.values(using: self) }, &result) {
+        queue(#function, { x.elements(using: self) }, &result) {
             $0.map(into: &$1) {
                 T.Element(any: Foundation.log($0.asFloat))
             }
@@ -316,6 +322,7 @@ public extension CpuAsynchronousQueue {
 public func neg<T>(_ x: T, result: inout T)
     where T: TensorView, T.Element: FloatingPoint
 {
+    assert(x.extents == result.extents, _messageTensorExtentsMismatch)
     DeviceContext.currentQueue.neg(x: x, result: &result)
 }
 
@@ -373,7 +380,7 @@ public extension CpuAsynchronousQueue {
     func neg<T>(x: T, result: inout T) where
         T: TensorView, T.Element: SignedNumeric
     {
-        queue(#function, { x.values(using: self) }, &result) {
+        queue(#function, { x.elements(using: self) }, &result) {
             $0.map(into: &$1) { -$0 }
         }
     }
@@ -388,7 +395,7 @@ public extension CpuAsynchronousQueue {
 public func equal<T>(lhs: T, rhs: T, result: inout T.BoolView) where
     T: TensorView, T.Element: Equatable
 {
-    assert(lhs.shape == rhs.shape, "shapes must match")
+    assert(lhs.extents == rhs.extents, _messageTensorExtentsMismatch)
     DeviceContext.currentQueue.equal(lhs: lhs, rhs: rhs, result: &result)
 }
 
@@ -451,8 +458,8 @@ public extension CpuAsynchronousQueue {
         T: TensorView, T.Element: Equatable
     {
         queue(#function, {
-            (lhs.values(using: self),
-             rhs.values(using: self))
+            (lhs.elements(using: self),
+             rhs.elements(using: self))
         }, &result) {
             zip($0.0, $0.1).map(into: &$1) { $0 == $1 }
         }
@@ -468,7 +475,7 @@ public extension CpuAsynchronousQueue {
 public func notEqual<T>(lhs: T, rhs: T, result: inout T.BoolView) where
     T: TensorView, T.Element: Equatable
 {
-    assert(lhs.shape == rhs.shape, "shapes must match")
+    assert(lhs.extents == rhs.extents, _messageTensorExtentsMismatch)
     DeviceContext.currentQueue.notEqual(lhs: lhs, rhs: rhs, result: &result)
 }
 
@@ -507,8 +514,8 @@ public extension CpuAsynchronousQueue {
         T: TensorView, T.Element: Equatable
     {
         queue(#function, {
-            (lhs.values(using: self),
-             rhs.values(using: self))
+            (lhs.elements(using: self),
+             rhs.elements(using: self))
         }, &result) {
             zip($0.0, $0.1).map(into: &$1) { $0 != $1 }
         }
@@ -528,6 +535,7 @@ public extension CpuAsynchronousQueue {
 public func squared<T>(_ x: T, result: inout T)
     where T: TensorView, T.Element: Numeric
 {
+    assert(x.extents == result.extents, _messageTensorExtentsMismatch)
     DeviceContext.currentQueue.squared(x: x, result: &result)
 }
 
@@ -574,7 +582,7 @@ public extension CpuAsynchronousQueue {
     func squared<T>(x: T, result: inout T) where
         T: TensorView, T.Element: Numeric
     {
-        queue(#function, { x.values(using: self) }, &result) {
+        queue(#function, { x.elements(using: self) }, &result) {
             $0.map(into: &$1) { $0 * $0 }
         }
     }

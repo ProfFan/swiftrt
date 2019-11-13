@@ -80,8 +80,8 @@ public extension DeviceQueue {
     func all<T>(x: T, along axes: Vector<IndexElement>?, result: inout T) where
         T: TensorView, T.Element == Bool
     {
-        let xseq = x.values(using: self)
-        var rseq = result.mutableValues()
+        let xseq = x.elements()
+        var rseq = result.mutableElements()
         rseq[rseq.startIndex] = xseq.first { $0 == false } == nil
     }
 }
@@ -96,7 +96,7 @@ public extension CpuAsynchronousQueue {
     func all<T>(x: T, along axes: Vector<IndexElement>?, result: inout T) where
         T: TensorView, T.Element == Bool
     {
-        queue(#function, { x.values(using: self) }, &result) {
+        queue(#function, { x.elements(using: self) }, &result) {
             $1[$1.startIndex] = $0.first { $0 == false } == nil
         }
     }
@@ -167,8 +167,8 @@ public extension DeviceQueue {
     func any<T>(x: T, along axes: Vector<IndexElement>?, result: inout T) where
         T: TensorView, T.Element == Bool
     {
-        let xseq = x.values(using: self)
-        var rseq = result.mutableValues()
+        let xseq = x.elements()
+        var rseq = result.mutableElements()
         rseq[rseq.startIndex] = xseq.first { $0 == true } != nil
     }
 }
@@ -183,7 +183,7 @@ public extension CpuAsynchronousQueue {
     func any<T>(x: T, along axes: Vector<IndexElement>?, result: inout T) where
         T: TensorView, T.Element == Bool
     {
-        queue(#function, { x.values(using: self) }, &result) {
+        queue(#function, { x.elements(using: self) }, &result) {
             $1[$1.startIndex] = $0.first { $0 == true } != nil
         }
     }

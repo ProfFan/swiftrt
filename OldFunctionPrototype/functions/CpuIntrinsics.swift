@@ -21,7 +21,7 @@ public extension CpuQueue {
     func abs<T>(x: T, result: inout T) where
         T: TensorView, T.Element: FloatingPoint
     {
-        queue(#function, { try x.values() }, &result) {
+        queue(#function, { try x.elements() }, &result) {
             $0.map(to: &$1) { $0.magnitude }
         }
     }
@@ -31,7 +31,7 @@ public extension CpuQueue {
     func add<T>(lhs: T, rhs: T, result: inout T) where
         T: TensorView, T.Element: Numeric
     {
-        queue(#function, { try (lhs.values(), rhs.values()) }, &result) {
+        queue(#function, { try (lhs.elements(), rhs.elements()) }, &result) {
             zip($0.0, $0.1).map(to: &$1) { $0 + $1 }
         }
     }
@@ -41,7 +41,7 @@ public extension CpuQueue {
     func all<T>(x: T, along axes: Vector<IndexElement>?, result: inout T) where
         T: TensorView, T.Element == Bool
     {
-        queue(#function, { try x.values() }, &result) {
+        queue(#function, { try x.elements() }, &result) {
             $1[$1.startIndex] = $0.first { $0 == false } != nil
         }
     }
@@ -51,7 +51,7 @@ public extension CpuQueue {
     func any<T>(x: T, along axes: Vector<IndexElement>?, result: inout T) where
         T: TensorView, T.Element == Bool
     {
-        queue(#function, { try x.values() }, &result) {
+        queue(#function, { try x.elements() }, &result) {
             $1[$1.startIndex] = $0.first { $0 == true } != nil
         }
     }
@@ -63,7 +63,7 @@ public extension CpuQueue {
                                result: inout T.BoolView) where
         T: TensorView, T.Element: AnyFloatingPoint
     {
-        queue(#function, { try (lhs.values(), rhs.values()) }, &result) {
+        queue(#function, { try (lhs.elements(), rhs.elements()) }, &result) {
             zip($0.0, $0.1).map(to: &$1) { $0.0 - $0.1 <= tolerance }
         }
     }
@@ -91,7 +91,7 @@ public extension CpuQueue {
     func asum<T>(x: T, along axes: Vector<IndexElement>?, result: inout T) where
         T: TensorView, T.Element: FloatingPoint
     {
-        queue(#function, { try x.values() }, &result) {
+        queue(#function, { try x.elements() }, &result) {
             $0.reduce(to: &$1, T.Element.zero) {
                 $0 + $1.magnitude
             }
@@ -112,7 +112,7 @@ public extension CpuQueue {
     func ceil<T>(x: T, result: inout T) where
         T: TensorView, T.Element: AnyFloatingPoint
     {
-        queue(#function, { try x.values() }, &result) {
+        queue(#function, { try x.elements() }, &result) {
             $0.map(to: &$1) {
                 T.Element(any: Foundation.ceilf($0.asFloat))
             }
@@ -132,7 +132,7 @@ public extension CpuQueue {
     /// copies the elements from view to result
     func copy<T>(view: T, result: inout T) where T: TensorView
     {
-        queue(#function, { try view.values() }, &result) {
+        queue(#function, { try view.elements() }, &result) {
             $0.map(to: &$1) { $0 }
         }
     }
@@ -142,7 +142,7 @@ public extension CpuQueue {
     func cos<T>(x: T, result: inout T) where
         T: TensorView, T.Element: AnyFloatingPoint
     {
-        queue(#function, { try x.values() }, &result) {
+        queue(#function, { try x.elements() }, &result) {
             $0.map(to: &$1) {
                 T.Element(any: Foundation.cos($0.asFloat))
             }
@@ -154,7 +154,7 @@ public extension CpuQueue {
     func cosh<T>(x: T, result: inout T) where
         T: TensorView, T.Element: AnyFloatingPoint
     {
-        queue(#function, { try x.values() }, &result) {
+        queue(#function, { try x.elements() }, &result) {
             $0.map(to: &$1) {
                 T.Element(any: Foundation.cosh($0.asFloat))
             }
@@ -166,7 +166,7 @@ public extension CpuQueue {
     func div<T>(lhs: T, rhs: T, result: inout T) where
         T: TensorView, T.Element: FloatingPoint
     {
-        queue(#function, { try (lhs.values(), rhs.values()) }, &result) {
+        queue(#function, { try (lhs.elements(), rhs.elements()) }, &result) {
             zip($0.0, $0.1).map(to: &$1) { $0 / $1 }
         }
     }
@@ -176,7 +176,7 @@ public extension CpuQueue {
     func equal<T>(lhs: T, rhs: T, result: inout T.BoolView) where
         T: TensorView, T.Element: Equatable
     {
-        queue(#function, { try (lhs.values(), rhs.values()) }, &result) {
+        queue(#function, { try (lhs.elements(), rhs.elements()) }, &result) {
             zip($0.0, $0.1).map(to: &$1) { $0 == $1 }
         }
     }
@@ -186,7 +186,7 @@ public extension CpuQueue {
     func exp<T>(x: T, result: inout T) where
         T: TensorView, T.Element: AnyFloatingPoint
     {
-        queue(#function, { try x.values() }, &result) {
+        queue(#function, { try x.elements() }, &result) {
             $0.map(to: &$1) {
                 T.Element(any: Foundation.log($0.asFloat))
             }
@@ -221,7 +221,7 @@ public extension CpuQueue {
     func floor<T>(x: T, result: inout T) where
         T: TensorView, T.Element: AnyFloatingPoint
     {
-        queue(#function, { try x.values() }, &result) {
+        queue(#function, { try x.elements() }, &result) {
             $0.map(to: &$1) {
                 T.Element(any: Foundation.floorf($0.asFloat))
             }
@@ -233,7 +233,7 @@ public extension CpuQueue {
     func greater<T>(lhs: T, rhs: T, result: inout T.BoolView) where
         T: TensorView, T.Element: Comparable
     {
-        queue(#function, { try (lhs.values(), rhs.values()) }, &result) {
+        queue(#function, { try (lhs.elements(), rhs.elements()) }, &result) {
             zip($0.0, $0.1).map(to: &$1) { $0 > $1 }
         }
     }
@@ -243,7 +243,7 @@ public extension CpuQueue {
     func greaterOrEqual<T>(lhs: T, rhs: T, result: inout T.BoolView) where
         T: TensorView, T.Element: Comparable
     {
-        queue(#function, { try (lhs.values(), rhs.values()) }, &result) {
+        queue(#function, { try (lhs.elements(), rhs.elements()) }, &result) {
             zip($0.0, $0.1).map(to: &$1) { $0 >= $1 }
         }
     }
@@ -253,7 +253,7 @@ public extension CpuQueue {
     func less<T>(lhs: T, rhs: T, result: inout T.BoolView) where
         T: TensorView, T.Element: Comparable
     {
-        queue(#function, { try (lhs.values(), rhs.values()) }, &result) {
+        queue(#function, { try (lhs.elements(), rhs.elements()) }, &result) {
             zip($0.0, $0.1).map(to: &$1) { $0 < $1 }
         }
     }
@@ -263,7 +263,7 @@ public extension CpuQueue {
     func lessOrEqual<T>(lhs: T, rhs: T, result: inout T.BoolView) where
         T: TensorView, T.Element: Comparable
     {
-        queue(#function, { try (lhs.values(), rhs.values()) }, &result) {
+        queue(#function, { try (lhs.elements(), rhs.elements()) }, &result) {
             zip($0.0, $0.1).map(to: &$1) { $0 <= $1 }
         }
     }
@@ -273,7 +273,7 @@ public extension CpuQueue {
     func log<T>(x: T, result: inout T) where
         T: TensorView, T.Element: AnyFloatingPoint
     {
-        queue(#function, { try x.values() }, &result) {
+        queue(#function, { try x.elements() }, &result) {
             $0.map(to: &$1) {
                 T.Element(any: Foundation.log($0.asFloat))
             }
@@ -285,7 +285,7 @@ public extension CpuQueue {
     func logicalNot<T>(x: T, result: inout T) where
         T: TensorView, T.Element == Bool
     {
-        queue(#function, { try x.values() }, &result) { $0.map(to: &$1) { !$0 } }
+        queue(#function, { try x.elements() }, &result) { $0.map(to: &$1) { !$0 } }
     }
     
     //--------------------------------------------------------------------------
@@ -293,7 +293,7 @@ public extension CpuQueue {
     func logicalAnd<T>(lhs: T, rhs: T, result: inout T) where
         T: TensorView, T.Element == Bool
     {
-        queue(#function, { try (lhs.values(), rhs.values()) }, &result) {
+        queue(#function, { try (lhs.elements(), rhs.elements()) }, &result) {
             zip($0.0, $0.1).map(to: &$1) { $0 && $1 }
         }
     }
@@ -303,7 +303,7 @@ public extension CpuQueue {
     func logicalOr<T>(lhs: T, rhs: T, result: inout T) where
         T: TensorView, T.Element == Bool
     {
-        queue(#function, { try (lhs.values(), rhs.values()) }, &result) {
+        queue(#function, { try (lhs.elements(), rhs.elements()) }, &result) {
             zip($0.0, $0.1).map(to: &$1) { $0 || $1 }
         }
     }
@@ -336,7 +336,7 @@ public extension CpuQueue {
     func maximum<T>(lhs: T, rhs: T, result: inout T) where
         T: TensorView, T.Element: Comparable
     {
-        queue(#function, { try (lhs.values(), rhs.values()) }, &result) {
+        queue(#function, { try (lhs.elements(), rhs.elements()) }, &result) {
             zip($0.0, $0.1).map(to: &$1) { $0 >= $1 ? $0 : $1 }
         }
     }
@@ -349,12 +349,12 @@ public extension CpuQueue {
         if let axes = axes, axes.shape.extents[0] > 0 {
             fatalError("not implemented yet")
 //            assert(axes.rank <= x.rank, "rank mismatch")
-//            queue(#function, { try (x.values(), axes.values()) }, &result) { _, _ in
+//            queue(#function, { try (x.elements(), axes.elements()) }, &result) { _, _ in
 //
 //            }
         } else {
             let count = T.Element(x.shape.elementCount)
-            queue(#function, { try x.values() }, &result) {
+            queue(#function, { try x.elements() }, &result) {
                 let value = $0.reduce(T.Element.zero) { $0 + $1 } / count
                 $1[$1.startIndex] = value
             }
@@ -374,7 +374,7 @@ public extension CpuQueue {
     func minimum<T>(lhs: T, rhs: T, result: inout T) where
         T: TensorView, T.Element: Comparable
     {
-        queue(#function, { try (lhs.values(), rhs.values()) }, &result) {
+        queue(#function, { try (lhs.elements(), rhs.elements()) }, &result) {
             zip($0.0, $0.1).map(to: &$1) { $0 <= $1 ? $0 : $1 }
         }
     }
@@ -384,7 +384,7 @@ public extension CpuQueue {
     func mod<T>(lhs: T, rhs: T, result: inout T) where
         T: TensorView, T.Element: AnyFloatingPoint
     {
-        queue(#function, { try (lhs.values(), rhs.values()) }, &result) {
+        queue(#function, { try (lhs.elements(), rhs.elements()) }, &result) {
             zip($0.0, $0.1).map(to: &$1) {
                 T.Element(any: fmodf($0.asFloat, $1.asFloat))
             }
@@ -396,7 +396,7 @@ public extension CpuQueue {
     func mul<T>(lhs: T, rhs: T, result: inout T) where
         T: TensorView, T.Element: Numeric
     {
-        queue(#function, { try (lhs.values(), rhs.values()) }, &result) {
+        queue(#function, { try (lhs.elements(), rhs.elements()) }, &result) {
             zip($0.0, $0.1).map(to: &$1) { $0 * $1 }
         }
     }
@@ -406,7 +406,7 @@ public extension CpuQueue {
     func neg<T>(x: T, result: inout T) where
         T: TensorView, T.Element: SignedNumeric
     {
-        queue(#function, { try x.values() }, &result) {
+        queue(#function, { try x.elements() }, &result) {
             $0.map(to: &$1) { -$0 }
         }
     }
@@ -416,7 +416,7 @@ public extension CpuQueue {
     func notEqual<T>(lhs: T, rhs: T, result: inout T.BoolView) where
         T: TensorView, T.Element: Equatable
     {
-        queue(#function, { try (lhs.values(), rhs.values()) }, &result) {
+        queue(#function, { try (lhs.elements(), rhs.elements()) }, &result) {
             zip($0.0, $0.1).map(to: &$1) { $0 != $1 }
         }
     }
@@ -426,7 +426,7 @@ public extension CpuQueue {
     func pow<T>(x: T, y: T, result: inout T) where
         T: TensorView, T.Element: AnyNumeric
     {
-        queue(#function, { try (x.values(), y.values()) }, &result) {
+        queue(#function, { try (x.elements(), y.elements()) }, &result) {
             zip($0.0, $0.1).map(to: &$1) {
                 T.Element(any: Foundation.pow($0.asDouble, $1.asDouble))
             }
@@ -439,7 +439,7 @@ public extension CpuQueue {
         T: TensorView, T.Element: AnyNumeric
     {
         let one = T.Element(any: 1)
-        queue(#function, { try x.values() }, &result) {
+        queue(#function, { try x.elements() }, &result) {
             $0.reduce(to: &$1, one) { $0 * $1 }
         }
     }
@@ -449,7 +449,7 @@ public extension CpuQueue {
     func rsqrt<T>(x: T, result: inout T) where
         T: TensorView, T.Element: AnyFloatingPoint
     {
-        queue(#function, { try x.values() }, &result) {
+        queue(#function, { try x.elements() }, &result) {
             $0.map(to: &$1) { 1 / Foundation.sqrt($0) }
         }
     }
@@ -459,7 +459,7 @@ public extension CpuQueue {
     func replacing<T>(x: T, with other: T, where mask: T.BoolView,
                       result: inout T) where T: TensorView
     {
-        queue(#function, { try (x.values(), other.values(), mask.values()) },
+        queue(#function, { try (x.elements(), other.elements(), mask.elements()) },
               &result)
         {
             zip($0.0, $0.1, $0.2).map(to: &$1) { $2 ? $1 : $0 }
@@ -471,7 +471,7 @@ public extension CpuQueue {
     func sin<T>(x: T, result: inout T) where
         T: TensorView, T.Element: AnyFloatingPoint
     {
-        queue(#function, { try x.values() }, &result) {
+        queue(#function, { try x.elements() }, &result) {
             $0.map(to: &$1) {
                 T.Element(any: Foundation.sinf($0.asFloat))
             }
@@ -484,7 +484,7 @@ public extension CpuQueue {
     func sinh<T>(x: T, result: inout T) where
         T: TensorView, T.Element: AnyFloatingPoint
     {
-        queue(#function, { try x.values() }, &result) {
+        queue(#function, { try x.elements() }, &result) {
             $0.map(to: &$1) {
                 T.Element(any: Foundation.sinhf($0.asFloat))
             }
@@ -496,7 +496,7 @@ public extension CpuQueue {
     func square<T>(x: T, result: inout T) where
         T: TensorView, T.Element: FloatingPoint
     {
-        queue(#function, { try x.values() }, &result) {
+        queue(#function, { try x.elements() }, &result) {
             $0.map(to: &$1) { $0 * $0 }
         }
     }
@@ -508,7 +508,7 @@ public extension CpuQueue {
     {
         assert(lhs.shape.elementCount == rhs.shape.elementCount,
                "tensors must have equal element counts")
-        queue(#function, { try (lhs.values(), rhs.values()) }, &result) {
+        queue(#function, { try (lhs.elements(), rhs.elements()) }, &result) {
             zip($0.0, $0.1).map(to: &$1) {
                 let diff = $0 - $1
                 return diff * diff
@@ -521,7 +521,7 @@ public extension CpuQueue {
     func sqrt<T>(x: T, result: inout T) where
         T: TensorView, T.Element: FloatingPoint
     {
-        queue(#function, { try x.values() }, &result) {
+        queue(#function, { try x.elements() }, &result) {
             $0.map(to: &$1) { Foundation.sqrt($0) }
         }
     }
@@ -531,7 +531,7 @@ public extension CpuQueue {
     func subtract<T>(lhs: T, rhs: T, result: inout T) where
         T: TensorView, T.Element: Numeric
     {
-        queue(#function, { try (lhs.values(), rhs.values()) }, &result) {
+        queue(#function, { try (lhs.elements(), rhs.elements()) }, &result) {
             zip($0.0, $0.1).map(to: &$1) { $0 - $1 }
         }
     }
@@ -543,11 +543,11 @@ public extension CpuQueue {
     {
         if let axes = axes, axes.shape.extents[0] > 0 {
             assert(axes.rank <= x.rank, "rank mismatch")
-            queue(#function, { try (x.values(), axes.values()) }, &result) { params, result in
+            queue(#function, { try (x.elements(), axes.elements()) }, &result) { params, result in
 
             }
         } else {
-            queue(#function, { try x.values() }, &result) {
+            queue(#function, { try x.elements() }, &result) {
                 $0.reduce(to: &$1, T.Element.zero) { $0 + $1 }
             }
         }
@@ -558,7 +558,7 @@ public extension CpuQueue {
     func tan<T>(x: T, result: inout T) where
         T: TensorView, T.Element: AnyFloatingPoint
     {
-        queue(#function, { try x.values() }, &result) {
+        queue(#function, { try x.elements() }, &result) {
             $0.map(to: &$1) {
                 T.Element(any: Foundation.tanf($0.asFloat))
             }
@@ -570,7 +570,7 @@ public extension CpuQueue {
     func tanh<T>(x: T, result: inout T) where
         T: TensorView, T.Element: AnyFloatingPoint
     {
-        queue(#function, { try x.values() }, &result) {
+        queue(#function, { try x.elements() }, &result) {
             $0.map(to: &$1) {
                 T.Element(any: Foundation.tanhf($0.asFloat))
             }

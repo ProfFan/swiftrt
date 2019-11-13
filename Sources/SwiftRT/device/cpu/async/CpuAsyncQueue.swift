@@ -104,7 +104,7 @@ public final class CpuAsynchronousQueue: DeviceQueue, CpuQueueProtocol, LocalDev
             // get the parameter sequences
             let input = try inputs()
             var sharedView = try result.sharedView(using: self)
-            var results = sharedView.mutableValues(using: self)
+            var results = sharedView.mutableElements(using: self)
             
             if executeSynchronously {
                 body(input, &results)
@@ -243,7 +243,7 @@ public final class CpuAsynchronousQueue: DeviceQueue, CpuQueueProtocol, LocalDev
     //--------------------------------------------------------------------------
     /// perform indexed copy from source view to result view
     public func copy<T>(from view: T, to result: inout T) where T : TensorView {
-        queue(#function, { view.values() }, &result) {
+        queue(#function, { view.elements() }, &result) {
             $0.map(into: &$1) { $0 }
         }
     }
