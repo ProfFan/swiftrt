@@ -395,7 +395,7 @@ public extension TensorView {
     /// realized
     /// create a dense view where the elements are coalesced
     /// if it is already of the correct form, then `self` is reaturned
-    func realized() throws -> Self {
+    func realized() -> Self {
         if shape.isContiguous {
             return self
         } else {

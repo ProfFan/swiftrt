@@ -155,7 +155,7 @@ public extension VectorView {
         self.init(shape: shape, tensorArray: array,
                   viewOffset: 0, isShared: false)
     }
-
+    
     //-------------------------------------
     /// with convertible collection
     init<C>(name: String? = nil, with any: C) where
