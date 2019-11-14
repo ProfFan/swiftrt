@@ -494,12 +494,11 @@ public extension TensorView where Element: AnyNumeric {
 
 //------------------------------------------------------------------------------
 // >>>>>> INTENT <<<<<<
-// User device function
 public extension DeviceQueue {
     func pow<T>(x: T, y: T, result: inout T) where
         T: TensorView, T.Element: AnyNumeric
     {
-        zip(x.elements, y.elements).map(into: &result) {
+        zip(x, y).map(into: &result) {
             T.Element(any: Foundation.pow($0.asDouble, $1.asDouble))
         }
     }
