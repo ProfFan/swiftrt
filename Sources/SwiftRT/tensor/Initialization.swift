@@ -82,20 +82,11 @@ public extension TensorView {
         self = Self(concatenating: others, along: axis, name: name)
     }
     
-    init(concatenating others: [Self],
+    init(concatenating tensors: [Self],
          along axis: Int = 0,
          name: String? = nil)
     {
-        let name = name ?? String(describing: Self.self)
-        
-        // compute the shape
-        let joined = others[0].shape
-            .joined(with: others[1...].map { $0.shape }, along: axis)
-        
-        let array = TensorArray<Element>(count: joined.elementCount, name: name)
-        self = Self(shape: joined, tensorArray: array, viewOffset: 0,
-                    isShared: false)
-        SwiftRT.concat(tensors: others, along: axis, result: &self)
+        self = SwiftRT.concat(tensors: tensors, along: axis, name: name)
     }
     
     //--------------------------------------------------------------------------

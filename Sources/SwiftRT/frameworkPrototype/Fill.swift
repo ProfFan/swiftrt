@@ -19,31 +19,21 @@
 ///
 /// - Parameter tensors: array of tensors whose elements will be joined
 /// - Parameter axis: dimension to append the elements
-func concat<T>(tensors: [T], along axis: Int = 0, result: inout T) where
-    T: TensorView
+func concat<T>(tensors: [T], along axis: Int = 0,
+               name: String? = nil) -> T where T: TensorView
 {
-    // validate the result shape
-    assert(tensors.count >= 2 && result.extents == {
-        let shape = tensors[0].shape
-        let joined = shape.joined(with: tensors[1...].map { $0.shape },
-                                  along: axis)
-        return joined.extents
-        }(), "result tensor extents must match joined extents")
-
+    assert(tensors.count > 1)
+    let joined = tensors[0].shape.joined(with: tensors[1...].map { $0.shape },
+                                         along: axis)
+    var result = tensors[0].createDense(with: joined, name: name)
     DeviceContext.currentQueue.concat(tensors: tensors, along: axis,
                                       result: &result)
+    return result
 }
 
 public extension TensorView {
-    func concat(_ others: [Self], along axis: Int = 0) -> Self {
-        let joined = shape.joined(with: others.map { $0.shape }, along: axis)
-        var result = createDense(with: joined)
-        SwiftRT.concat(tensors: [self] + others, along: axis, result: &result)
-        return result
-    }
-
     func concat(_ others: Self..., along axis: Int = 0) -> Self {
-        return concat(others, along: axis)
+        SwiftRT.concat(tensors: others, along: axis)
     }
 }
 
