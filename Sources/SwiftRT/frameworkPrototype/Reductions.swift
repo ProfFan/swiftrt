@@ -70,8 +70,6 @@ public extension DeviceQueue {
 
 //******************************************************************************
 // >>>>>> GENERATED <<<<<<
-// @Target(type:"CPU", appliedTo:"CpuAsynchronousQueue", protocols:[DeviceQueue])
-// target generated from Intent by the compiler
 #if canImport(CpuAsync)
 public extension CpuAsynchronousQueue {
     // reduce
@@ -171,8 +169,6 @@ public extension DeviceQueue {
 
 //******************************************************************************
 // >>>>>> GENERATED <<<<<<
-// @Target(type:"CPU", appliedTo:"CpuAsynchronousQueue", protocols:[DeviceQueue])
-// target generated from Intent by the compiler
 #if canImport(CpuAsync)
 public extension CpuAsynchronousQueue {
     /// all
@@ -257,8 +253,6 @@ public extension DeviceQueue {
 
 //******************************************************************************
 // >>>>>> GENERATED <<<<<<
-// @Target(type:"CPU", appliedTo:"CpuAsynchronousQueue", protocols:[DeviceQueue])
-// target generated from Intent by the compiler
 #if canImport(CpuAsync)
 public extension CpuAsynchronousQueue {
     /// any

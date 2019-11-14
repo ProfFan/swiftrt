@@ -16,8 +16,7 @@
 import Foundation
 import CCuda
 
-//import CudaKernels
-
+// @Target(type:"cpu", appliedTo:"CpuSynchronousQueue", protocol: DeviceFunctions)
 public final class CudaQueue: LocalDeviceQueue {
     // protocol properties
     public private(set) var trackingId = 0

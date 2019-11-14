@@ -15,6 +15,7 @@
 //
 import Foundation
 
+// @Target(type:"cpu", appliedTo:"CpuSynchronousQueue", protocol: DeviceFunctions)
 public final class CpuSynchronousQueue: CpuQueueProtocol, LocalDeviceQueue {
 	// protocol properties
 	public private(set) var trackingId = 0

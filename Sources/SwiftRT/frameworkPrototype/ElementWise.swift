@@ -17,46 +17,32 @@ import Foundation
 
 //==============================================================================
 /// maximum
-/// Computes the element-wise maximum of two tensors.
+/// Computes the element-wise maximum of two tensors
 /// - Parameter lhs: left hand tensor
-/// - Parameter rhs: right hand tensor. If the extents are smaller than `lhs`
-///   then broadcasting will be performed via repeated indexing.
-/// - Parameter result: the tensor where the result will be written
+/// - Parameter rhs: right hand tensor
+/// - Returns: result
 @inlinable @inline(__always)
-//@differentiable(vjp: _vjpAdd(lhs:rhs:) where Element : TensorFlowFloatingPoint)
-public func maximum<T>(lhs: T, rhs: T, result: inout T) where
+public func maximum<T>(_ lhs: T, _ rhs: T) -> T where
     T: TensorView, T.Element: Comparable
 {
-    assert(lhs.extents == rhs.extents && lhs.extents == result.extents,
-           _messageTensorExtentsMismatch)
+    assert(lhs.extents == rhs.extents, _messageTensorExtentsMismatch)
+    var result = lhs.createDense()
     DeviceContext.currentQueue.maximum(lhs: lhs, rhs: rhs, result: &result)
-}
-
-/// returns new view
-/// - Parameter lhs: left hand tensor
-/// - Parameter rhs: right hand tensor. If the extents are smaller than
-///   `lhs` then broadcasting is performed via repeated indexing.
-/// - Returns: a new tensor containing the result
-@inlinable @inline(__always)
-public func maximum<T>(_ lhs: T, _ rhs: T) -> T
-    where T: TensorView, T.Element: Comparable
-{
-    var result = lhs.createDense()
-    maximum(lhs: lhs, rhs: rhs, result: &result)
     return result
 }
 
-/// returns new view
-/// - Parameter lhs: left hand tensor
-/// - Parameter rhs: right hand scalar
-/// - Returns: a new tensor containing the result
 @inlinable @inline(__always)
-public func maximum<T>(_ lhs: T, _ rhs: T.Element) -> T
-    where T: TensorView, T.Element: Comparable
+public func maximum<T>(_ lhs: T, _ rhs: T.Element) -> T where
+    T: TensorView, T.Element: Comparable
 {
-    var result = lhs.createDense()
-    maximum(lhs: lhs, rhs: lhs.create(repeating: rhs), result: &result)
-    return result
+    maximum(lhs, lhs.create(repeating: rhs))
+}
+
+@inlinable @inline(__always)
+public func maximum<T>(_ lhs: T.Element, _ rhs: T) -> T where
+    T: TensorView, T.Element: Comparable
+{
+    maximum(rhs.create(repeating: lhs), rhs)
 }
 
 //------------------------------------------------------------------------------
@@ -72,8 +58,6 @@ public extension DeviceQueue {
 
 //******************************************************************************
 // >>>>>> GENERATED <<<<<<
-// @Target(type:"CPU", appliedTo:"CpuQueue", protocols:[DeviceQueue])
-// target generated from Intent by the compiler
 #if canImport(CpuAsync)
 public extension CpuAsynchronousQueue {
     func maximum<T>(lhs: T, rhs: T, result: inout T) where
@@ -91,46 +75,32 @@ public extension CpuAsynchronousQueue {
 
 //==============================================================================
 /// minimum
-/// Computes the element-wise maximum of two tensors.
+/// Computes the element-wise minimum of two tensors
 /// - Parameter lhs: left hand tensor
-/// - Parameter rhs: right hand tensor. If the extents are smaller than `lhs`
-///   then broadcasting will be performed via repeated indexing.
-/// - Parameter result: the tensor where the result will be written
+/// - Parameter rhs: right hand tensor
+/// - Returns: result
 @inlinable @inline(__always)
-//@differentiable(vjp: _vjpAdd(lhs:rhs:) where Element : TensorFlowFloatingPoint)
-public func minimum<T>(lhs: T, rhs: T, result: inout T) where
+public func minimum<T>(_ lhs: T, _ rhs: T) -> T where
     T: TensorView, T.Element: Comparable
 {
-    assert(lhs.extents == rhs.extents && lhs.extents == result.extents,
-           _messageTensorExtentsMismatch)
+    assert(lhs.extents == rhs.extents, _messageTensorExtentsMismatch)
+    var result = lhs.createDense()
     DeviceContext.currentQueue.minimum(lhs: lhs, rhs: rhs, result: &result)
+    return result
 }
 
-/// returns new view
-/// - Parameter lhs: left hand tensor
-/// - Parameter rhs: right hand scalar
-/// - Returns: a new tensor containing the result
 @inlinable @inline(__always)
 public func minimum<T>(_ lhs: T, _ rhs: T.Element) -> T
     where T: TensorView, T.Element: Comparable
 {
-    var result = lhs.createDense()
-    minimum(lhs: lhs, rhs: lhs.create(repeating: rhs), result: &result)
-    return result
+    minimum(lhs, lhs.create(repeating: rhs))
 }
 
-/// returns new view
-/// - Parameter lhs: left hand tensor
-/// - Parameter rhs: right hand tensor. If the extents are smaller than
-///   `lhs` then broadcasting is performed via repeated indexing.
-/// - Returns: a new tensor containing the result
 @inlinable @inline(__always)
-public func minimum<T>(_ lhs: T, _ rhs: T) -> T
+public func minimum<T>(_ lhs: T.Element, _ rhs: T) -> T
     where T: TensorView, T.Element: Comparable
 {
-    var result = lhs.createDense()
-    minimum(lhs: lhs, rhs: rhs, result: &result)
-    return result
+    minimum(rhs.create(repeating: lhs), rhs)
 }
 
 //------------------------------------------------------------------------------
@@ -146,8 +116,6 @@ public extension DeviceQueue {
 
 //******************************************************************************
 // >>>>>> GENERATED <<<<<<
-// @Target(type:"CPU", appliedTo:"CpuQueue", protocols:[DeviceQueue])
-// target generated from Intent by the compiler
 #if canImport(CpuAsync)
 public extension CpuAsynchronousQueue {
     func minimum<T>(lhs: T, rhs: T, result: inout T) where
@@ -170,39 +138,19 @@ public extension CpuAsynchronousQueue {
 ///
 /// with placement
 /// - Parameter x: value tensor
-/// - Parameter result: the tensor where the result will be written
+/// - Returns: result
 @inlinable @inline(__always)
-//@differentiable(vjp: _vjpLog(_:) where T: TensorFlowFloatingPoint)
-public func exp<T>(_ x: T, result: inout T)
-    where T: TensorView, T.Element: AnyFloatingPoint
-{
-    assert(x.extents == result.extents, _messageTensorExtentsMismatch)
-    DeviceContext.currentQueue.exp(x: x, result: &result)
-}
-
-/// returns new view
-/// - Parameter x: value tensor
-/// - Returns: a new tensor containing the result
-@inlinable @inline(__always)
-//@differentiable(vjp: _vjpLog(_:) where T: TensorFlowFloatingPoint)
-public func exp<T>(_ x: T) -> T
-    where T: TensorView, T.Element: AnyFloatingPoint
+public func exp<T>(_ x: T) -> T where
+    T: TensorView, T.Element: AnyFloatingPoint
 {
     var result = x.createDense()
-    exp(x, result: &result)
+    DeviceContext.currentQueue.exp(x: x, result: &result)
     return result
 }
 
 public extension TensorView where Element: AnyFloatingPoint {
-    /// returns new view
-    /// - Returns: a new tensor containing the result
     @inlinable @inline(__always)
-    //@differentiable(vjp: _vjpAbs(_:) where T: TensorFlowFloatingPoint)
-    func exp() -> Self {
-        var result = createDense()
-        SwiftRT.exp(self, result: &result)
-        return result
-    }
+    func exp() -> Self { SwiftRT.exp(self) }
 }
 
 //------------------------------------------------------------------------------
@@ -219,8 +167,6 @@ public extension DeviceQueue {
 
 //******************************************************************************
 // >>>>>> GENERATED <<<<<<
-// @Target(type:"CPU", appliedTo:"CpuQueue", protocols:[DeviceQueue])
-// target generated from Intent by the compiler
 #if canImport(CpuAsync)
 public extension CpuAsynchronousQueue {
     /// exp
@@ -243,39 +189,19 @@ public extension CpuAsynchronousQueue {
 ///
 /// with placement
 /// - Parameter x: value tensor
-/// - Parameter result: the tensor where the result will be written
+/// - Returns: result
 @inlinable @inline(__always)
-//@differentiable(vjp: _vjpLog(_:) where T: TensorFlowFloatingPoint)
-public func log<T>(_ x: T, result: inout T)
-    where T: TensorView, T.Element: AnyFloatingPoint
-{
-    assert(x.extents == result.extents, _messageTensorExtentsMismatch)
-    DeviceContext.currentQueue.log(x: x, result: &result)
-}
-
-/// returns new view
-/// - Parameter x: value tensor
-/// - Returns: a new tensor containing the result
-@inlinable @inline(__always)
-//@differentiable(vjp: _vjpLog(_:) where T: TensorFlowFloatingPoint)
-public func log<T>(_ x: T) -> T
-    where T: TensorView, T.Element: AnyFloatingPoint
+public func log<T>(_ x: T) -> T where
+    T: TensorView, T.Element: AnyFloatingPoint
 {
     var result = x.createDense()
-    log(x, result: &result)
+    DeviceContext.currentQueue.log(x: x, result: &result)
     return result
 }
 
 public extension TensorView where Element: AnyFloatingPoint {
-    /// returns new view
-    /// - Returns: a new tensor containing the result
     @inlinable @inline(__always)
-    //@differentiable(vjp: _vjpAbs(_:) where T: TensorFlowFloatingPoint)
-    func log() -> Self {
-        var result = createDense()
-        SwiftRT.log(self, result: &result)
-        return result
-    }
+    func log() -> Self { SwiftRT.log(self) }
 }
 
 //------------------------------------------------------------------------------
@@ -292,8 +218,6 @@ public extension DeviceQueue {
 
 //******************************************************************************
 // >>>>>> GENERATED <<<<<<
-// @Target(type:"CPU", appliedTo:"CpuQueue", protocols:[DeviceQueue])
-// target generated from Intent by the compiler
 #if canImport(CpuAsync)
 public extension CpuAsynchronousQueue {
     /// log
@@ -316,45 +240,22 @@ public extension CpuAsynchronousQueue {
 ///
 /// with placement
 /// - Parameter x: value tensor
-/// - Parameter result: the tensor where the result will be written
+/// - Returns: result
 @inlinable @inline(__always)
-//@differentiable(vjp: _vjpLog(_:) where T: TensorFlowFloatingPoint)
-public func neg<T>(_ x: T, result: inout T)
-    where T: TensorView, T.Element: FloatingPoint
-{
-    assert(x.extents == result.extents, _messageTensorExtentsMismatch)
-    DeviceContext.currentQueue.neg(x: x, result: &result)
-}
-
-/// returns new view
-/// - Parameter x: value tensor
-/// - Returns: a new tensor containing the result
-@inlinable @inline(__always)
-//@differentiable(vjp: _vjpLog(_:) where T: TensorFlowFloatingPoint)
-public func neg<T>(_ x: T) -> T
-    where T: TensorView, T.Element: FloatingPoint
+public func neg<T>(_ x: T) -> T where
+    T: TensorView, T.Element: FloatingPoint
 {
     var result = x.createDense()
-    neg(x, result: &result)
+    DeviceContext.currentQueue.neg(x: x, result: &result)
     return result
 }
 
 public extension TensorView where Element: FloatingPoint {
-    /// returns new view
-    /// - Returns: a new tensor containing the result
     @inlinable @inline(__always)
-    //@differentiable(vjp: _vjpAbs(_:) where T: TensorFlowFloatingPoint)
-    func neg() -> Self {
-        var result = createDense()
-        SwiftRT.neg(self, result: &result)
-        return result
-    }
-    /// - Parameter lhs: left hand tensor
-    /// - Parameter rhs: right hand tensor. If the extents are smaller than
-    ///   `lhs` then broadcasting is performed via repeated indexing.
-    /// - Returns: a new tensor containing the result
+    func neg() -> Self { SwiftRT.neg(self) }
+
     @inlinable @inline(__always)
-    static prefix func - (x: Self) -> Self { return x.neg() }
+    static prefix func - (x: Self) -> Self { x.neg() }
 }
 
 //------------------------------------------------------------------------------
@@ -372,8 +273,6 @@ public extension DeviceQueue {
 
 //******************************************************************************
 // >>>>>> GENERATED <<<<<<
-// @Target(type:"CPU", appliedTo:"CpuQueue", protocols:[DeviceQueue])
-// target generated from Intent by the compiler
 #if canImport(CpuAsync)
 public extension CpuAsynchronousQueue {
     /// neg
@@ -390,33 +289,28 @@ public extension CpuAsynchronousQueue {
 //==============================================================================
 // >>>>>> User API <<<<<<
 /// equal
-/// Computes `lhs == rhs` element-wise and returns a `TensorView` of Boolean
-/// values.
-public func equal<T>(lhs: T, rhs: T, result: inout T.BoolView) where
+/// Performs element-wise equality comparison and returns a
+/// tensor of Bool values
+public func equal<T>(_ lhs: T, _ rhs: T) -> T.BoolView where
     T: TensorView, T.Element: Equatable
 {
     assert(lhs.extents == rhs.extents, _messageTensorExtentsMismatch)
+    var result = lhs.createBoolTensor()
     DeviceContext.currentQueue.equal(lhs: lhs, rhs: rhs, result: &result)
+    return result
 }
 
 public extension TensorView where Element: Equatable & AnyScalar {
-    /// - Parameter lhs: left hand tensor
-    /// - Parameter rhs: right hand tensor
-    /// - Returns: a new tensor containing the result
     @inlinable
-    static func .== (_ lhs: Self, _ rhs: Self) -> BoolView {
-        var result = lhs.createBoolTensor()
-        equal(lhs: lhs, rhs: rhs, result: &result)
-        return result
-    }
+    static func .== (_ lhs: Self, _ rhs: Self) -> BoolView { equal(lhs, rhs) }
     
     /// - Parameter lhs: left hand tensor
     /// - Parameter rhs: right hand tensor
     /// - Returns: `true` if the tensors are equal
     @inlinable
     static func == (lhs: Self, rhs: Self) -> Bool {
-        // the shapes must match or they are not equal
-        guard lhs.shape == rhs.shape else { return false }
+        // the extents must match or they are not equal
+        guard lhs.extents == rhs.extents else { return false }
         
         // if lhs is an alias for rhs, then they match
         if lhs.tensorArray === rhs.tensorArray &&
@@ -424,14 +318,6 @@ public extension TensorView where Element: Equatable & AnyScalar {
         
         // compare elements
         return (lhs .== rhs).all().element
-    }
-
-    /// - Parameter lhs: left hand tensor
-    /// - Parameter rhs: right hand tensor
-    /// - Returns: `true` if the tensors are not equal
-    @inlinable
-    static func != (lhs: Self, rhs: Self) -> Bool {
-        return !(lhs == rhs)
     }
 }
 
@@ -449,8 +335,6 @@ public extension DeviceQueue {
 
 //******************************************************************************
 // >>>>>> GENERATED <<<<<<
-// @Target(type:"CPU", appliedTo:"CpuQueue", protocols:[DeviceQueue])
-// target generated from Intent by the compiler
 #if canImport(CpuAsync)
 public extension CpuAsynchronousQueue {
     /// equal
@@ -472,22 +356,30 @@ public extension CpuAsynchronousQueue {
 /// notEqual
 /// Computes `lhs != rhs` element-wise and returns a `TensorView` of Boolean
 /// values.
-public func notEqual<T>(lhs: T, rhs: T, result: inout T.BoolView) where
+public func notEqual<T>(_ lhs: T, _ rhs: T) -> T.BoolView where
     T: TensorView, T.Element: Equatable
 {
     assert(lhs.extents == rhs.extents, _messageTensorExtentsMismatch)
+    var result = lhs.createBoolTensor()
     DeviceContext.currentQueue.notEqual(lhs: lhs, rhs: rhs, result: &result)
+    return result
 }
 
 public extension TensorView where Element: Equatable {
-    /// - Parameter lhs: left hand tensor
-    /// - Parameter rhs: right hand tensor
-    /// - Returns: a new tensor containing the result
     @inlinable
-    static func .!= (_ lhs: Self, _ rhs: Self) -> BoolView {
-        var result = lhs.createBoolTensor()
-        notEqual(lhs: lhs, rhs: rhs, result: &result)
-        return result
+    static func .!=(_ lhs: Self, _ rhs: Self) -> BoolView { notEqual(lhs, rhs) }
+
+    @inlinable
+    static func != (lhs: Self, rhs: Self) -> Bool {
+        // the extents must not match or they are not equal
+        guard lhs.extents != rhs.extents else { return true }
+        
+        // if lhs is an alias for rhs, then they match
+        if (lhs.tensorArray === rhs.tensorArray &&
+            lhs.viewOffset == rhs.viewOffset) { return false }
+        
+        // compare elements
+        return (lhs .!= rhs).any().element
     }
 }
 
@@ -505,8 +397,6 @@ public extension DeviceQueue {
 
 //******************************************************************************
 // >>>>>> GENERATED <<<<<<
-// @Target(type:"CPU", appliedTo:"CpuQueue", protocols:[DeviceQueue])
-// target generated from Intent by the compiler
 #if canImport(CpuAsync)
 public extension CpuAsynchronousQueue {
     /// equal
@@ -528,38 +418,20 @@ public extension CpuAsynchronousQueue {
 /// squared(x)
 /// computes the elementwise squares of `x`
 ///
-/// with placement
 /// - Parameter x: value tensor
-/// - Parameter result: the tensor where the result will be written
+/// - Returns: result
 @inlinable @inline(__always)
-public func squared<T>(_ x: T, result: inout T)
-    where T: TensorView, T.Element: Numeric
-{
-    assert(x.extents == result.extents, _messageTensorExtentsMismatch)
-    DeviceContext.currentQueue.squared(x: x, result: &result)
-}
-
-/// returns new view
-/// - Parameter x: value tensor
-/// - Parameter result: the tensor where the result will be written
-@inlinable @inline(__always)
-public func squared<T>(_ x: T) -> T
-    where T: TensorView, T.Element: Numeric
+public func squared<T>(_ x: T) -> T where
+    T: TensorView, T.Element: Numeric
 {
     var result = x.createDense()
-    squared(x, result: &result)
+    DeviceContext.currentQueue.squared(x: x, result: &result)
     return result
 }
 
 public extension TensorView where Element: Numeric {
-    /// returns new view
-    /// - Returns: a new tensor containing the result
     @inlinable @inline(__always)
-    func squared() -> Self {
-        var result = createDense()
-        SwiftRT.squared(self, result: &result)
-        return result
-    }
+    func squared() -> Self { SwiftRT.squared(self) }
 }
 
 //------------------------------------------------------------------------------
@@ -575,8 +447,6 @@ public extension DeviceQueue {
 
 //******************************************************************************
 // >>>>>> GENERATED <<<<<<
-// @Target(type:"CPU", appliedTo:"CpuQueue", protocols:[DeviceQueue])
-// target generated from Intent by the compiler
 #if canImport(CpuAsync)
 public extension CpuAsynchronousQueue {
     func squared<T>(x: T, result: inout T) where
@@ -589,3 +459,67 @@ public extension CpuAsynchronousQueue {
 }
 #endif
 
+//==============================================================================
+// >>>>>> User API <<<<<<
+/// squared(x)
+/// computes elementwise `x` to the power of `y`
+///
+/// - Parameter x: value tensor
+/// - Parameter y: power tensor
+/// - Returns: result
+@inlinable @inline(__always)
+public func pow<T>(_ x: T, _ y: T) -> T where
+    T: TensorView, T.Element: AnyNumeric
+{
+    assert(x.extents == y.extents, _messageTensorExtentsMismatch)
+    var result = x.createDense()
+    DeviceContext.currentQueue.squared(x: x, result: &result)
+    return result
+}
+
+public extension TensorView where Element: AnyNumeric {
+    @inlinable
+    static func **(_ x: Self, _ y: Self) -> Self { SwiftRT.pow(x, y) }
+
+    @inlinable
+    static func **(_ x: Self, _ y: Element) -> Self {
+        y == 2 ? x.squared() : x ** x.create(repeating: y)
+    }
+
+    @inlinable
+    static func **(_ x: Element, _ y: Self) -> Self {
+        y.create(repeating: x) ** y
+    }
+}
+
+//------------------------------------------------------------------------------
+// >>>>>> INTENT <<<<<<
+// User device function
+public extension DeviceQueue {
+    func pow<T>(x: T, y: T, result: inout T) where
+        T: TensorView, T.Element: AnyNumeric
+    {
+        zip(x.elements, y.elements).map(into: &result) {
+            T.Element(any: Foundation.pow($0.asDouble, $1.asDouble))
+        }
+    }
+}
+
+//******************************************************************************
+// >>>>>> GENERATED <<<<<<
+#if canImport(CpuAsync)
+public extension CpuAsynchronousQueue {
+    func pow<T>(x: T, y: T, result: inout T) where
+        T: TensorView, T.Element: AnyNumeric
+    {
+        queue(#function, {
+            (x.elements(using: self),
+             y.elements(using: self))
+        }, &result) {
+            zip($0.0, $0.1).map(into: &$1) {
+                T.Element(any: Foundation.pow($0.asDouble, $1.asDouble))
+            }
+        }
+    }
+}
+#endif

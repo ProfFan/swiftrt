@@ -72,8 +72,6 @@ public extension DeviceQueue {
 
 //******************************************************************************
 // >>>>>> GENERATED <<<<<<
-// @Target(type:"CPU", appliedTo:"CpuQueue", protocols:[DeviceQueue])
-// target generated from Intent by the compiler
 #if canImport(CpuAsync)
 public extension CpuAsynchronousQueue {
     func concat<T>(tensors: [T], along axis: Int, result: inout T) where
@@ -162,8 +160,6 @@ public extension DeviceQueue {
 
 //******************************************************************************
 // >>>>>> GENERATED <<<<<<
-// @Target(type:"CPU", appliedTo:"CpuQueue", protocols:[DeviceQueue])
-// target generated from Intent by the compiler
 #if canImport(CpuAsync)
 public extension CpuAsynchronousQueue {
     //--------------------------------------------------------------------------
