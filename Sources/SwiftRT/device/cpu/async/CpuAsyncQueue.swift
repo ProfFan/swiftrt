@@ -313,7 +313,7 @@ public final class CpuAsynchronousQueue: DeviceQueue, CpuQueueProtocol, LocalDev
     /// delayQueue(atLeast:
     /// causes the queue to sleep for the specified interval for testing
     public func delayQueue(atLeast interval: TimeInterval) {
-        assert(Thread.current === creatorThread, queueThreadViolationMessage)
+        assert(Thread.current === creatorThread, _messageQueueThreadViolation)
         queue {
             Thread.sleep(forTimeInterval: interval)
         }
@@ -323,7 +323,7 @@ public final class CpuAsynchronousQueue: DeviceQueue, CpuQueueProtocol, LocalDev
     /// throwTestError
     /// used for unit testing
     public func throwTestError() {
-        assert(Thread.current === creatorThread, queueThreadViolationMessage)
+        assert(Thread.current === creatorThread, _messageQueueThreadViolation)
         queue {
             throw DeviceError.queueError(idPath: [], message: "testError")
         }
