@@ -121,7 +121,7 @@ class test_Syntax: XCTestCase {
                 0, 1, 2, 3, 4,
                 0, 1, 2, 3, 4,
             ]
-            var values = try rmatrix.array()
+            var values = try rmatrix.flatArray()
             XCTAssert(values == rmatrixExp)
             
             let colVector = Matrix<Int32>((5, 1), with: 0..<5)
@@ -135,7 +135,7 @@ class test_Syntax: XCTestCase {
                 3, 3, 3, 3, 3,
                 4, 4, 4, 4, 4,
             ]
-            values = try cmatrix.array()
+            values = try cmatrix.flatArray()
             XCTAssert(values == cmatrixExp)
             
         } catch {
@@ -155,7 +155,7 @@ class test_Syntax: XCTestCase {
             
             let expected = [Int32](repeating: value,
                                    count: volume.shape.elementCount)
-            let values = try volume.array()
+            let values = try volume.flatArray()
             XCTAssert(values == expected)
         } catch {
             XCTFail(String(describing: error))
@@ -196,7 +196,7 @@ class test_Syntax: XCTestCase {
             
             let expected: [Float] = [0, 3, 1, 4, 2, 5]
             
-            let values = try tmatrix.array()
+            let values = try tmatrix.flatArray()
             XCTAssert(values == expected)
         } catch {
             XCTFail(String(describing: error))
@@ -303,7 +303,7 @@ class test_Syntax: XCTestCase {
             let pixels = [RGB<Float>(0, 0.5, 1),RGB<Float>(0.25, 0.5, 0.75)]
             let vector = Vector<RGB<Float>>(name: "pixels", elements: pixels)
             let nhwc = NHWCTensor<Float>(vector: vector)
-            let values = try nhwc.array()
+            let values = try nhwc.flatArray()
             let expected: [Float] = [0, 0.5, 1.0, 0.25, 0.5, 0.75]
             XCTAssert(values == expected)
             

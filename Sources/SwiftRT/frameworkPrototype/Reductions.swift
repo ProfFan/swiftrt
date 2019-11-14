@@ -29,7 +29,7 @@ import Foundation
 /// - Parameter result: the scalar tensor where the result will be written
 /// - Precondition: Each value in `axes` must be in the range `-rank..<rank`.
 @inlinable
-public func all<T>(_ x: T, alongAxes axes: Vector<IndexElement>? = nil,
+public func all<T>(_ x: T, alongAxes axes: [Int]? = nil,
                    result: inout T)
     where T: TensorView, T.Element == Bool
 {
@@ -44,8 +44,7 @@ public extension TensorView where Element == Bool {
     @inlinable
     func all(alongAxes: Int...) -> Self {
         // turn into a vector
-        let axes = Vector<IndexElement>(
-            with: shape.makePositive(indices: alongAxes))
+        let axes = shape.makePositive(indices: alongAxes)
         var result = createDense()
         SwiftRT.all(self, alongAxes: axes, result: &result)
         return result
@@ -58,18 +57,18 @@ public extension TensorView where Element == Bool {
         return result
     }
     
-    /// returns new view
-    /// - Parameter alongAxes: the axes to operate on
-    /// - Returns: a new NDTensor containing the result
-    /// - Precondition: Each value in `axes` must be in the range `-rank..<rank`.
-    @inlinable
-    func all(squeezing: Int...) -> NDTensor<Element> {
-        let axes = shape.makePositive(indices: squeezing)
-        let axesVec = Vector<IndexElement>(with: axes)
-        var result = createDense()
-        SwiftRT.all(self, alongAxes: axesVec, result: &result)
-        return result.squeezed(axes: axes)
-    }
+//    /// returns new view
+//    /// - Parameter alongAxes: the axes to operate on
+//    /// - Returns: a new NDTensor containing the result
+//    /// - Precondition: Each value in `axes` must be in the range `-rank..<rank`.
+//    @inlinable
+//    func all(squeezing: Int...) -> NDTensor<Element> {
+//        let axes = shape.makePositive(indices: squeezing)
+//        let axesVec = [Int](with: axes)
+//        var result = createDense()
+//        SwiftRT.all(self, alongAxes: axesVec, result: &result)
+//        return result.squeezed(axes: axes)
+//    }
 }
 
 //------------------------------------------------------------------------------
@@ -77,10 +76,10 @@ public extension TensorView where Element == Bool {
 // User device function
 public extension DeviceQueue {
     /// all
-    func all<T>(x: T, along axes: Vector<IndexElement>?, result: inout T) where
+    func all<T>(x: T, along axes: [Int]?, result: inout T) where
         T: TensorView, T.Element == Bool
     {
-        let xseq = x.elements()
+        let xseq = x.elements
         var rseq = result.mutableElements()
         rseq[rseq.startIndex] = xseq.first { $0 == false } == nil
     }
@@ -93,7 +92,7 @@ public extension DeviceQueue {
 #if canImport(CpuAsync)
 public extension CpuAsynchronousQueue {
     /// all
-    func all<T>(x: T, along axes: Vector<IndexElement>?, result: inout T) where
+    func all<T>(x: T, along axes: [Int]?, result: inout T) where
         T: TensorView, T.Element == Bool
     {
         queue(#function, { x.elements(using: self) }, &result) {
@@ -116,7 +115,7 @@ public extension CpuAsynchronousQueue {
 /// - Parameter result: the scalar tensor where the result will be written
 /// - Precondition: Each value in `axes` must be in the range `-rank..<rank`.
 @inlinable
-public func any<T>(_ x: T, alongAxes axes: Vector<IndexElement>? = nil,
+public func any<T>(_ x: T, alongAxes axes: [Int]? = nil,
                    result: inout T)
     where T: TensorView, T.Element == Bool
 {
@@ -131,8 +130,7 @@ public extension TensorView where Element == Bool {
     @inlinable
     func any(alongAxes: Int...) -> Self {
         // turn into a vector
-        let axes = Vector<IndexElement>(
-            with: shape.makePositive(indices: alongAxes))
+        let axes = shape.makePositive(indices: alongAxes)
         var result = createDense()
         SwiftRT.any(self, alongAxes: axes, result: &result)
         return result
@@ -145,18 +143,18 @@ public extension TensorView where Element == Bool {
         return result
     }
     
-    /// returns new view
-    /// - Parameter alongAxes: the axes to operate on
-    /// - Returns: a new NDTensor containing the result
-    /// - Precondition: Each value in `axes` must be in the range `-rank..<rank`.
-    @inlinable
-    func any(squeezing: Int...) -> NDTensor<Element> {
-        let axes = shape.makePositive(indices: squeezing)
-        let axesVec = Vector<IndexElement>(with: axes)
-        var result = createDense()
-        SwiftRT.any(self, alongAxes: axesVec, result: &result)
-        return result.squeezed(axes: axes)
-    }
+//    /// returns new view
+//    /// - Parameter alongAxes: the axes to operate on
+//    /// - Returns: a new NDTensor containing the result
+//    /// - Precondition: Each value in `axes` must be in the range `-rank..<rank`.
+//    @inlinable
+//    func any(squeezing: Int...) -> NDTensor<Element> {
+//        let axes = shape.makePositive(indices: squeezing)
+//        let axesVec = [Int](with: axes)
+//        var result = createDense()
+//        SwiftRT.any(self, alongAxes: axesVec, result: &result)
+//        return result.squeezed(axes: axes)
+//    }
 }
 
 //------------------------------------------------------------------------------
@@ -164,7 +162,7 @@ public extension TensorView where Element == Bool {
 // User device function
 public extension DeviceQueue {
     /// any
-    func any<T>(x: T, along axes: Vector<IndexElement>?, result: inout T) where
+    func any<T>(x: T, along axes: [Int]?, result: inout T) where
         T: TensorView, T.Element == Bool
     {
         let xseq = x.elements()
@@ -180,7 +178,7 @@ public extension DeviceQueue {
 #if canImport(CpuAsync)
 public extension CpuAsynchronousQueue {
     /// any
-    func any<T>(x: T, along axes: Vector<IndexElement>?, result: inout T) where
+    func any<T>(x: T, along axes: [Int]?, result: inout T) where
         T: TensorView, T.Element == Bool
     {
         queue(#function, { x.elements(using: self) }, &result) {
@@ -227,17 +225,17 @@ public extension TensorView where Element: AnyNumeric {
         return result
     }
     
-    /// returns new view
-    /// - Parameter alongAxes: the axes to operate on
-    /// - Returns: a new NDTensor containing the result
-    /// - Precondition: Each value in `axes` must be in the range `-rank..<rank`.
-    @inlinable
-    func sum(squeezingAxes: Int...) -> NDTensor<Element> {
-        let axes = shape.makePositive(indices: squeezingAxes)
-        var result = createDense()
-        SwiftRT.sum(self, alongAxes: axes, result: &result)
-        return result.squeezed(axes: axes)
-    }
+//    /// returns new view
+//    /// - Parameter alongAxes: the axes to operate on
+//    /// - Returns: a new NDTensor containing the result
+//    /// - Precondition: Each value in `axes` must be in the range `-rank..<rank`.
+//    @inlinable
+//    func sum(squeezingAxes: Int...) -> NDTensor<Element> {
+//        let axes = shape.makePositive(indices: squeezingAxes)
+//        var result = createDense()
+//        SwiftRT.sum(self, alongAxes: axes, result: &result)
+//        return result.squeezed(axes: axes)
+//    }
 }
 
 //==============================================================================
@@ -278,17 +276,17 @@ public extension TensorView where Element: FloatingPoint {
         return result
     }
 
-    /// returns new view
-    /// - Parameter alongAxes: the axes to operate on
-    /// - Returns: a new NDTensor containing the result
-    /// - Precondition: Each value in `axes` must be in the range `-rank..<rank`.
-    @inlinable
-    func mean(squeezingAxes: Int...) -> NDTensor<Element> {
-        let axes = shape.makePositive(indices: squeezingAxes)
-        var result = createDense()
-        SwiftRT.mean(self, alongAxes: axes, result: &result)
-        return result.squeezed(axes: axes)
-    }
+//    /// returns new view
+//    /// - Parameter alongAxes: the axes to operate on
+//    /// - Returns: a new NDTensor containing the result
+//    /// - Precondition: Each value in `axes` must be in the range `-rank..<rank`.
+//    @inlinable
+//    func mean(squeezingAxes: Int...) -> NDTensor<Element> {
+//        let axes = shape.makePositive(indices: squeezingAxes)
+//        var result = createDense()
+//        SwiftRT.mean(self, alongAxes: axes, result: &result)
+//        return result.squeezed(axes: axes)
+//    }
 }
 
 //==============================================================================
@@ -328,17 +326,17 @@ public extension TensorView where Element: AnyNumeric {
         return result
     }
     
-    /// returns new view
-    /// - Parameter alongAxes: the axes to operate on
-    /// - Returns: a new NDTensor containing the result
-    /// - Precondition: Each value in `axes` must be in the range `-rank..<rank`.
-    @inlinable
-    func prod(squeezingAxes: Int...) -> NDTensor<Element> {
-        let axes = shape.makePositive(indices: squeezingAxes)
-        var result = createDense()
-        SwiftRT.prod(self, alongAxes: axes, result: &result)
-        return result.squeezed(axes: axes)
-    }
+//    /// returns new view
+//    /// - Parameter alongAxes: the axes to operate on
+//    /// - Returns: a new NDTensor containing the result
+//    /// - Precondition: Each value in `axes` must be in the range `-rank..<rank`.
+//    @inlinable
+//    func prod(squeezingAxes: Int...) -> NDTensor<Element> {
+//        let axes = shape.makePositive(indices: squeezingAxes)
+//        var result = createDense()
+//        SwiftRT.prod(self, alongAxes: axes, result: &result)
+//        return result.squeezed(axes: axes)
+//    }
 }
 
 //==============================================================================
@@ -379,17 +377,17 @@ public extension TensorView where Element: AnyNumeric {
         return result
     }
     
-    /// returns new view
-    /// - Parameter alongAxes: the axes to operate on
-    /// - Returns: a new NDTensor containing the result
-    /// - Precondition: Each value in `axes` must be in the range `-rank..<rank`.
-    @inlinable
-    func prodNonZeros(squeezingAxes: Int...) -> NDTensor<Element> {
-        let axes = shape.makePositive(indices: squeezingAxes)
-        var result = createDense()
-        SwiftRT.prodNonZeros(self, alongAxes: axes, result: &result)
-        return result.squeezed(axes: axes)
-    }
+//    /// returns new view
+//    /// - Parameter alongAxes: the axes to operate on
+//    /// - Returns: a new NDTensor containing the result
+//    /// - Precondition: Each value in `axes` must be in the range `-rank..<rank`.
+//    @inlinable
+//    func prodNonZeros(squeezingAxes: Int...) -> NDTensor<Element> {
+//        let axes = shape.makePositive(indices: squeezingAxes)
+//        var result = createDense()
+//        SwiftRT.prodNonZeros(self, alongAxes: axes, result: &result)
+//        return result.squeezed(axes: axes)
+//    }
 }
 
 //==============================================================================
@@ -431,17 +429,17 @@ public extension TensorView where Element: AnyNumeric  & Comparable {
         return result
     }
     
-    /// returns new view
-    /// - Parameter alongAxes: the axes to operate on
-    /// - Returns: a new NDTensor containing the result
-    /// - Precondition: Each value in `axes` must be in the range `-rank..<rank`.
-    @inlinable
-    func minElement(squeezingAxes: Int...) -> NDTensor<Element> {
-        let axes = shape.makePositive(indices: squeezingAxes)
-        var result = createDense()
-        SwiftRT.minElement(self, alongAxes: axes, result: &result)
-        return result.squeezed(axes: axes)
-    }
+//    /// returns new view
+//    /// - Parameter alongAxes: the axes to operate on
+//    /// - Returns: a new NDTensor containing the result
+//    /// - Precondition: Each value in `axes` must be in the range `-rank..<rank`.
+//    @inlinable
+//    func minElement(squeezingAxes: Int...) -> NDTensor<Element> {
+//        let axes = shape.makePositive(indices: squeezingAxes)
+//        var result = createDense()
+//        SwiftRT.minElement(self, alongAxes: axes, result: &result)
+//        return result.squeezed(axes: axes)
+//    }
 }
 
 //==============================================================================
@@ -482,17 +480,17 @@ public extension TensorView where Element: AnyNumeric  & Comparable {
         return result
     }
     
-    /// returns new view
-    /// - Parameter alongAxes: the axes to operate on
-    /// - Returns: a new NDTensor containing the result
-    /// - Precondition: Each value in `axes` must be in the range `-rank..<rank`.
-    @inlinable
-    func maxElement(squeezingAxes: Int...) -> NDTensor<Element> {
-        let axes = shape.makePositive(indices: squeezingAxes)
-        var result = createDense()
-        SwiftRT.maxElement(self, alongAxes: axes, result: &result)
-        return result.squeezed(axes: axes)
-    }
+//    /// returns new view
+//    /// - Parameter alongAxes: the axes to operate on
+//    /// - Returns: a new NDTensor containing the result
+//    /// - Precondition: Each value in `axes` must be in the range `-rank..<rank`.
+//    @inlinable
+//    func maxElement(squeezingAxes: Int...) -> NDTensor<Element> {
+//        let axes = shape.makePositive(indices: squeezingAxes)
+//        var result = createDense()
+//        SwiftRT.maxElement(self, alongAxes: axes, result: &result)
+//        return result.squeezed(axes: axes)
+//    }
 }
 
 //==============================================================================
@@ -534,17 +532,17 @@ public extension TensorView where Element: AnyNumeric  & Comparable {
         return result
     }
     
-    /// returns new view
-    /// - Parameter alongAxes: the axes to operate on
-    /// - Returns: a new NDTensor containing the result
-    /// - Precondition: Each value in `axes` must be in the range `-rank..<rank`.
-    @inlinable
-    func absmax(squeezingAxes: Int...) -> NDTensor<Element> {
-        let axes = shape.makePositive(indices: squeezingAxes)
-        var result = createDense()
-        SwiftRT.absmax(self, alongAxes: axes, result: &result)
-        return result.squeezed(axes: axes)
-    }
+//    /// returns new view
+//    /// - Parameter alongAxes: the axes to operate on
+//    /// - Returns: a new NDTensor containing the result
+//    /// - Precondition: Each value in `axes` must be in the range `-rank..<rank`.
+//    @inlinable
+//    func absmax(squeezingAxes: Int...) -> NDTensor<Element> {
+//        let axes = shape.makePositive(indices: squeezingAxes)
+//        var result = createDense()
+//        SwiftRT.absmax(self, alongAxes: axes, result: &result)
+//        return result.squeezed(axes: axes)
+//    }
 }
 
 //==============================================================================
@@ -584,17 +582,17 @@ public extension TensorView where Element: FloatingPoint {
         return result
     }
     
-    /// returns new view
-    /// - Parameter alongAxes: the axes to operate on
-    /// - Returns: a new NDTensor containing the result
-    /// - Precondition: Each value in `axes` must be in the range `-rank..<rank`.
-    @inlinable
-    func abssum(squeezingAxes: Int...) -> NDTensor<Element> {
-        let axes = shape.makePositive(indices: squeezingAxes)
-        var result = createDense()
-        SwiftRT.abssum(self, alongAxes: axes, result: &result)
-        return result.squeezed(axes: axes)
-    }
+//    /// returns new view
+//    /// - Parameter alongAxes: the axes to operate on
+//    /// - Returns: a new NDTensor containing the result
+//    /// - Precondition: Each value in `axes` must be in the range `-rank..<rank`.
+//    @inlinable
+//    func abssum(squeezingAxes: Int...) -> NDTensor<Element> {
+//        let axes = shape.makePositive(indices: squeezingAxes)
+//        var result = createDense()
+//        SwiftRT.abssum(self, alongAxes: axes, result: &result)
+//        return result.squeezed(axes: axes)
+//    }
 }
 
 //==============================================================================
@@ -635,15 +633,15 @@ public extension TensorView where Element: FloatingPoint {
         return result
     }
     
-    /// returns new view
-    /// - Parameter alongAxes: the axes to operate on
-    /// - Returns: a new NDTensor containing the result
-    /// - Precondition: Each value in `axes` must be in the range `-rank..<rank`.
-    @inlinable
-    func sqrtSumSquares(squeezingAxes: Int...) -> NDTensor<Element> {
-        let axes = shape.makePositive(indices: squeezingAxes)
-        var result = createDense()
-        SwiftRT.sqrtSumSquares(self, alongAxes: axes, result: &result)
-        return result.squeezed(axes: axes)
-    }
+//    /// returns new view
+//    /// - Parameter alongAxes: the axes to operate on
+//    /// - Returns: a new NDTensor containing the result
+//    /// - Precondition: Each value in `axes` must be in the range `-rank..<rank`.
+//    @inlinable
+//    func sqrtSumSquares(squeezingAxes: Int...) -> NDTensor<Element> {
+//        let axes = shape.makePositive(indices: squeezingAxes)
+//        var result = createDense()
+//        SwiftRT.sqrtSumSquares(self, alongAxes: axes, result: &result)
+//        return result.squeezed(axes: axes)
+//    }
 }

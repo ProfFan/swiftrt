@@ -122,8 +122,8 @@ public extension TensorView {
         }
     }
     
-    var elements: TensorValueCollection<Self> { return elements() }
-    
+    var elements: TensorValueCollection<Self> { elements() }
+
     //--------------------------------------------------------------------------
     /// returns a collection of read write values
     mutating func mutableElements(using queue: DeviceQueue? = nil)
@@ -196,6 +196,8 @@ public extension TensorView where Element: AnyScalar {
 // TensorView default implementation
 public extension TensorView {
     //--------------------------------------------------------------------------
+    /// the number of elements in the collection
+    var elementCount: Int { return shape.elementCount }
     /// the extents of the view
     var extents: [Int] { return shape.extents }
     /// `true` if the values are contiguosly arranged in memory
@@ -210,132 +212,6 @@ public extension TensorView {
     var name: String { return tensorArray.name }
     /// the number of dimensions in the view
     var rank: Int { return shape.rank }
-    
-    //--------------------------------------------------------------------------
-    /// creates a tensor of the same type and shape as `self` with `Element`
-    /// equal to `Bool`
-    func createBoolTensor() -> BoolView {
-        return createBoolTensor(with: extents)
-    }
-
-    /// creates a tensor of the same type and shape as `self`
-
-    /// creates a tensor of the same shape as `self` with `Element`
-    /// equal to `IndexElement`
-    func createIndexTensor() -> IndexView {
-        return createIndexTensor(with: extents)
-    }
-
-    //--------------------------------------------------------------------------
-    /// empty
-    init() {
-        self.init(shape: DataShape(),
-                  tensorArray: TensorArray(),
-                  viewOffset: 0,
-                  isShared: false)
-    }
-    
-    //--------------------------------------------------------------------------
-    /// repeated view
-    init(with extents: [Int], repeating other: Self) {
-        // make sure other has valid extents
-        assert({
-            for i in 0..<other.rank {
-                if other.extents[i] != 1 && other.extents[i] != extents[i] {
-                    return false
-                }
-            }
-            return true
-        }(), "repeated tensor extents must be either 1" +
-            " or match the new tensor extents")
-        
-        // compute strides, setting stride to 0 for repeated dimensions
-        var strides = [Int](repeating: 0, count: extents.count)
-        for i in 0..<other.rank where other.extents[i] == extents[i] {
-            strides[i] = other.shape.strides[i]
-        }
-
-        self.init(shape: DataShape(extents: extents, strides: strides),
-                  tensorArray: other.tensorArray,
-                  viewOffset: other.viewOffset,
-                  isShared: other.isShared)
-    }
-    
-    //--------------------------------------------------------------------------
-    /// concatenated tensors
-    init(concatenating others: Self...,
-        along axis: Int = 0,
-        name: String? = nil)
-    {
-        self = Self(concatenating: others, along: axis, name: name)
-    }
-
-    init(concatenating others: [Self],
-         along axis: Int = 0,
-         name: String? = nil)
-    {
-        let name = name ?? String(describing: Self.self)
-
-        // compute the shape
-        let joined = others[0].shape
-            .joined(with: others[1...].map { $0.shape }, along: axis)
-        
-        let array = TensorArray<Element>(count: joined.elementCount, name: name)
-        self = Self(shape: joined, tensorArray: array, viewOffset: 0,
-                    isShared: false)
-        SwiftRT.concat(tensors: others, along: axis, result: &self)
-    }
-
-    //--------------------------------------------------------------------------
-    /// createDense(shape:
-    func createDense(with shape: DataShape, name: String? = nil) -> Self {
-        let name = name ?? String(describing: Self.self)
-        let array = TensorArray<Element>(count: shape.elementCount, name: name)
-        return Self(shape: shape.dense,
-                    tensorArray: array,
-                    viewOffset: 0,
-                    isShared: false)
-    }
-    
-    //--------------------------------------------------------------------------
-    /// createDense(extents:
-    func createDense(with extents: [Int], name: String? = nil) -> Self {
-        let newShape = isContiguous ?
-            DataShape(extents: extents, strides: self.shape.strides) :
-            DataShape(extents: extents)
-        return createDense(with: newShape, name: name)
-    }
-    
-    //--------------------------------------------------------------------------
-    /// createDense()
-    func createDense() -> Self { return createDense(with: self.shape) }
-    
-    //--------------------------------------------------------------------------
-    /// createSingleElement
-    /// helper to create a rank extended value
-    func createSingleElement(name: String? = nil) -> Self {
-        let name = name ?? String(describing: Self.self)
-        let shape = DataShape(extents: singleElementExtents,
-                              strides: singleElementExtents)
-        let array = TensorArray<Element>(count: 1, name: name)
-        return Self(shape: shape, tensorArray: array, viewOffset: 0,
-                    isShared: false)
-    }
-
-    //--------------------------------------------------------------------------
-    /// create(repeating:
-    func create(repeating value: Element, name: String? = nil) -> Self {
-        let name = name ?? String(describing: Self.self)
-        let strides = [Int](repeating: 0, count: rank)
-        let shape = DataShape(extents: extents, strides: strides)
-        let array = TensorArray<Element>(count: 1, name: name)
-        var view = Self(shape: shape, tensorArray: array, viewOffset: 0,
-                        isShared: false)
-        // we know we can get the cpu buffer
-        try! view.readWrite()[0] = value
-        return view
-    }
-
     //--------------------------------------------------------------------------
     /// createView
     /// Returns a view of the tensorArray relative to this view
@@ -413,6 +289,13 @@ public extension TensorView {
     }
 
     //--------------------------------------------------------------------------
+    /// an array of viewed elements
+    @inlinable @inline(__always)
+    var flatArray: [Element] {
+        return [Element](elements())
+    }
+    
+    //--------------------------------------------------------------------------
     /// get a single value at the specified index
     @inlinable @inline(__always)
     func value(at position: Index.Position) throws -> Element {
@@ -430,18 +313,18 @@ public extension TensorView {
         buffer[index.dataIndex] = value
     }
     
-    //--------------------------------------------------------------------------
-    /// squeezed(axes:
-    /// performs a rank reduction by removing dimensions with an extent of 1
-    /// - Parameter axes: the axes to squeeze. `nil` implies all axes.
-    /// - Returns: the new data shape
-    /// - Precondition: Each value in `axes` must be in the range `-rank..<rank`
-    func squeezed(axes: [Int]? = nil) -> NDTensor<Element> {
-        return NDTensor<Element>(shape: shape.squeezed(axes: axes),
-                                 tensorArray: tensorArray,
-                                 viewOffset: viewOffset,
-                                 isShared: isShared)
-    }
+//    //--------------------------------------------------------------------------
+//    /// squeezed(axes:
+//    /// performs a rank reduction by removing dimensions with an extent of 1
+//    /// - Parameter axes: the axes to squeeze. `nil` implies all axes.
+//    /// - Returns: the new data shape
+//    /// - Precondition: Each value in `axes` must be in the range `-rank..<rank`
+//    func squeezed(axes: [Int]? = nil) -> NDTensor<Element> {
+//        return NDTensor<Element>(shape: shape.squeezed(axes: axes),
+//                                 tensorArray: tensorArray,
+//                                 viewOffset: viewOffset,
+//                                 isShared: isShared)
+//    }
 
     //--------------------------------------------------------------------------
     /// isUniqueReference

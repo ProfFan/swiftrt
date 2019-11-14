@@ -48,7 +48,7 @@ class test_IterateView: XCTestCase {
             let vector = Vector<Int32>(elements: expected)
             print(vector.formatted((2,0)))
             
-            let values = try vector.array()
+            let values = try vector.flatArray()
             XCTAssert(values == expected, "values do not match")
         } catch {
             XCTFail(String(describing: error))
@@ -63,7 +63,7 @@ class test_IterateView: XCTestCase {
             let matrix = Matrix<Int32>((2, 2), elements: expected)
 //                        print(matrix.formatted((2,0)))
             
-            let values = try matrix.array()
+            let values = try matrix.flatArray()
             XCTAssert(values == expected, "values do not match")
         } catch {
             XCTFail(String(describing: error))
@@ -78,7 +78,7 @@ class test_IterateView: XCTestCase {
             let volume = Volume<Int32>((2, 3, 4), elements: expected)
             //            print(volume.formatted((2,0)))
             
-            let values = try volume.array()
+            let values = try volume.flatArray()
             XCTAssert(values == expected, "values do not match")
         } catch {
             XCTFail(String(describing: error))
@@ -94,7 +94,7 @@ class test_IterateView: XCTestCase {
             //            print(subView.formatted((2,0)))
             
             let expected: [Int32] = [2, 3, 4]
-            let values = try view.array()
+            let values = try view.flatArray()
             XCTAssert(values == expected, "values do not match")
         } catch {
             XCTFail(String(describing: error))
@@ -113,7 +113,7 @@ class test_IterateView: XCTestCase {
                 5, 6,
                 9, 10
             ]
-            let values = try view.array()
+            let values = try view.flatArray()
             XCTAssert(values == expected, "values do not match")
         } catch {
             XCTFail(String(describing: error))
@@ -135,7 +135,7 @@ class test_IterateView: XCTestCase {
                 29, 30, 31,
                 33, 34, 35,
             ]
-            let values = try view.array()
+            let values = try view.flatArray()
             XCTAssert(values == expected, "values do not match")
         } catch {
             XCTFail(String(describing: error))
@@ -235,7 +235,7 @@ class test_IterateView: XCTestCase {
                 42, 42, 42,
             ]
             
-            let values = try matrix.array()
+            let values = try matrix.flatArray()
             XCTAssert(values == expected, "values do not match")
         } catch {
             XCTFail(String(describing: error))
@@ -256,7 +256,7 @@ class test_IterateView: XCTestCase {
                 0, 1, 2,
             ]
             
-            let values = try matrix.array()
+            let values = try matrix.flatArray()
             XCTAssert(values == expected, "values do not match")
         } catch {
             XCTFail(String(describing: error))
@@ -278,7 +278,7 @@ class test_IterateView: XCTestCase {
                 2, 2,
             ]
             
-            let values = try matrix.array()
+            let values = try matrix.flatArray()
             XCTAssert(values == expected, "values do not match")
         } catch {
             XCTFail(String(describing: error))
@@ -306,7 +306,7 @@ class test_IterateView: XCTestCase {
                 1, 1, 1, 1,
             ]
             
-            let values = try matrix.array()
+            let values = try matrix.flatArray()
             XCTAssert(values == expected, "values do not match")
         } catch {
             XCTFail(String(describing: error))
@@ -334,7 +334,7 @@ class test_IterateView: XCTestCase {
                 1, 0, 1, 0,
             ]
 
-            let values = try matrix.array()
+            let values = try matrix.flatArray()
             XCTAssert(values == expected, "values do not match")
         } catch {
             XCTFail(String(describing: error))
@@ -358,7 +358,7 @@ class test_IterateView: XCTestCase {
                 1, 1, 1, 1,
             ]
 
-            let values = try matrix.array()
+            let values = try matrix.flatArray()
             XCTAssert(values == expected, "values do not match")
 
             let view = matrix.view(at: [1, 1], extents: [2, 3])
@@ -367,7 +367,7 @@ class test_IterateView: XCTestCase {
                 1, 1, 1,
             ]
 
-            let viewValues = try view.array()
+            let viewValues = try view.flatArray()
             XCTAssert(viewValues == viewExpected, "values do not match")
         } catch {
             XCTFail(String(describing: error))

@@ -46,24 +46,20 @@ class test_BinaryFunctions: XCTestCase {
         let m1 = Matrix<Float>((3, 2), with: 0..<6)
         let m2 = Matrix<Float>((3, 2), with: 0..<6)
         let result = m1 + m2
-        let values = result.array
         let expected: [Float] = [0, 2, 4, 6, 8, 10]
-        XCTAssert(values == expected)
+        XCTAssert(result.flatArray == expected)
     }
 
     //--------------------------------------------------------------------------
     // test_addScalar
     func test_addScalar() {
         let m1 = Matrix<Float>((3, 2), with: 1...6)
-        let expected: [Float] = [2, 3, 4, 5, 6, 7]
-
         let result = m1 + 1
-        let values = result.array
-        XCTAssert(values == expected)
+        let expected: [Float] = [2, 3, 4, 5, 6, 7]
+        XCTAssert(result.flatArray == expected)
 
         let result2 = 1 + m1
-        let values2 = result2.array
-        XCTAssert(values2 == expected)
+        XCTAssert(result2.flatArray == expected)
     }
     
     //--------------------------------------------------------------------------
@@ -71,9 +67,8 @@ class test_BinaryFunctions: XCTestCase {
     func test_addAndAssign() {
         var m1 = Matrix<Float>((3, 2), with: 0...5)
         m1 += 2
-        let values = m1.array
         let expected: [Float] = [2, 3, 4, 5, 6, 7]
-        XCTAssert(values == expected)
+        XCTAssert(m1.flatArray == expected)
     }
 
     //--------------------------------------------------------------------------
@@ -82,25 +77,21 @@ class test_BinaryFunctions: XCTestCase {
         let m3 = Matrix<Float>((3, 2), with: 1..<7)
         let m4 = Matrix<Float>((3, 2), with: 0..<6)
         let result = m3 - m4
-        let values = result.array
         let expected: [Float] = [1, 1, 1, 1, 1, 1]
-        XCTAssert(values == expected)
+        XCTAssert(result.flatArray == expected)
     }
 
     //--------------------------------------------------------------------------
     // test_subtractScalar
     func test_subtractScalar() {
         let m1 = Matrix<Float>((3, 2), with: 1...6)
-
         let result = m1 - 1
-        let values = result.array
         let expected: [Float] = [0, 1, 2, 3, 4, 5]
-        XCTAssert(values == expected)
+        XCTAssert(result.flatArray == expected)
 
         let result2 = 1 - m1
-        let values2 = result2.array
         let expected2: [Float] = [0, -1, -2, -3, -4, -5]
-        XCTAssert(values2 == expected2)
+        XCTAssert(result2.flatArray == expected2)
     }
     
     //--------------------------------------------------------------------------
@@ -115,22 +106,20 @@ class test_BinaryFunctions: XCTestCase {
                                 repeating: Matrix<Float>((3, 1), with: 0...2))
         
         let result = m1 - col
-        let values = result.array
         let expected: [Float] = [
             1, 2,
             2, 3,
             3, 4
         ]
-        XCTAssert(values == expected)
+        XCTAssert(result.flatArray == expected)
         
         let result2 = col - m1
-        let values2 = result2.array
         let expected2: [Float] = [
             -1, -2,
             -2, -3,
             -3, -4
         ]
-        XCTAssert(values2 == expected2)
+        XCTAssert(result2.flatArray == expected2)
     }
     
     //--------------------------------------------------------------------------
@@ -138,9 +127,8 @@ class test_BinaryFunctions: XCTestCase {
     func test_subtractAndAssign() {
         var m1 = Matrix<Float>((3, 2), with: 1...6)
         m1 -= 1
-        let values = m1.array
         let expected: [Float] = [0, 1, 2, 3, 4, 5]
-        XCTAssert(values == expected)
+        XCTAssert(m1.flatArray == expected)
     }
 
     //--------------------------------------------------------------------------
@@ -149,9 +137,8 @@ class test_BinaryFunctions: XCTestCase {
         let m1 = Matrix<Float>((3, 2), with: 0..<6)
         let m2 = Matrix<Float>((3, 2), with: 0..<6)
         let result = m1 * m2
-        let values = result.array
         let expected: [Float] = [0, 1, 4, 9, 16, 25]
-        XCTAssert(values == expected)
+        XCTAssert(result.flatArray == expected)
     }
 
     //--------------------------------------------------------------------------
@@ -159,9 +146,8 @@ class test_BinaryFunctions: XCTestCase {
     func test_mulScalar() {
         let m1 = Matrix<Float>((3, 2), with: 1...6)
         let result = m1 * 2
-        let values = result.array
         let expected: [Float] = [2, 4, 6, 8, 10, 12]
-        XCTAssert(values == expected)
+        XCTAssert(result.flatArray == expected)
     }
     
     //--------------------------------------------------------------------------
@@ -169,9 +155,8 @@ class test_BinaryFunctions: XCTestCase {
     func test_mulAndAssign() {
         var m1 = Matrix<Float>((3, 2), with: 1...6)
         m1 *= 2
-        let values = m1.array
         let expected: [Float] = [2, 4, 6, 8, 10, 12]
-        XCTAssert(values == expected)
+        XCTAssert(m1.flatArray == expected)
     }
 
     //--------------------------------------------------------------------------
@@ -180,9 +165,8 @@ class test_BinaryFunctions: XCTestCase {
         let m1 = Matrix<Float>((3, 2), with: [1, 4, 9, 16, 25, 36])
         let m2 = Matrix<Float>((3, 2), with: 1...6)
         let result = m1 / m2
-        let values = result.array
         let expected: [Float] = [1, 2, 3, 4, 5, 6]
-        XCTAssert(values == expected)
+        XCTAssert(result.flatArray == expected)
     }
 
     //--------------------------------------------------------------------------
@@ -190,9 +174,8 @@ class test_BinaryFunctions: XCTestCase {
     func test_divScalar() {
         let m1 = Matrix<Float>((3, 2), with: 1...6)
         let result = m1 / 2
-        let values = result.array
         let expected: [Float] = [0.5, 1, 1.5, 2, 2.5, 3]
-        XCTAssert(values == expected)
+        XCTAssert(result.flatArray == expected)
     }
 
     //--------------------------------------------------------------------------
@@ -200,8 +183,7 @@ class test_BinaryFunctions: XCTestCase {
     func test_divAndAssign() {
         var m1 = Matrix<Float>((3, 2), with: 1...6)
         m1 /= 2
-        let values = m1.array
         let expected: [Float] = [0.5, 1, 1.5, 2, 2.5, 3]
-        XCTAssert(values == expected)
+        XCTAssert(m1.flatArray == expected)
     }
 }

@@ -419,7 +419,7 @@ class test_DataMigration: XCTestCase {
                                          elements: [0, 2, 4, 1, 3, 5])
             
             let expected = [Int32](0..<6)
-            let values = try cmMatrix.array()
+            let values = try cmMatrix.flatArray()
             XCTAssert(values == expected, "values don't match")
         } catch {
             XCTFail(String(describing: error))

@@ -63,7 +63,7 @@ class test_Async: XCTestCase {
 
             // check the last item to see if it contains the expected value
             let item = trainingSet.view(item: trainingSet.items - 1)
-            let values = try item.array()
+            let values = try item.flatArray()
             XCTAssert(values[0] == expected)
         } catch {
             XCTFail(String(describing: error))
@@ -85,7 +85,7 @@ class test_Async: XCTestCase {
             let m1 = Matrix<Int32>((2, 5), name: "m1", with: 0..<10)
             let m2 = Matrix<Int32>((2, 5), name: "m2", with: 0..<10)
             let result = m1 + m2
-            let values = try result.array()
+            let values = try result.flatArray()
             
             let expected = (0..<10).map { Int32($0 * 2) }
             XCTAssert(values == expected)
@@ -116,7 +116,7 @@ class test_Async: XCTestCase {
             let result = using(device1) { m1 + m2 }
 
             // synchronize with host queue and retrieve result values
-            let values = try result.array()
+            let values = try result.flatArray()
             
             let expected = (0..<10).map { Int32($0 * 2) }
             XCTAssert(values == expected)
@@ -154,7 +154,7 @@ class test_Async: XCTestCase {
             }
 
             // synchronize with host queue and retrieve result values
-            let values = try result.array()
+            let values = try result.flatArray()
             
             let expected = (0..<6).map { Int32(($0 + $0) * $0) }
             XCTAssert(values == expected)

@@ -126,7 +126,7 @@ class test_DataMigration: XCTestCase {
             let queue2 = Platform.testCpu2.queues[0]
 
             // create a tensor and validate migration
-            var view = Volume<Float>((2, 3, 4), with: 0..<24)
+            var view = Matrix<Float>(6, 4, with: 0..<24)
             
             _ = try view.readOnly()
             XCTAssert(!view.tensorArray.lastAccessCopiedBuffer)
@@ -416,7 +416,7 @@ class test_DataMigration: XCTestCase {
         let cmMatrix = Matrix<Int32>((3, 2), layout: .columnMajor,
                                      elements: [0, 2, 4, 1, 3, 5])
         let expected = [Int32](0..<6)
-        let values = cmMatrix.array
+        let values = cmMatrix.flatArray
         XCTAssert(values == expected, "values don't match")
     }
 }

@@ -40,7 +40,7 @@ class test_Codable: XCTestCase {
 //            print(jsonVectorString)
             let decoder = JSONDecoder()
             let vector2 = try decoder.decode(Vector<Float>.self, from: jsonData)
-            let values = try vector2.array()
+            let values = try vector2.flatArray()
             XCTAssert(values == expected)
         } catch {
             XCTFail(String(describing: error))
@@ -60,7 +60,7 @@ class test_Codable: XCTestCase {
 //            print(jsonVectorString)
             let decoder = JSONDecoder()
             let matrix2 = try decoder.decode(Matrix<Float>.self, from: jsonData)
-            let values = try matrix2.array()
+            let values = try matrix2.flatArray()
             XCTAssert(values == expected)
         } catch {
             XCTFail(String(describing: error))
@@ -81,7 +81,7 @@ class test_Codable: XCTestCase {
             //            print(jsonVectorString)
             let decoder = JSONDecoder()
             let image2 = try decoder.decode(Image.self, from: jsonData)
-            let values = try image2.array()
+            let values = try image2.flatArray()
             XCTAssert(values == pixels)
         } catch {
             XCTFail(String(describing: error))

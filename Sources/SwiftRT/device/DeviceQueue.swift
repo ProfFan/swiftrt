@@ -81,13 +81,13 @@ public protocol DeviceQueue: ObjectTracking, Logger, DeviceErrorHandling {
     //--------------------------------------------------------------------------
     // operator functions
     /// all
-    func all<T>(x: T, along axes: Vector<IndexElement>?, result: inout T) where
+    func all<T>(x: T, along axes: [Int]?, result: inout T) where
         T: TensorView, T.Element == Bool
     /// Adds two tensors and produces their sum.
     func add<T>(lhs: T, rhs: T, result: inout T) where
         T: TensorView, T.Element: Numeric
     /// any
-    func any<T>(x: T, along axes: Vector<IndexElement>?, result: inout T) where
+    func any<T>(x: T, along axes: [Int]?, result: inout T) where
         T: TensorView, T.Element == Bool
     /// concat
     func concat<T>(tensors: [T], along axis: Int, result: inout T) where
