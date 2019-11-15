@@ -111,11 +111,13 @@ public extension CpuAsynchronousQueue {
 /// - Parameter result: the scalar tensor where the result will be written
 /// - Precondition: Each value in `axes` must be in the range `-rank..<rank`.
 @inlinable
-public func all<T>(_ x: T, alongAxes axes: [Int]? = nil,
-                   result: inout T)
-    where T: TensorView, T.Element == Bool
+public func all<T>(_ x: T, alongAxes axes: [Int]? = nil) -> T where
+    T: TensorView, T.Element == Bool
 {
+    assert(axes == nil, "not implemented yet")
+    var result = x.createSingleElement()
     DeviceContext.currentQueue.all(x: x, along: axes, result: &result)
+    return result
 }
 
 /// returns new view
@@ -124,20 +126,12 @@ public func all<T>(_ x: T, alongAxes axes: [Int]? = nil,
 /// - Precondition: Each value in `axes` must be in the range `-rank..<rank`.
 public extension TensorView where Element == Bool {
     @inlinable
-    func all(alongAxes: Int...) -> Self {
-        // turn into a vector
-        let axes = shape.makePositive(indices: alongAxes)
-        var result = createDense()
-        SwiftRT.all(self, alongAxes: axes, result: &result)
-        return result
+    func all(alongAxes axes: Int...) -> Self {
+        SwiftRT.all(self, alongAxes: shape.makePositive(indices: axes))
     }
     
     @inlinable
-    func all() -> Self {
-        var result = createSingleElement()
-        SwiftRT.all(self, result: &result)
-        return result
-    }
+    func all() -> Self { SwiftRT.all(self) }
     
 //    /// returns new view
 //    /// - Parameter alongAxes: the axes to operate on
@@ -161,6 +155,7 @@ public extension DeviceQueue {
     func all<T>(x: T, along axes: [Int]?, result: inout T) where
         T: TensorView, T.Element == Bool
     {
+        assert(axes == nil, "not implemented yet")
         let xseq = x.elements
         var rseq = result.mutableElements()
         rseq[rseq.startIndex] = xseq.first { $0 == false } == nil
@@ -175,6 +170,7 @@ public extension CpuAsynchronousQueue {
     func all<T>(x: T, along axes: [Int]?, result: inout T) where
         T: TensorView, T.Element == Bool
     {
+        assert(axes == nil, "not implemented yet")
         queue(#function, { x.elements(using: self) }, &result) {
             $1[$1.startIndex] = $0.first { $0 == false } == nil
         }
@@ -195,11 +191,13 @@ public extension CpuAsynchronousQueue {
 /// - Parameter result: the scalar tensor where the result will be written
 /// - Precondition: Each value in `axes` must be in the range `-rank..<rank`.
 @inlinable
-public func any<T>(_ x: T, alongAxes axes: [Int]? = nil,
-                   result: inout T)
-    where T: TensorView, T.Element == Bool
+public func any<T>(_ x: T, alongAxes axes: [Int]? = nil) -> T where
+    T: TensorView, T.Element == Bool
 {
+    assert(axes == nil, "not implemented yet")
+    var result = x.createSingleElement()
     DeviceContext.currentQueue.any(x: x, along: axes, result: &result)
+    return result
 }
 
 /// returns new view
@@ -209,19 +207,11 @@ public func any<T>(_ x: T, alongAxes axes: [Int]? = nil,
 public extension TensorView where Element == Bool {
     @inlinable
     func any(alongAxes: Int...) -> Self {
-        // turn into a vector
-        let axes = shape.makePositive(indices: alongAxes)
-        var result = createDense()
-        SwiftRT.any(self, alongAxes: axes, result: &result)
-        return result
+        SwiftRT.any(self, alongAxes: shape.makePositive(indices: alongAxes))
     }
     
     @inlinable
-    func any() -> Self {
-        var result = createSingleElement()
-        SwiftRT.any(self, result: &result)
-        return result
-    }
+    func any() -> Self { SwiftRT.any(self) }
     
 //    /// returns new view
 //    /// - Parameter alongAxes: the axes to operate on
@@ -245,6 +235,7 @@ public extension DeviceQueue {
     func any<T>(x: T, along axes: [Int]?, result: inout T) where
         T: TensorView, T.Element == Bool
     {
+        assert(axes == nil, "not implemented yet")
         let xseq = x.elements()
         var rseq = result.mutableElements()
         rseq[rseq.startIndex] = xseq.first { $0 == true } != nil
@@ -259,6 +250,7 @@ public extension CpuAsynchronousQueue {
     func any<T>(x: T, along axes: [Int]?, result: inout T) where
         T: TensorView, T.Element == Bool
     {
+        assert(axes == nil, "not implemented yet")
         queue(#function, { x.elements(using: self) }, &result) {
             $1[$1.startIndex] = $0.first { $0 == true } != nil
         }
