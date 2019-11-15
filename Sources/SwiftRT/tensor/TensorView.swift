@@ -140,6 +140,45 @@ public extension TensorView {
 }
 
 //==============================================================================
+// view subscripting helpers
+
+/// makePositive(range:count:
+/// - Parameter range: a range expression specifying the bounds of
+/// the desired range. Negative bounds are relative to the end of the range
+/// - Parameter count: the number of elements in the collection that
+/// the range calculation should be relative to.
+/// - Returns: a positive range relative to the specified bounding `count`
+@inlinable @inline(__always)
+public func makePositive<R>(range: R, count: Int) -> Range<Int> where
+    R: RangeExpression, R.Bound == Int
+{
+    let count = count - 1
+    let r = range.relative(to: -count..<count + 1)
+    let lower = r.lowerBound < 0 ? r.lowerBound + count : r.lowerBound
+    let upper = r.upperBound < 0 ? r.upperBound + count : r.upperBound
+    return lower..<upper
+}
+
+/// makeStepped(view:parent:steps:
+/// computes the extents and strides for creating a stepped subview
+/// - Parameter view: the extents of the desired view in parent coordinates
+/// - Parameter parent: the strides of the parent view
+/// - Parameter steps: the step interval along each dimension
+/// - Returns: the extents and strides to be used to create a subview
+@inlinable @inline(__always)
+public func makeStepped(view extents: [Int],
+                        parent strides: [Int],
+                        steps: [Int]) -> (extents: [Int], strides: [Int])
+{
+    assert(extents.count == strides.count && extents.count == steps.count)
+    let subExtents = zip(extents, steps).map {
+        $0 / $1 + ($0 % $1 == 0 ? 0 : 1)
+    }
+    let subStrides = zip(strides, steps).map { $0 * $1 }
+    return (subExtents, subStrides)
+}
+
+//==============================================================================
 /// IndexElement
 /// The data type used for tensors that contain tensor spatial index values
 public typealias IndexElement = Int32
@@ -192,6 +231,7 @@ public extension TensorView where Element: AnyScalar {
         }
     }
 }
+
 //==============================================================================
 // TensorView default implementation
 public extension TensorView {

@@ -57,8 +57,7 @@ class test_Initialize: XCTestCase {
     //--------------------------------------------------------------------------
     // test_repeatRowVector
     func test_repeatRowVector() {
-        let rowVector = Matrix<Int32>(1, 5, with: 0..<5)
-        let matrix = Matrix((5, 5), repeating: rowVector)
+        let matrix = Matrix<Int32>(repeating: 0...4, rows: 5)
         let expected: [Int32] = [
             0, 1, 2, 3, 4,
             0, 1, 2, 3, 4,
@@ -73,8 +72,7 @@ class test_Initialize: XCTestCase {
     //--------------------------------------------------------------------------
     // test_repeatColVector
     func test_repeatColVector() {
-        let colVector = Matrix<Int32>(5, 1, with: 0..<5)
-        let matrix = Matrix((5, 5), repeating: colVector)
+        let matrix = Matrix<Int32>(repeating: 0...4, cols: 5)
         let expected: [Int32] = [
             0, 0, 0, 0, 0,
             1, 1, 1, 1, 1,

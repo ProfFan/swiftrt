@@ -36,45 +36,6 @@ public typealias NHWCExtents = (items: Int, rows: Int, cols: Int, channels: Int)
 public enum MatrixLayout { case rowMajor, columnMajor }
 
 //==============================================================================
-// tensor subscripting helpers
-
-/// makePositive(range:count:
-/// - Parameter range: a range expression specifying the bounds of
-/// the desired range. Negative bounds are relative to the end of the range
-/// - Parameter count: the number of elements in the collection that
-/// the range calculation should be relative to.
-/// - Returns: a positive range relative to the specified bounding `count`
-@inlinable @inline(__always)
-public func makePositive<R>(range: R, count: Int) -> Range<Int> where
-    R: RangeExpression, R.Bound == Int
-{
-    let count = count - 1
-    let r = range.relative(to: -count..<count + 1)
-    let lower = r.lowerBound < 0 ? r.lowerBound + count : r.lowerBound
-    let upper = r.upperBound < 0 ? r.upperBound + count : r.upperBound
-    return lower..<upper
-}
-
-/// makeStepped(view:parent:steps:
-/// computes the extents and strides for creating a stepped subview
-/// - Parameter view: the extents of the desired view in parent coordinates
-/// - Parameter parent: the strides of the parent view
-/// - Parameter steps: the step interval along each dimension
-/// - Returns: the extents and strides to be used to create a subview
-@inlinable @inline(__always)
-public func makeStepped(view extents: [Int],
-                        parent strides: [Int],
-                        steps: [Int]) -> (extents: [Int], strides: [Int])
-{
-    assert(extents.count == strides.count && extents.count == steps.count)
-    let subExtents = zip(extents, steps).map {
-        $0 / $1 + ($0 % $1 == 0 ? 0 : 1)
-    }
-    let subStrides = zip(strides, steps).map { $0 * $1 }
-    return (subExtents, subStrides)
-}
-
-//==============================================================================
 // Codable extensions
 extension Matrix: Codable where Element: Codable {}
 
@@ -86,53 +47,141 @@ extension Matrix: CustomStringConvertible where Element: AnyConvertable {
     public var description: String { return formatted() }
 }
 
-//==============================================================================
-// MatrixView extensions
-public extension MatrixView {
-    var startIndex: MatrixIndex { return MatrixIndex(view: self, at: (0, 0)) }
-    var endIndex: MatrixIndex { return MatrixIndex(endOf: self) }
-
-    //--------------------------------------------------------------------------
-    /// empty array
-    init(_ extents: MatrixExtents, name: String? = nil) {
-        let shape = DataShape(extents: [extents.rows, extents.cols])
+public extension TensorView {
+    static func create(_ shape: DataShape, _ name: String?) -> Self {
         let name = name ?? String(describing: Self.self)
         let array = TensorArray<Element>(count: shape.elementCount, name: name)
-        self.init(shape: shape, tensorArray: array,
-                  viewOffset: 0, isShared: false)
+        return Self(shape: shape.dense, tensorArray: array,
+                    viewOffset: 0, isShared: false)
     }
     
-    //--------------------------------------------------------------------------
-    /// repeating
-    init(_ extents: MatrixExtents, repeating other: Self) {
-        let extents = [extents.rows, extents.cols]
-        self.init(with: extents, repeating: other)
-    }
-    
-    //-------------------------------------
-    /// with reference to read only buffer
-    /// useful for memory mapped databases, or hardware device buffers
-    init(_ extents: MatrixExtents,
-         layout: MatrixLayout = .rowMajor,
-         referenceTo buffer: UnsafeBufferPointer<Element>,
-         name: String? = nil)
-    {
+    static func create(referenceTo buffer: UnsafeBufferPointer<Element>,
+                       _ shape: DataShape, _ name: String?) -> Self {
+        assert(shape.elementCount == buffer.count,
+               "shape count does not match buffer count")
         // create tensor data reference to buffer
         let name = name ?? String(describing: Self.self)
         let array = TensorArray<Element>(referenceTo: buffer, name: name)
-
-        // create shape considering column major
-        let extents = [extents.rows, extents.cols]
-        let shape = layout == .rowMajor ?
-            DataShape(extents: extents) :
-            DataShape(extents: extents).columnMajor()
-        assert(shape.elementCount == buffer.count,
-               "shape count does not match buffer count")
-        
-        self.init(shape: shape, tensorArray: array,
-                  viewOffset: 0, isShared: false)
+        return Self(shape: shape.dense, tensorArray: array,
+                    viewOffset: 0, isShared: false)
     }
 
+    static func create(referenceTo buffer: UnsafeMutableBufferPointer<Element>,
+                       _ shape: DataShape, _ name: String?) -> Self {
+        assert(shape.elementCount == buffer.count,
+               "shape count does not match buffer count")
+        // create tensor data reference to buffer
+        let name = name ?? String(describing: Self.self)
+        let array = TensorArray<Element>(referenceTo: buffer, name: name)
+        return Self(shape: shape.dense, tensorArray: array,
+                    viewOffset: 0, isShared: false)
+    }
+    
+    static func create<C>(_ elements: C, _ shape: DataShape,
+                          _ name: String?) -> Self where
+        C: Collection, C.Element == Element
+    {
+        assert(shape.elementCount == elements.count, countMismatch)
+        let name = name ?? String(describing: Self.self)
+        let array = TensorArray<Element>(elements: elements, name: name)
+        return Self(shape: shape.dense, tensorArray: array,
+                    viewOffset: 0, isShared: false)
+    }
+}
+
+//==============================================================================
+// MatrixView extensions
+public extension MatrixView {
+    //--------------------------------------------------------------------------
+    /// reserved space
+    init(_ rows: Int, _ cols: Int,
+         layout: MatrixLayout = .rowMajor,
+         name: String? = nil)
+    {
+        self = Self.create(Self.matrixShape([rows, cols], layout), name)
+    }
+    
+    //--------------------------------------------------------------------------
+    /// from flat `Element` collection
+    init<C>(_ rows: Int = 1, _ cols: Int = 1, elements: C,
+            layout: MatrixLayout = .rowMajor,
+            name: String? = nil) where
+        C: Collection, C.Element == Element
+    {
+        let shape = Self.matrixShape([rows, cols], layout)
+        self = Self.create(elements, shape, name)
+    }
+
+    //--------------------------------------------------------------------------
+    /// from flat `AnyConvertable` collection
+    init<C>(_ rows: Int = 1, _ cols: Int = 1, with elements: C,
+            layout: MatrixLayout = .rowMajor,
+            name: String? = nil) where
+        C: Collection, C.Element: AnyConvertable, Element: AnyConvertable
+    {
+        let shape = Self.matrixShape([rows, cols], layout)
+        self = Self.create(elements.lazy.map { Element(any: $0) }, shape, name)
+    }
+    
+    //--------------------------------------------------------------------------
+    /// repeating other
+    init(repeating other: Self, rows: Int, cols: Int) {
+        self.init(repeating: other, extents: [rows, cols])
+    }
+
+    /// repeating `Element` collection
+    init<C>(repeatingElements elements: C,
+            rows: Int = 1, cols: Int = 1,
+            layout: MatrixLayout = .rowMajor,
+            name: String? = nil) where
+        C: Collection, C.Element == Element
+    {
+        let shape = Self.matrixShape([rows, cols], layout)
+        self = Self.create(elements, shape, name)
+    }
+    
+    /// repeating `AnyConvertable` collection
+    init<C>(repeating elements: C, rows: Int = 1, cols: Int = 1,
+            layout: MatrixLayout = .rowMajor,
+            name: String? = nil) where
+        C: Collection, C.Element: AnyConvertable, Element: AnyConvertable
+    {
+        let shape = Self.matrixShape([rows, cols], layout)
+        self = Self.create(elements.lazy.map { Element(any: $0) }, shape, name)
+    }
+    
+    //--------------------------------------------------------------------------
+    /// with reference to read only buffer
+    /// useful for memory mapped databases, or hardware device buffers
+    init(referenceTo buffer: UnsafeBufferPointer<Element>,
+         rows: Int, cols: Int,
+         layout: MatrixLayout = .rowMajor,
+         name: String? = nil)
+    {
+        let shape = Self.matrixShape([rows, cols], layout)
+        self = Self.create(referenceTo: buffer, shape, name)
+    }
+
+    //--------------------------------------------------------------------------
+    /// with reference to read write buffer
+    /// useful for memory mapped databases, or hardware device buffers
+    init(referenceTo buffer: UnsafeMutableBufferPointer<Element>,
+         rows: Int, cols: Int,
+         layout: MatrixLayout = .rowMajor,
+         name: String? = nil)
+    {
+        let shape = Self.matrixShape([rows, cols], layout)
+        self = Self.create(referenceTo: buffer, shape, name)
+    }
+    
+
+    
+    
+    
+    
+    
+    
+    
     //--------------------------------------------------------------------------
     /// BoolView
     func createBoolTensor(with extents: [Int]) -> Matrix<Bool> {
@@ -162,58 +211,25 @@ public extension MatrixView {
                          viewOffset: viewOffset,
                          isShared: isShared)
     }
-
-    //-------------------------------------
-    /// with single value
-    init(_ element: Element, name: String? = nil) {
-        let shape = DataShape(extents: [1, 1])
-        let name = name ?? String(describing: Self.self)
-        let array = TensorArray<Element>(elements: [element], name: name)
-        self.init(shape: shape, tensorArray: array,
-                  viewOffset: 0, isShared: false)
-    }
     
-    //-------------------------------------
-    /// with convertible collection
-    init<C>(_ extents: MatrixExtents, name: String? = nil,
-            layout: MatrixLayout = .rowMajor, with any: C) where
-        C: Collection, C.Element: AnyConvertable, Element: AnyConvertable
-    {
-        self.init(extents, name: name, layout: layout,
-                  elements: any.lazy.map { Element(any: $0) })
-    }
-
-    //-------------------------------------
-    /// with convertible collection
-    init<C>(_ rows: Int, _ cols: Int, name: String? = nil,
-            layout: MatrixLayout = .rowMajor, with any: C) where
-        C: Collection, C.Element: AnyConvertable, Element: AnyConvertable
-    {
-        self.init((rows, cols), name: name, layout: layout,
-                  elements: any.lazy.map { Element(any: $0) })
-    }
-
-    //-------------------------------------
-    /// with an element collection
-    init<C>(_ extents: MatrixExtents, name: String? = nil,
-            layout: MatrixLayout = .rowMajor, elements: C) where
-        C: Collection, C.Element == Element
-    {
-        let extents = [extents.rows, extents.cols]
-        let shape = layout == .rowMajor ?
+    //--------------------------------------------------------------------------
+    // utility
+    private static func matrixShape(_ extents: [Int],
+                                    _ layout: MatrixLayout) -> DataShape {
+        return layout == .rowMajor ?
             DataShape(extents: extents) :
             DataShape(extents: extents).columnMajor()
-        assert(shape.elementCount == elements.count, countMismatch)
-        let name = name ?? String(describing: Self.self)
-        let array = TensorArray<Element>(elements: elements, name: name)
-        self.init(shape: shape, tensorArray: array,
-                  viewOffset: 0, isShared: false)
     }
 }
 
 //==============================================================================
 // range subscripting
 public extension MatrixView {
+    //--------------------------------------------------------------------------
+    // TODO: probably move these off onto the TensorViewCollection
+    var startIndex: MatrixIndex { return MatrixIndex(view: self, at: (0, 0)) }
+    var endIndex: MatrixIndex { return MatrixIndex(endOf: self) }
+    
     @inlinable @inline(__always)
     subscript<R>(r: R, c: UnboundedRange) -> Self
         where R: RangeExpression, R.Bound == Int { self[r, 0...] }

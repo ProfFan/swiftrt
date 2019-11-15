@@ -17,6 +17,8 @@
 //==============================================================================
 // casting for convertable types
 public extension TensorView where Element: AnyConvertable {
+    //--------------------------------------------------------------------------
+    /// casting
     init<U>(_ other: U) where U: TensorView, U.Element: AnyConvertable {
         self = cast(other)
     }
@@ -25,6 +27,31 @@ public extension TensorView where Element: AnyConvertable {
 //==============================================================================
 //
 public extension TensorView {
+    //--------------------------------------------------------------------------
+    // the fully specified initializers are implemented on concrete types
+
+    //--------------------------------------------------------------------------
+    /// empty
+    /// creates an empty tensor that can be used where a return
+    /// value is needed in an error condition.
+    init() {
+        self.init(shape: DataShape(),
+                  tensorArray: TensorArray(),
+                  viewOffset: 0,
+                  isShared: false)
+    }
+
+
+
+    
+    
+    init(element type: Element.Type) {
+        self.init(shape: DataShape(),
+                  tensorArray: TensorArray(),
+                  viewOffset: 0,
+                  isShared: false)
+    }
+
     //--------------------------------------------------------------------------
     /// creates a tensor of the same type and shape as `self` with `Element`
     /// equal to `Bool`
@@ -41,24 +68,8 @@ public extension TensorView {
     }
     
     //--------------------------------------------------------------------------
-    /// empty
-    init() {
-        self.init(shape: DataShape(),
-                  tensorArray: TensorArray(),
-                  viewOffset: 0,
-                  isShared: false)
-    }
-    
-    init(element type: Element.Type) {
-        self.init(shape: DataShape(),
-                  tensorArray: TensorArray(),
-                  viewOffset: 0,
-                  isShared: false)
-    }
-
-    //--------------------------------------------------------------------------
     /// repeated view
-    init(with extents: [Int], repeating other: Self) {
+    init(repeating other: Self, extents: [Int]) {
         // make sure other has valid extents
         assert({
             for i in 0..<other.rank {
@@ -149,3 +160,4 @@ public extension TensorView {
     }
     
 }
+

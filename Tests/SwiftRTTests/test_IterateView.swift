@@ -35,7 +35,7 @@ class test_IterateView: XCTestCase {
         ("test_perfMatrix", test_perfMatrix),
         ("test_perfVolume", test_perfVolume),
         ("test_perfIndexCopy", test_perfIndexCopy),
-        ("test_repeatingValue", test_repeatingValue),
+        ("test_repeatingValue", test_repeatingElement),
         ("test_repeatingRow", test_repeatingRow),
         ("test_repeatingCol", test_repeatingCol),
 //        ("test_repeatingColInVolume", test_repeatingColInVolume),
@@ -52,7 +52,7 @@ class test_IterateView: XCTestCase {
 //        print(vector.formatted((2,0)))
 //
 //        let values = vector.flatArray
-//        XCTAssert(values == expected, "values do not match")
+//        XCTAssert(values == expected)
 //    }
 //
 //    //==========================================================================
@@ -98,22 +98,19 @@ class test_IterateView: XCTestCase {
     // test_Matrix
     func test_Matrix() {
         let expected = [Int32](0..<4)
-        let matrix = Matrix<Int32>((2, 2), elements: expected)
-        //                        print(matrix.formatted((2,0)))
-        
-        let values = matrix.flatArray
-        XCTAssert(values == expected, "values do not match")
+        let matrix = Matrix<Int32>(2, 2, with: expected)
+        XCTAssert(matrix.flatArray == expected)
     }
     
     //==========================================================================
     // test_MatrixRange
     func test_MatrixRange() {
-        let m = Matrix<Int32>((2, 5), with: 0..<10)
+        let m = Matrix<Int32>(2, 5, with: 0..<10)
         let v1 = m[...1, 1...3].flatArray
         let expected1: [Int32] = [1, 2, 3, 6, 7, 8]
         XCTAssert(v1 == expected1)
         
-        let m2 = Matrix<Int32>((5, 5), with: 0..<25)
+        let m2 = Matrix<Int32>(5, 5, with: 0..<25)
         let v2 = m2[1..<4, 1..<4].flatArray
         let expected2: [Int32] = [6, 7, 8, 11, 12, 13, 16, 17, 18]
         XCTAssert(v2 == expected2)
@@ -122,7 +119,7 @@ class test_IterateView: XCTestCase {
     //==========================================================================
     // test_MatrixSteppedRange
     func test_MatrixSteppedRange() {
-        let m = Matrix<Int32>((2, 5), with: 0..<10)
+        let m = Matrix<Int32>(2, 5, with: 0..<10)
         let v1 = m[(0..., by: 1), (1...3, by: 2)].flatArray
         let expected1: [Int32] = [1, 3, 6, 8]
         XCTAssert(v1 == expected1)
@@ -136,7 +133,7 @@ class test_IterateView: XCTestCase {
 //        //            print(volume.formatted((2,0)))
 //
 //        let values = volume.flatArray
-//        XCTAssert(values == expected, "values do not match")
+//        XCTAssert(values == expected)
 //    }
 //
 //    //==========================================================================
@@ -148,13 +145,13 @@ class test_IterateView: XCTestCase {
 //
 //        let expected: [Int32] = [2, 3, 4]
 //        let values = view.flatArray
-//        XCTAssert(values == expected, "values do not match")
+//        XCTAssert(values == expected)
 //    }
     
     //==========================================================================
     // test_MatrixSubView
     func test_MatrixSubView() {
-        let matrix = Matrix<Int32>((3, 4), with: 0..<12)
+        let matrix = Matrix<Int32>(3, 4, with: 0..<12)
         let view = matrix.view(at: [1, 1], extents: [2, 2])
         print(view.formatted((2,0)))
         
@@ -163,7 +160,7 @@ class test_IterateView: XCTestCase {
             9, 10
         ]
         let values = view.flatArray
-        XCTAssert(values == expected, "values do not match")
+        XCTAssert(values == expected)
     }
     
 //    //==========================================================================
@@ -181,7 +178,7 @@ class test_IterateView: XCTestCase {
 //            33, 34, 35,
 //        ]
 //        let values = view.flatArray
-//        XCTAssert(values == expected, "values do not match")
+//        XCTAssert(values == expected)
 //    }
     
     //==========================================================================
@@ -252,55 +249,41 @@ class test_IterateView: XCTestCase {
         #endif
     }
     //==========================================================================
-    // test_repeatingValue
-    func test_repeatingValue() {
-        // try repeating a scalar
-        let value = Matrix<Int32>((1, 1), elements: [42])
-        let matrix = Matrix<Int32>((2, 3), repeating: value)
-        //            print(vector.formatted((2,0)))
-        
+    // test_repeatingElement
+    func test_repeatingElement() {
+        let matrix = Matrix<Int32>(repeating: [42], rows: 2, cols: 3)
         let expected: [Int32] = [
             42, 42, 42,
             42, 42, 42,
         ]
         
         let values = matrix.flatArray
-        XCTAssert(values == expected, "values do not match")
+        XCTAssert(values == expected)
     }
     
     //==========================================================================
     // test_repeatingRow
     func test_repeatingRow() {
-        // try repeating a row vector
-        let row = Matrix<Int32>((1, 3), with: 0..<3)
-        let matrix = Matrix<Int32>((2, 3), repeating: row)
-        //            print(matrix.formatted((2,0)))
-        
+        let matrix = Matrix<Int32>(repeating: 0...2, rows: 2)
         let expected: [Int32] = [
             0, 1, 2,
             0, 1, 2,
         ]
         
         let values = matrix.flatArray
-        XCTAssert(values == expected, "values do not match")
+        XCTAssert(values == expected)
     }
     
     //==========================================================================
     // test_repeatingCol
     func test_repeatingCol() {
-        // try repeating a row vector
-        let col = Matrix<Int32>((3, 1), with: 0..<3)
-        let matrix = Matrix<Int32>((3, 2), repeating: col)
-        print(matrix.formatted((2,0)))
-        
+        let matrix = Matrix<Int32>(repeating: 0...2, cols: 2)
         let expected: [Int32] = [
             0, 0,
             1, 1,
             2, 2,
         ]
-        
-        let values = matrix.flatArray
-        XCTAssert(values == expected, "values do not match")
+        XCTAssert(matrix.flatArray == expected)
     }
     
 //    //==========================================================================
@@ -324,7 +307,7 @@ class test_IterateView: XCTestCase {
 //        ]
 //
 //        let values = matrix.flatArray
-//        XCTAssert(values == expected, "values do not match")
+//        XCTAssert(values == expected)
 //    }
     
 //    //==========================================================================
@@ -348,36 +331,25 @@ class test_IterateView: XCTestCase {
 //        ]
 //
 //        let values = matrix.flatArray
-//        XCTAssert(values == expected, "values do not match")
+//        XCTAssert(values == expected)
 //    }
     
     //==========================================================================
     // test_repeatingMatrixSubView
     func test_repeatingMatrixSubView() {
-        let pattern = Matrix<Int32>((3, 1), elements: [
-            1,
-            0,
-            1,
-        ])
-        
-        let matrix = Matrix<Int32>((3, 4), repeating: pattern)
+        let matrix = Matrix<Int32>(repeating: [1, 0, 1], cols: 4)
         let expected: [Int32] = [
             1, 1, 1, 1,
             0, 0, 0, 0,
             1, 1, 1, 1,
         ]
-        
-        let values = matrix.flatArray
-        XCTAssert(values == expected, "values do not match")
+        XCTAssert(matrix.flatArray == expected)
         
         let view = matrix.view(at: [1, 1], extents: [2, 3])
         let viewExpected: [Int32] = [
             0, 0, 0,
             1, 1, 1,
         ]
-        
-        let viewValues = view.flatArray
-        XCTAssert(viewValues == viewExpected, "values do not match")
+        XCTAssert(view.flatArray == viewExpected)
     }
-    
 }

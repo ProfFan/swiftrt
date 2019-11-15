@@ -40,7 +40,7 @@ class test_DataMigration: XCTestCase {
             Platform.log.level = .diagnostic
             Platform.log.categories = [.dataAlloc, .dataCopy, .dataMutation]
             
-            let matrix = Matrix<Float>((3, 2), name: "matrix", with: 0..<6)
+            let matrix = Matrix<Float>(3, 2, with: 0..<6, name: "matrix")
             let index = (1, 1)
             
             for i in 0..<500 {
@@ -66,7 +66,7 @@ class test_DataMigration: XCTestCase {
             Platform.log.categories = [.dataAlloc, .dataCopy, .dataMutation]
 
             // create a Matrix and give it an optional name for logging
-            var m0 = Matrix<Float>((3, 4), name: "weights", with: 0..<12)
+            var m0 = Matrix<Float>(3, 4, with: 0..<12, name: "weights")
             
             let _ = try m0.readWrite()
             XCTAssert(!m0.lastAccessMutatedView)
@@ -208,7 +208,7 @@ class test_DataMigration: XCTestCase {
             // memory is only allocated on device 1. This also shows how a
             // temporary can be used in a scope. No memory is copied.
             var matrix = using(device1) {
-                Matrix<Float>((3, 2)).filledWithIndex()
+                Matrix<Float>(3, 2).filledWithIndex()
             }
             
             // retreive value on app thread
@@ -295,7 +295,7 @@ class test_DataMigration: XCTestCase {
             
             // fill with index on device 1
             let index = (1, 1)
-            var matrix1 = Matrix<Float>((3, 2))
+            var matrix1 = Matrix<Float>(3, 2)
             using(device1) {
                 fillWithIndex(&matrix1)
             }
@@ -336,7 +336,7 @@ class test_DataMigration: XCTestCase {
             let queue2 = device2.queues[0]
             
             let index = (1, 1)
-            var matrix1 = Matrix<Float>((3, 2))
+            var matrix1 = Matrix<Float>(3, 2)
             
             // allocate array on device 1 and fill with indexes
             using(device1) {
@@ -386,7 +386,7 @@ class test_DataMigration: XCTestCase {
             //            Platform.log.categories = [.dataAlloc, .dataCopy, .dataMutation]
             
             let index = (1, 1)
-            var matrix1 = Matrix<Float>((3, 2))
+            var matrix1 = Matrix<Float>(3, 2)
             fillWithIndex(&matrix1)
             var value = try matrix1.value(at: index)
             XCTAssert(value == 3.0)
@@ -413,8 +413,8 @@ class test_DataMigration: XCTestCase {
     //   2, 3,
     //   4, 5
     func test_columnMajorDataView() {
-        let cmMatrix = Matrix<Int32>((3, 2), layout: .columnMajor,
-                                     elements: [0, 2, 4, 1, 3, 5])
+        let cmMatrix = Matrix<Int32>(3, 2, with: [0, 2, 4, 1, 3, 5],
+                                     layout: .columnMajor)
         let expected = [Int32](0..<6)
         let values = cmMatrix.flatArray
         XCTAssert(values == expected, "values don't match")
