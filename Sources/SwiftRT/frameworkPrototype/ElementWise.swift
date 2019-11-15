@@ -16,6 +16,56 @@
 import Foundation
 
 //==============================================================================
+// >>>>>> User API <<<<<<
+/// cast(from:to:
+/// casts elements of `x` to the output type
+///
+/// with placement
+/// - Parameter other: value tensor
+/// - Returns: result
+@inlinable @inline(__always)
+public func cast<T, U>(_ other: U) -> T where
+    T: TensorView, T.Element: AnyConvertable,
+    U: TensorView, U.Element: AnyConvertable
+{
+    let name = String(describing: T.self)
+    let array = TensorArray<T.Element>(count: other.elementCount, name: name)
+    var result = T(shape: other.shape.dense, tensorArray: array,
+                   viewOffset: 0, isShared: false)
+
+    DeviceContext.currentQueue.cast(from: other, to: &result)
+    return result
+}
+
+//------------------------------------------------------------------------------
+// >>>>>> INTENT <<<<<<
+// User device function
+public extension DeviceQueue {
+    func cast<T, U>(from x: T, to result: inout U) where
+        T: TensorView, T.Element: AnyConvertable,
+        U: TensorView, U.Element: AnyConvertable
+    {
+        x.map(into: &result) { U.Element(any: $0) }
+    }
+}
+
+//******************************************************************************
+// >>>>>> GENERATED <<<<<<
+#if canImport(CpuAsync)
+public extension CpuAsynchronousQueue {
+    func cast<T, U>(from x: T, to result: inout U) where
+        T: TensorView, T.Element: AnyConvertable,
+        U: TensorView, U.Element: AnyConvertable
+    {
+        queue(#function, { x.elements(using: self) }, &result) {
+            $0.map(into: &$1) { U.Element(any: $0) }
+        }
+    }
+}
+#endif
+
+
+//==============================================================================
 /// maximum
 /// Computes the element-wise maximum of two tensors
 /// - Parameter lhs: left hand tensor

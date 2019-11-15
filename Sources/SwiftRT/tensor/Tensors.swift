@@ -93,15 +93,6 @@ public extension MatrixView {
     var endIndex: MatrixIndex { return MatrixIndex(endOf: self) }
 
     //--------------------------------------------------------------------------
-    // cast
-    init<U>(_ other: U) where
-        Self.Element: AnyConvertable,
-        U: MatrixView, U.Element: AnyConvertable
-    {
-        fatalError()
-    }
-
-    //--------------------------------------------------------------------------
     /// empty array
     init(_ extents: MatrixExtents, name: String? = nil) {
         let shape = DataShape(extents: [extents.rows, extents.cols])

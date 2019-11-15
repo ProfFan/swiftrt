@@ -15,9 +15,11 @@
 //
 
 //==============================================================================
-//
-public func Broadcast<T>(lhs: T, rhs: T) -> T {
-    fatalError()
+// casting for convertable types
+public extension TensorView where Element: AnyConvertable {
+    init<U>(_ other: U) where U: TensorView, U.Element: AnyConvertable {
+        self = cast(other)
+    }
 }
 
 //==============================================================================
@@ -47,6 +49,13 @@ public extension TensorView {
                   isShared: false)
     }
     
+    init(element type: Element.Type) {
+        self.init(shape: DataShape(),
+                  tensorArray: TensorArray(),
+                  viewOffset: 0,
+                  isShared: false)
+    }
+
     //--------------------------------------------------------------------------
     /// repeated view
     init(with extents: [Int], repeating other: Self) {

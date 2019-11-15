@@ -28,6 +28,10 @@ public protocol DeviceFunctions: DeviceQueueBase {
     /// any
     func any<T>(x: T, along axes: [Int]?, result: inout T) where
         T: TensorView, T.Element == Bool
+    // cast
+    func cast<T, U>(from other: T, to result: inout U) where
+        T: TensorView, T.Element: AnyConvertable,
+        U: TensorView, U.Element: AnyConvertable
     /// concat
     func concat<T>(tensors: [T], along axis: Int, result: inout T) where
         T: TensorView
