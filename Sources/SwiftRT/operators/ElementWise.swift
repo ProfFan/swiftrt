@@ -317,7 +317,7 @@ public extension DeviceQueue {
     func neg<T>(x: T, result: inout T) where
         T: TensorView, T.Element: SignedNumeric
     {
-        x.map(into: &result) { -$0 }
+        x.map(into: &result, -)
     }
 }
 
@@ -330,7 +330,7 @@ public extension CpuAsynchronousQueue {
         T: TensorView, T.Element: SignedNumeric
     {
         queue(#function, { x.elements(using: self) }, &result) {
-            $0.map(into: &$1) { -$0 }
+            $0.map(into: &$1, -)
         }
     }
 }
@@ -379,7 +379,7 @@ public extension DeviceQueue {
     func equal<T>(lhs: T, rhs: T, result: inout T.BoolView) where
         T: TensorView, T.Element: Equatable
     {
-        zip(lhs, rhs).map(into: &result) { $0 == $1 }
+        zip(lhs, rhs).map(into: &result, ==)
     }
 }
 
@@ -395,7 +395,7 @@ public extension CpuAsynchronousQueue {
             (lhs.elements(using: self),
              rhs.elements(using: self))
         }, &result) {
-            zip($0.0, $0.1).map(into: &$1) { $0 == $1 }
+            zip($0.0, $0.1).map(into: &$1, ==)
         }
     }
 }
@@ -441,7 +441,7 @@ public extension DeviceQueue {
     func notEqual<T>(lhs: T, rhs: T, result: inout T.BoolView) where
         T: TensorView, T.Element: Equatable
     {
-        zip(lhs, rhs).map(into: &result) { $0 != $1 }
+        zip(lhs, rhs).map(into: &result, !=)
     }
 }
 
@@ -457,7 +457,7 @@ public extension CpuAsynchronousQueue {
             (lhs.elements(using: self),
              rhs.elements(using: self))
         }, &result) {
-            zip($0.0, $0.1).map(into: &$1) { $0 != $1 }
+            zip($0.0, $0.1).map(into: &$1, !=)
         }
     }
 }

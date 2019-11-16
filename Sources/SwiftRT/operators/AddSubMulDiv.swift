@@ -129,7 +129,7 @@ public extension DeviceQueue {
     func subtract<T>(lhs: T, rhs: T, result: inout T) where
         T: TensorView, T.Element: Numeric
     {
-        zip(lhs, rhs).map(into: &result) { $0 - $1 }
+        zip(lhs, rhs).map(into: &result, -)
     }
 }
 
@@ -144,7 +144,7 @@ public extension CpuAsynchronousQueue {
             (lhs.elements(using: self),
              rhs.elements(using: self))
         }, &result) {
-            zip($0.0, $0.1).map(into: &$1) { $0 - $1 }
+            zip($0.0, $0.1).map(into: &$1, -)
         }
     }
 }
@@ -196,7 +196,7 @@ public extension DeviceQueue {
     func mul<T>(lhs: T, rhs: T, result: inout T) where
         T: TensorView, T.Element: Numeric
     {
-        zip(lhs, rhs).map(into: &result) { $0 * $1 }
+        zip(lhs, rhs).map(into: &result, *)
     }
 }
 
@@ -211,7 +211,7 @@ public extension CpuAsynchronousQueue {
             (lhs.elements(using: self),
              rhs.elements(using: self))
         }, &result) {
-            zip($0.0, $0.1).map(into: &$1) { $0 * $1 }
+            zip($0.0, $0.1).map(into: &$1, *)
         }
     }
 }
@@ -260,7 +260,7 @@ public extension DeviceQueue {
     func div<T>(lhs: T, rhs: T, result: inout T) where
         T: TensorView, T.Element: FloatingPoint
     {
-        zip(lhs, rhs).map(into: &result) { $0 / $1 }
+        zip(lhs, rhs).map(into: &result, /)
     }
 }
 
@@ -275,7 +275,7 @@ public extension CpuAsynchronousQueue {
             (lhs.elements(using: self),
              rhs.elements(using: self))
         }, &result) {
-            zip($0.0, $0.1).map(into: &$1) { $0 / $1 }
+            zip($0.0, $0.1).map(into: &$1, /)
         }
     }
 }
