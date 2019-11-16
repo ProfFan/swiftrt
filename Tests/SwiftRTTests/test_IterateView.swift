@@ -264,7 +264,7 @@ class test_IterateView: XCTestCase {
     //==========================================================================
     // test_repeatingRow
     func test_repeatingRow() {
-        let matrix = Matrix<Int32>(repeating: 0...2, rows: 2)
+        let matrix = Matrix<Int32>(repeatingRow: 0...2, count: 2)
         let expected: [Int32] = [
             0, 1, 2,
             0, 1, 2,
@@ -277,7 +277,7 @@ class test_IterateView: XCTestCase {
     //==========================================================================
     // test_repeatingCol
     func test_repeatingCol() {
-        let matrix = Matrix<Int32>(repeating: 0...2, cols: 2)
+        let matrix = Matrix<Int32>(repeatingCol: 0...2, count: 2)
         let expected: [Int32] = [
             0, 0,
             1, 1,
@@ -337,7 +337,7 @@ class test_IterateView: XCTestCase {
     //==========================================================================
     // test_repeatingMatrixSubView
     func test_repeatingMatrixSubView() {
-        let matrix = Matrix<Int32>(repeating: [1, 0, 1], cols: 4)
+        let matrix = Matrix<Int32>(repeatingCol: [1, 0, 1], count: 4)
         let expected: [Int32] = [
             1, 1, 1, 1,
             0, 0, 0, 0,

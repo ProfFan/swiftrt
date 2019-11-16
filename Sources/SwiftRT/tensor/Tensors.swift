@@ -36,11 +36,15 @@ extension Matrix: CustomStringConvertible where Element: AnyConvertable {
 public extension MatrixView {
     //--------------------------------------------------------------------------
     /// reserved space
-    init(_ rows: Int, _ cols: Int,
-         layout: MatrixLayout = .rowMajor,
+    init(extents: [Int], layout: MatrixLayout = .rowMajor, name: String? = nil)
+    {
+        self = Self.create(Self.matrixShape(extents, layout), name)
+    }
+    
+    init(_ rows: Int, _ cols: Int, layout: MatrixLayout = .rowMajor,
          name: String? = nil)
     {
-        self = Self.create(Self.matrixShape([rows, cols], layout), name)
+        self.init(extents: [rows, cols], layout: layout, name: name)
     }
     
     //--------------------------------------------------------------------------
@@ -67,7 +71,8 @@ public extension MatrixView {
     
     //--------------------------------------------------------------------------
     /// repeating other
-    init(repeating other: Self, rows: Int, cols: Int,
+    /// where `other` is a `Matrix` in the form of an `Element`, row, or column
+    init(repeating other: Self, rows: Int = 1, cols: Int = 1,
          layout: MatrixLayout = .rowMajor)
     {
         let shape = Self.matrixRepeatedShape(
@@ -90,50 +95,50 @@ public extension MatrixView {
     
     //----------------------------------
     /// repeating a row of `Element`
-    init<C>(repeating row: C, rows: Int,
+    init<C>(repeatingRow elements: C, count: Int,
             layout: MatrixLayout = .rowMajor,
             name: String? = nil) where
         C: Collection, C.Element == Element
     {
-        let cols = row.count
-        let shape = Self.matrixRepeatedShape([1, cols], [rows, cols], layout)
-        self = Self.create(row, shape, name)
+        let cols = elements.count
+        let shape = Self.matrixRepeatedShape([1, cols], [count, cols], layout)
+        self = Self.create(elements, shape, name)
     }
     
     //----------------------------------
     /// repeating a column `Element`
-    init<C>(repeating col: C, cols: Int,
+    init<C>(repeatingCol elements: C, count: Int,
             layout: MatrixLayout = .rowMajor,
             name: String? = nil) where
         C: Collection, C.Element == Element
     {
-        let rows = col.count
-        let shape = Self.matrixRepeatedShape([rows, 1], [rows, cols], layout)
-        self = Self.create(col, shape, name)
+        let rows = elements.count
+        let shape = Self.matrixRepeatedShape([rows, 1], [rows, count], layout)
+        self = Self.create(elements, shape, name)
     }
     
     //----------------------------------
     /// repeating a row of `AnyConvertable`
-    init<C>(repeating row: C, rows: Int,
+    init<C>(repeatingRow elements: C, count: Int,
             layout: MatrixLayout = .rowMajor,
             name: String? = nil) where
         C: Collection, C.Element: AnyConvertable, Element: AnyConvertable
     {
-        let cols = row.count
-        let shape = Self.matrixRepeatedShape([1, cols], [rows, cols], layout)
-        self = Self.create(row.lazy.map { Element(any: $0) }, shape, name)
+        let cols = elements.count
+        let shape = Self.matrixRepeatedShape([1, cols], [count, cols], layout)
+        self = Self.create(elements.lazy.map { Element(any: $0) }, shape, name)
     }
     
     //----------------------------------
     /// repeating a column `AnyConvertable`
-    init<C>(repeating col: C, cols: Int,
+    init<C>(repeatingCol elements: C, count: Int,
             layout: MatrixLayout = .rowMajor,
             name: String? = nil) where
         C: Collection, C.Element: AnyConvertable, Element: AnyConvertable
     {
-        let rows = col.count
-        let shape = Self.matrixRepeatedShape([rows, 1], [rows, cols], layout)
-        self = Self.create(col.lazy.map { Element(any: $0) }, shape, name)
+        let rows = elements.count
+        let shape = Self.matrixRepeatedShape([rows, 1], [rows, count], layout)
+        self = Self.create(elements.lazy.map { Element(any: $0) }, shape, name)
     }
     
     //--------------------------------------------------------------------------
@@ -164,11 +169,11 @@ public extension MatrixView {
     //--------------------------------------------------------------------------
     // typed views
     func createBoolTensor(with extents: [Int]) -> Matrix<Bool> {
-        Matrix<Bool>.create(DataShape(extents: extents), nil)
+        Matrix<Bool>(extents: extents)
     }
     
     func createIndexTensor(with extents: [Int]) -> Matrix<IndexElement> {
-        Matrix<IndexElement>.create(DataShape(extents: extents), nil)
+        Matrix<IndexElement>(extents: extents)
     }
 
     //--------------------------------------------------------------------------

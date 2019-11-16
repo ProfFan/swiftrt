@@ -102,7 +102,7 @@ class test_BinaryFunctions: XCTestCase {
             3, 4,
             5, 6
         ])
-        let col = Matrix<Float>(repeating: 0...2, cols: 2)
+        let col = Matrix<Float>(repeatingCol: 0...2, count: 2)
 
         let result = m1 - col
         let expected: [Float] = [
