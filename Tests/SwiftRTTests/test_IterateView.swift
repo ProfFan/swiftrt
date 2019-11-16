@@ -29,7 +29,7 @@ class test_IterateView: XCTestCase {
         ("test_MatrixSteppedRange", test_MatrixSteppedRange),
 //        ("test_Volume", test_Volume),
 //        ("test_VectorSubView", test_VectorSubView),
-//        ("test_MatrixSubView", test_MatrixSubView),
+        ("test_MatrixSubView", test_MatrixSubView),
 //        ("test_VolumeSubView", test_VolumeSubView),
         ("test_perfVector", test_perfVector),
         ("test_perfMatrix", test_perfMatrix),
