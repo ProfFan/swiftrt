@@ -25,6 +25,10 @@ extension Vector: CustomStringConvertible where Element: AnyConvertable {
     public var description: String { return formatted() }
 }
 
+extension Vector: AdditiveArithmetic, Equatable where Element: Numeric {
+    public static var zero: Vector { Vector(elements: [0]) }
+}
+
 //==============================================================================
 // MatrixView extensions
 public extension VectorView {
@@ -193,6 +197,10 @@ extension Matrix: Codable where Element: Codable {}
 
 extension Matrix: CustomStringConvertible where Element: AnyConvertable {
     public var description: String { return formatted() }
+}
+
+extension Matrix: AdditiveArithmetic, Equatable where Element: Numeric {
+    public static var zero: Matrix { Matrix(elements: [0]) }
 }
 
 //==============================================================================

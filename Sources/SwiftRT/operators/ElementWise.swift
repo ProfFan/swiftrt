@@ -350,7 +350,7 @@ public func equal<T>(_ lhs: T, _ rhs: T) -> T.BoolView where
     return result
 }
 
-public extension TensorView where Element: Equatable & AnyScalar {
+public extension TensorView where Element: Equatable {
     @inlinable
     static func .== (_ lhs: Self, _ rhs: Self) -> BoolView { equal(lhs, rhs) }
     
@@ -418,19 +418,21 @@ public func notEqual<T>(_ lhs: T, _ rhs: T) -> T.BoolView where
 public extension TensorView where Element: Equatable {
     @inlinable
     static func .!=(_ lhs: Self, _ rhs: Self) -> BoolView { notEqual(lhs, rhs) }
-
-    @inlinable
-    static func != (lhs: Self, rhs: Self) -> Bool {
-        // the extents must not match or they are not equal
-        guard lhs.extents != rhs.extents else { return true }
-        
-        // if lhs is an alias for rhs, then they match
-        if (lhs.tensorArray === rhs.tensorArray &&
-            lhs.viewOffset == rhs.viewOffset) { return false }
-        
-        // compare elements
-        return (lhs .!= rhs).any().element
-    }
+    
+    // TODO AdditiveArithmetic sees this as ambiguous
+//
+//    @inlinable
+//    static func != (lhs: Self, rhs: Self) -> Bool {
+//        // the extents must not match or they are not equal
+//        guard lhs.extents != rhs.extents else { return true }
+//
+//        // if lhs is an alias for rhs, then they match
+//        if (lhs.tensorArray === rhs.tensorArray &&
+//            lhs.viewOffset == rhs.viewOffset) { return false }
+//
+//        // compare elements
+//        return (lhs .!= rhs).any().element
+//    }
 }
 
 //------------------------------------------------------------------------------
