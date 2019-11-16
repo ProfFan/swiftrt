@@ -16,10 +16,6 @@
 import Foundation
 
 //==============================================================================
-// error messages
-let countMismatch = "the number of initial elements must equal the tensor size"
-
-//==============================================================================
 // MatrixView protocol
 public protocol MatrixView: TensorView {}
 
@@ -69,21 +65,6 @@ public extension MatrixView {
         self = Self.create(elements.lazy.map { Element(any: $0) }, shape, name)
     }
     
-    //--------------------------------------------------------------------------
-    /// repeating other
-    /// where `other` is a `Matrix` in the form of an `Element`, row, or column
-    init(repeating other: Self, rows: Int = 1, cols: Int = 1,
-         layout: MatrixLayout = .rowMajor)
-    {
-        let shape = Self.matrixRepeatedShape(
-            [other.extents[0], other.extents[1]], [rows, cols], layout)
-        
-        self.init(shape: shape,
-                  tensorArray: other.tensorArray,
-                  viewOffset: other.viewOffset,
-                  isShared: other.isShared)
-    }
-
     //----------------------------------
     /// repeating an Element
     init(repeating element: Element, rows: Int = 1, cols: Int = 1,

@@ -15,6 +15,11 @@
 //
 
 //==============================================================================
+// error messages
+let _messageElementCountMismatch =
+"the number of initial elements must equal the tensor size"
+
+//==============================================================================
 // casting for convertable types
 public extension TensorView where Element: AnyConvertable {
     //--------------------------------------------------------------------------
@@ -128,7 +133,8 @@ public extension TensorView {
                           _ name: String?) -> Self where
         C: Collection, C.Element == Element
     {
-        assert(shape.elementCount == elements.count, countMismatch)
+        assert(shape.elementCount == elements.count,
+               _messageElementCountMismatch)
         let name = name ?? String(describing: Self.self)
         let array = TensorArray<Element>(elements: elements, name: name)
         return Self(shape: shape.dense, tensorArray: array,
