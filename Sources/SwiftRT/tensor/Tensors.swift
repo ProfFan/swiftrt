@@ -20,7 +20,7 @@ import Foundation
 let countMismatch = "the number of initial elements must equal the tensor size"
 
 //==============================================================================
-// MatrixView
+// MatrixView protocol
 public protocol MatrixView: TensorView {}
 
 public enum MatrixLayout { case rowMajor, columnMajor }
@@ -160,6 +160,17 @@ public extension MatrixView {
         self = Self.create(referenceTo: buffer, shape, name)
     }
 
+    
+    //--------------------------------------------------------------------------
+    // typed views
+    func createBoolTensor(with extents: [Int]) -> Matrix<Bool> {
+        Matrix<Bool>.create(DataShape(extents: extents), nil)
+    }
+    
+    func createIndexTensor(with extents: [Int]) -> Matrix<IndexElement> {
+        Matrix<IndexElement>.create(DataShape(extents: extents), nil)
+    }
+
     //--------------------------------------------------------------------------
     // transpose
     var t: Self {
@@ -186,34 +197,6 @@ public extension MatrixView {
     {
         let shape = DataShape(extents: extents).repeated(to: repeatedExtents)
         return layout == .rowMajor ? shape : shape.columnMajor()
-    }
-
-    
-    
-    
-    
-    
-    
-    
-    //--------------------------------------------------------------------------
-    /// BoolView
-    func createBoolTensor(with extents: [Int]) -> Matrix<Bool> {
-        let shape = DataShape(extents: extents)
-        let array = TensorArray<Bool>(count: shape.elementCount,
-                                      name: String(describing: Self.self))
-        return Matrix<Bool>(shape: shape, tensorArray: array,
-                            viewOffset: 0, isShared: false)
-    }
-    
-    //--------------------------------------------------------------------------
-    /// IndexView
-    func createIndexTensor(with extents: [Int]) -> Matrix<IndexElement> {
-        let shape = DataShape(extents: extents)
-        let name = String(describing: Self.self)
-        let array = TensorArray<IndexElement>(count: shape.elementCount,
-                                              name: name)
-        return Matrix<IndexElement>(shape: shape, tensorArray: array,
-                                    viewOffset: 0, isShared: false)
     }
 }
 

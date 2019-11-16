@@ -28,9 +28,6 @@ public extension TensorView where Element: AnyConvertable {
 //
 public extension TensorView {
     //--------------------------------------------------------------------------
-    // the fully specified initializers are implemented on concrete types
-
-    //--------------------------------------------------------------------------
     /// empty
     /// creates an empty tensor that can be used where a return
     /// value is needed in an error condition.
@@ -41,31 +38,13 @@ public extension TensorView {
                   isShared: false)
     }
 
-
-
-    
-    
-    init(element type: Element.Type) {
-        self.init(shape: DataShape(),
-                  tensorArray: TensorArray(),
-                  viewOffset: 0,
-                  isShared: false)
-    }
-
     //--------------------------------------------------------------------------
     /// creates a tensor of the same type and shape as `self` with `Element`
     /// equal to `Bool`
-    func createBoolTensor() -> BoolView {
-        return createBoolTensor(with: extents)
-    }
-    
-    /// creates a tensor of the same type and shape as `self`
-    
+    func createBoolTensor() -> BoolView { createBoolTensor(with: extents) }
     /// creates a tensor of the same shape as `self` with `Element`
     /// equal to `IndexElement`
-    func createIndexTensor() -> IndexView {
-        return createIndexTensor(with: extents)
-    }
+    func createIndexTensor() -> IndexView { createIndexTensor(with: extents) }
     
     //--------------------------------------------------------------------------
     /// concatenated tensors
@@ -80,12 +59,7 @@ public extension TensorView {
     //--------------------------------------------------------------------------
     /// createDense(shape:
     func createDense(with shape: DataShape, name: String? = nil) -> Self {
-        let name = name ?? String(describing: Self.self)
-        let array = TensorArray<Element>(count: shape.elementCount, name: name)
-        return Self(shape: shape.dense,
-                    tensorArray: array,
-                    viewOffset: 0,
-                    isShared: false)
+        Self.create(shape.dense, name)
     }
     
     //--------------------------------------------------------------------------
@@ -105,27 +79,62 @@ public extension TensorView {
     /// createSingleElement
     /// helper to create a rank extended value
     func createSingleElement(name: String? = nil) -> Self {
-        let name = name ?? String(describing: Self.self)
         let shape = DataShape(extents: singleElementExtents,
                               strides: singleElementExtents)
-        let array = TensorArray<Element>(count: 1, name: name)
-        return Self(shape: shape, tensorArray: array, viewOffset: 0,
-                    isShared: false)
+        return Self.create(shape, name)
     }
     
     //--------------------------------------------------------------------------
     /// create(repeating:
     func create(repeating value: Element, name: String? = nil) -> Self {
-        let name = name ?? String(describing: Self.self)
         let strides = [Int](repeating: 0, count: rank)
         let shape = DataShape(extents: extents, strides: strides)
-        let array = TensorArray<Element>(count: 1, name: name)
-        var view = Self(shape: shape, tensorArray: array, viewOffset: 0,
-                        isShared: false)
-        // we know we can get the cpu buffer
-        try! view.readWrite()[0] = value
-        return view
+        return Self.create([value], shape, name)
+    }
+
+
+    //==========================================================================
+    // utility functions for creating shaped types
+    static func create(_ shape: DataShape, _ name: String?) -> Self {
+        let name = name ?? String(describing: Self.self)
+        let array = TensorArray<Element>(count: shape.elementCount, name: name)
+        return Self(shape: shape.dense, tensorArray: array,
+                    viewOffset: 0, isShared: false)
     }
     
+    static func create(referenceTo buffer: UnsafeBufferPointer<Element>,
+                       _ shape: DataShape, _ name: String?) -> Self {
+        assert(shape.elementCount == buffer.count,
+               "shape count does not match buffer count")
+        // create tensor data reference to buffer
+        let name = name ?? String(describing: Self.self)
+        let array = TensorArray<Element>(referenceTo: buffer, name: name)
+        return Self(shape: shape.dense, tensorArray: array,
+                    viewOffset: 0, isShared: false)
+    }
+    
+    static func create(referenceTo buffer: UnsafeMutableBufferPointer<Element>,
+                       _ shape: DataShape, _ name: String?) -> Self {
+        assert(shape.elementCount == buffer.count,
+               "shape count does not match buffer count")
+        // create tensor data reference to buffer
+        let name = name ?? String(describing: Self.self)
+        let array = TensorArray<Element>(referenceTo: buffer, name: name)
+        return Self(shape: shape.dense, tensorArray: array,
+                    viewOffset: 0, isShared: false)
+    }
+    
+    static func create<C>(_ elements: C, _ shape: DataShape,
+                          _ name: String?) -> Self where
+        C: Collection, C.Element == Element
+    {
+        assert(shape.elementCount == elements.count, countMismatch)
+        let name = name ?? String(describing: Self.self)
+        let array = TensorArray<Element>(elements: elements, name: name)
+        return Self(shape: shape.dense, tensorArray: array,
+                    viewOffset: 0, isShared: false)
+    }
 }
+
+
 
