@@ -33,7 +33,7 @@ func concat<T>(tensors: [T], along axis: Int = 0,
 
 public extension TensorView {
     func concat(_ others: Self..., along axis: Int = 0) -> Self {
-        SwiftRT.concat(tensors: others, along: axis)
+        SwiftRT.concat(tensors: [self] + others, along: axis)
     }
 }
 

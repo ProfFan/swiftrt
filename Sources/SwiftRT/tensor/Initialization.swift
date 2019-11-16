@@ -19,6 +19,8 @@
 let _messageElementCountMismatch =
 "the number of initial elements must equal the tensor size"
 
+let _messageNewTensorsShouldBeDense = "new tensors should be dense"
+
 //==============================================================================
 // casting for convertable types
 public extension TensorView where Element: AnyConvertable {
@@ -78,7 +80,7 @@ public extension TensorView {
     
     //--------------------------------------------------------------------------
     /// createDense()
-    func createDense() -> Self { return createDense(with: self.shape) }
+    func createDense() -> Self { return createDense(with: shape) }
     
     //--------------------------------------------------------------------------
     /// createSingleElement
@@ -97,13 +99,12 @@ public extension TensorView {
         return Self.create([value], shape, name)
     }
 
-
     //==========================================================================
     // utility functions for creating shaped types
     static func create(_ shape: DataShape, _ name: String?) -> Self {
         let name = name ?? String(describing: Self.self)
         let array = TensorArray<Element>(count: shape.elementCount, name: name)
-        return Self(shape: shape.dense, tensorArray: array,
+        return Self(shape: shape, tensorArray: array,
                     viewOffset: 0, isShared: false)
     }
     
@@ -114,7 +115,7 @@ public extension TensorView {
         // create tensor data reference to buffer
         let name = name ?? String(describing: Self.self)
         let array = TensorArray<Element>(referenceTo: buffer, name: name)
-        return Self(shape: shape.dense, tensorArray: array,
+        return Self(shape: shape, tensorArray: array,
                     viewOffset: 0, isShared: false)
     }
     
@@ -125,7 +126,7 @@ public extension TensorView {
         // create tensor data reference to buffer
         let name = name ?? String(describing: Self.self)
         let array = TensorArray<Element>(referenceTo: buffer, name: name)
-        return Self(shape: shape.dense, tensorArray: array,
+        return Self(shape: shape, tensorArray: array,
                     viewOffset: 0, isShared: false)
     }
     
@@ -133,11 +134,12 @@ public extension TensorView {
                           _ name: String?) -> Self where
         C: Collection, C.Element == Element
     {
-        assert(shape.elementCount == elements.count,
+        // it can be less if the elements are being repeated
+        assert(elements.count <= shape.elementCount,
                _messageElementCountMismatch)
         let name = name ?? String(describing: Self.self)
         let array = TensorArray<Element>(elements: elements, name: name)
-        return Self(shape: shape.dense, tensorArray: array,
+        return Self(shape: shape, tensorArray: array,
                     viewOffset: 0, isShared: false)
     }
 }

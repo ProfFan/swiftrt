@@ -16,6 +16,174 @@
 import Foundation
 
 //==============================================================================
+// VectorView protocol
+public protocol VectorView: TensorView {}
+
+extension Vector: Codable where Element: Codable {}
+
+extension Vector: CustomStringConvertible where Element: AnyConvertable {
+    public var description: String { return formatted() }
+}
+
+//==============================================================================
+// MatrixView extensions
+public extension VectorView {
+    //--------------------------------------------------------------------------
+    /// reserved space
+    init(extents: [Int], name: String? = nil) {
+        self = Self.create(DataShape(extents: extents), name)
+    }
+    
+    init(_ count: Int, name: String? = nil) {
+        self.init(extents: [count], name: name)
+    }
+    
+    //--------------------------------------------------------------------------
+    /// from flat `Element` collection
+    init<C>(elements: C, name: String? = nil) where
+        C: Collection, C.Element == Element
+    {
+        self = Self.create(elements, DataShape(extents: [elements.count]), name)
+    }
+    
+    //--------------------------------------------------------------------------
+    /// from flat `AnyConvertable` collection
+    init<C>(with elements: C, name: String? = nil) where
+        C: Collection, C.Element: AnyConvertable, Element: AnyConvertable
+    {
+        self = Self.create(elements.lazy.map { Element(any: $0) },
+                           DataShape(extents: [elements.count]),
+                           name)
+    }
+    
+    //----------------------------------
+    /// repeating an Element
+    init(repeating element: Element, count: Int, name: String? = nil) {
+        let shape = DataShape(extents: [1]).repeated(to: [count])
+        self = Self.create([element], shape, name)
+    }
+    
+    //----------------------------------
+    /// repeating any Element
+    init<T>(repeating element: T, count: Int, name: String? = nil) where
+        T: AnyConvertable, Element: AnyConvertable
+    {
+        let shape = DataShape(extents: [1]).repeated(to: [count])
+        self = Self.create([Element(any: element)], shape, name)
+    }
+    
+    //--------------------------------------------------------------------------
+    /// with reference to read only buffer
+    /// useful for memory mapped databases, or hardware device buffers
+    init(referenceTo buffer: UnsafeBufferPointer<Element>, name: String? = nil)
+    {
+        let shape = DataShape(extents: [buffer.count])
+        self = Self.create(referenceTo: buffer, shape, name)
+    }
+    
+    //--------------------------------------------------------------------------
+    /// with reference to read write buffer
+    /// useful for memory mapped databases, or hardware device buffers
+    init(referenceTo buffer: UnsafeMutableBufferPointer<Element>,
+         name: String? = nil)
+    {
+        let shape = DataShape(extents: [buffer.count])
+        self = Self.create(referenceTo: buffer, shape, name)
+    }
+    
+    
+    //--------------------------------------------------------------------------
+    // typed views
+    func createBoolTensor(with extents: [Int]) -> Vector<Bool> {
+        Vector<Bool>(extents: extents)
+    }
+    
+    func createIndexTensor(with extents: [Int]) -> Vector<IndexElement> {
+        Vector<IndexElement>(extents: extents)
+    }
+    
+    //--------------------------------------------------------------------------
+    // utilities
+    private static func matrixShape(
+        _ extents: [Int],
+        _ layout: MatrixLayout) -> DataShape
+    {
+        let shape = DataShape(extents: extents)
+        return layout == .rowMajor ? shape : shape.columnMajor()
+    }
+    
+    private static func matrixRepeatedShape(
+        _ extents: [Int],
+        _ repeatedExtents: [Int],
+        _ layout: MatrixLayout) -> DataShape
+    {
+        let shape = DataShape(extents: extents).repeated(to: repeatedExtents)
+        return layout == .rowMajor ? shape : shape.columnMajor()
+    }
+}
+
+//==============================================================================
+// range subscripting
+public extension VectorView {
+    //--------------------------------------------------------------------------
+    // TODO: probably move these off onto the TensorViewCollection
+    var startIndex: VectorIndex { return VectorIndex(view: self, at: (0)) }
+    var endIndex: VectorIndex { return VectorIndex(endOf: self) }
+    
+    @inlinable @inline(__always)
+    subscript(r: UnboundedRange) -> Self { self }
+    
+    @inlinable @inline(__always)
+    subscript<R>(r: R) -> Self where
+        R: RangeExpression, R.Bound == Int
+    {
+        let rRange = makePositive(range: r, count: extents[0])
+        return view(at: [rRange.lowerBound], extents: [rRange.count])
+    }
+    
+    @inlinable @inline(__always)
+    subscript<R>(r: (R, by: Int)) -> Self where
+        R: RangeExpression, R.Bound == Int
+    {
+        let rRange = makePositive(range: r.0, count: extents[0])
+        let viewPosition = [rRange.lowerBound]
+        let viewExtents = [rRange.count]
+        let steps = [r.1]
+        let (subExtents, subStrides) = makeStepped(view: viewExtents,
+                                                   parent: shape.strides,
+                                                   steps: steps)
+        return view(at: viewPosition, extents: subExtents, strides: subStrides)
+    }
+}
+
+//==============================================================================
+// Vector
+public struct Vector<Element>: VectorView {
+    // properties
+    public let isShared: Bool
+    public let format: TensorFormat = .vector
+    public let shape: DataShape
+    public var tensorArray: TensorArray<Element>
+    public let viewOffset: Int
+    public let singleElementExtents = [1]
+    
+    public init(shape: DataShape,
+                tensorArray: TensorArray<Element>,
+                viewOffset: Int,
+                isShared: Bool)
+    {
+        self.shape = shape
+        self.tensorArray = tensorArray
+        self.viewOffset = viewOffset
+        self.isShared = isShared
+    }
+}
+
+//******************************************************************************
+//******************************************************************************
+//******************************************************************************
+
+//==============================================================================
 // MatrixView protocol
 public protocol MatrixView: TensorView {}
 

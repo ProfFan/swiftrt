@@ -21,14 +21,14 @@ class test_IterateView: XCTestCase {
     //==========================================================================
     // support terminal test run
     static var allTests = [
-//        ("test_Vector", test_Vector),
-//        ("test_VectorRange", test_VectorRange),
-//        ("test_VectorSteppedRange", test_VectorSteppedRange),
+        ("test_Vector", test_Vector),
+        ("test_VectorRange", test_VectorRange),
+        ("test_VectorSteppedRange", test_VectorSteppedRange),
         ("test_Matrix", test_Matrix),
         ("test_MatrixRange", test_MatrixRange),
         ("test_MatrixSteppedRange", test_MatrixSteppedRange),
 //        ("test_Volume", test_Volume),
-//        ("test_VectorSubView", test_VectorSubView),
+        ("test_VectorSubView", test_VectorSubView),
         ("test_MatrixSubView", test_MatrixSubView),
 //        ("test_VolumeSubView", test_VolumeSubView),
         ("test_perfVector", test_perfVector),
@@ -43,56 +43,56 @@ class test_IterateView: XCTestCase {
         ("test_repeatingMatrixSubView", test_repeatingMatrixSubView),
     ]
     
-//    //==========================================================================
-//    // test_Vector
-//    func test_Vector() {
-//        let count: Int32 = 10
-//        let expected = [Int32](0..<count)
-//        let vector = Vector<Int32>(elements: expected)
-//        print(vector.formatted((2,0)))
-//
-//        let values = vector.flatArray
-//        XCTAssert(values == expected)
-//    }
-//
-//    //==========================================================================
-//    // test_VectorRange
-//    func test_VectorRange() {
-//        let vector = Vector<Int32>(with: 0...10)
-//        let values = vector[0...].flatArray
-//        XCTAssert(values == [Int32](0...10))
-//
-//        // negative values work back from the end
-//        let values2 = vector[(-4)...(-2)].flatArray
-//        XCTAssert(values2 == [Int32](6...8))
-//    }
-//
-//    //==========================================================================
-//    // test_VectorSteppedRange
-//    func test_VectorSteppedRange() {
-//        let vector = Vector<Int32>(with: 0...10)
-//        let v1 = vector[(1..<3, 2)].flatArray
-//        XCTAssert(v1.count == 1)
-//        let v2 = vector[(1..<4, 2)].flatArray
-//        XCTAssert(v2.count == 2)
-//        let v3 = vector[(1..<5, 2)].flatArray
-//        XCTAssert(v3.count == 2)
-//
-//        let v4 = vector[(1..<5, 3)].flatArray
-//        XCTAssert(v4.count == 2)
-//        let e4: [Int32] = [1, 4]
-//        XCTAssert(v4 == e4)
-//
-//        let v5 = vector[(1..<6, 3)].flatArray
-//        XCTAssert(v5.count == 2)
-//        let e5: [Int32] = [1, 4]
-//        XCTAssert(v5 == e5)
-//
-//        let v6 = vector[(1..<8, 3)].flatArray
-//        XCTAssert(v6.count == 3)
-//        let e6: [Int32] = [1, 4, 7]
-//        XCTAssert(v6 == e6)
-//    }
+    //==========================================================================
+    // test_Vector
+    func test_Vector() {
+        let count: Int32 = 10
+        let expected = [Int32](0..<count)
+        let vector = Vector<Int32>(elements: expected)
+        print(vector.formatted((2,0)))
+
+        let values = vector.flatArray
+        XCTAssert(values == expected)
+    }
+
+    //==========================================================================
+    // test_VectorRange
+    func test_VectorRange() {
+        let vector = Vector<Int32>(with: 0...10)
+        let values = vector[0...].flatArray
+        XCTAssert(values == [Int32](0...10))
+
+        // negative values work back from the end
+        let values2 = vector[(-4)...(-2)].flatArray
+        XCTAssert(values2 == [Int32](6...8))
+    }
+
+    //==========================================================================
+    // test_VectorSteppedRange
+    func test_VectorSteppedRange() {
+        let vector = Vector<Int32>(with: 0...10)
+        let v1 = vector[(1..<3, 2)].flatArray
+        XCTAssert(v1.count == 1)
+        let v2 = vector[(1..<4, 2)].flatArray
+        XCTAssert(v2.count == 2)
+        let v3 = vector[(1..<5, 2)].flatArray
+        XCTAssert(v3.count == 2)
+
+        let v4 = vector[(1..<5, 3)].flatArray
+        XCTAssert(v4.count == 2)
+        let e4: [Int32] = [1, 4]
+        XCTAssert(v4 == e4)
+
+        let v5 = vector[(1..<6, 3)].flatArray
+        XCTAssert(v5.count == 2)
+        let e5: [Int32] = [1, 4]
+        XCTAssert(v5 == e5)
+
+        let v6 = vector[(1..<8, 3)].flatArray
+        XCTAssert(v6.count == 3)
+        let e6: [Int32] = [1, 4, 7]
+        XCTAssert(v6 == e6)
+    }
     
     //==========================================================================
     // test_Matrix
@@ -136,17 +136,17 @@ class test_IterateView: XCTestCase {
 //        XCTAssert(values == expected)
 //    }
 //
-//    //==========================================================================
-//    // test_VectorSubView
-//    func test_VectorSubView() {
-//        let vector = Vector<Int32>(with: 0..<10)
-//        let view = vector.view(at: [2], extents: [3])
-//        //            print(subView.formatted((2,0)))
-//
-//        let expected: [Int32] = [2, 3, 4]
-//        let values = view.flatArray
-//        XCTAssert(values == expected)
-//    }
+    //==========================================================================
+    // test_VectorSubView
+    func test_VectorSubView() {
+        let vector = Vector<Int32>(with: 0..<10)
+        let view = vector.view(at: [2], extents: [3])
+        //            print(subView.formatted((2,0)))
+
+        let expected: [Int32] = [2, 3, 4]
+        let values = view.flatArray
+        XCTAssert(values == expected)
+    }
     
     //==========================================================================
     // test_MatrixSubView
