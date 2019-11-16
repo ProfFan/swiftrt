@@ -20,73 +20,15 @@ import Foundation
 let countMismatch = "the number of initial elements must equal the tensor size"
 
 //==============================================================================
-// shaped positions and extents used for indexing and selection
-public typealias NDPosition = [Int]
-public typealias VectorPosition = Int
-public typealias VectorExtents = Int
-public typealias MatrixPosition = (r: Int, c: Int)
-public typealias MatrixExtents = (rows: Int, cols: Int)
-public typealias VolumePosition = (d: Int, r: Int, c: Int)
-public typealias VolumeExtents = (depths: Int, rows: Int, cols: Int)
-public typealias NCHWPosition = (i: Int, ch: Int, r: Int, c: Int)
-public typealias NCHWExtents = (items: Int, channels: Int, rows: Int, cols: Int)
-public typealias NHWCPosition = (i: Int, r: Int, c: Int, ch: Int)
-public typealias NHWCExtents = (items: Int, rows: Int, cols: Int, channels: Int)
-
-public enum MatrixLayout { case rowMajor, columnMajor }
-
-//==============================================================================
-// Codable extensions
-extension Matrix: Codable where Element: Codable {}
-
-//==============================================================================
 // MatrixView
 public protocol MatrixView: TensorView {}
 
+public enum MatrixLayout { case rowMajor, columnMajor }
+
+extension Matrix: Codable where Element: Codable {}
+
 extension Matrix: CustomStringConvertible where Element: AnyConvertable {
     public var description: String { return formatted() }
-}
-
-public extension TensorView {
-    static func create(_ shape: DataShape, _ name: String?) -> Self {
-        let name = name ?? String(describing: Self.self)
-        let array = TensorArray<Element>(count: shape.elementCount, name: name)
-        return Self(shape: shape.dense, tensorArray: array,
-                    viewOffset: 0, isShared: false)
-    }
-    
-    static func create(referenceTo buffer: UnsafeBufferPointer<Element>,
-                       _ shape: DataShape, _ name: String?) -> Self {
-        assert(shape.elementCount == buffer.count,
-               "shape count does not match buffer count")
-        // create tensor data reference to buffer
-        let name = name ?? String(describing: Self.self)
-        let array = TensorArray<Element>(referenceTo: buffer, name: name)
-        return Self(shape: shape.dense, tensorArray: array,
-                    viewOffset: 0, isShared: false)
-    }
-
-    static func create(referenceTo buffer: UnsafeMutableBufferPointer<Element>,
-                       _ shape: DataShape, _ name: String?) -> Self {
-        assert(shape.elementCount == buffer.count,
-               "shape count does not match buffer count")
-        // create tensor data reference to buffer
-        let name = name ?? String(describing: Self.self)
-        let array = TensorArray<Element>(referenceTo: buffer, name: name)
-        return Self(shape: shape.dense, tensorArray: array,
-                    viewOffset: 0, isShared: false)
-    }
-    
-    static func create<C>(_ elements: C, _ shape: DataShape,
-                          _ name: String?) -> Self where
-        C: Collection, C.Element == Element
-    {
-        assert(shape.elementCount == elements.count, countMismatch)
-        let name = name ?? String(describing: Self.self)
-        let array = TensorArray<Element>(elements: elements, name: name)
-        return Self(shape: shape.dense, tensorArray: array,
-                    viewOffset: 0, isShared: false)
-    }
 }
 
 //==============================================================================
@@ -125,29 +67,73 @@ public extension MatrixView {
     
     //--------------------------------------------------------------------------
     /// repeating other
-    init(repeating other: Self, rows: Int, cols: Int) {
-        self.init(repeating: other, extents: [rows, cols])
+    init(repeating other: Self, rows: Int, cols: Int,
+         layout: MatrixLayout = .rowMajor)
+    {
+        let shape = Self.matrixRepeatedShape(
+            [other.extents[0], other.extents[1]], [rows, cols], layout)
+        
+        self.init(shape: shape,
+                  tensorArray: other.tensorArray,
+                  viewOffset: other.viewOffset,
+                  isShared: other.isShared)
     }
 
-    /// repeating `Element` collection
-    init<C>(repeatingElements elements: C,
-            rows: Int = 1, cols: Int = 1,
+    //----------------------------------
+    /// repeating an Element
+    init(repeating element: Element, rows: Int = 1, cols: Int = 1,
+         layout: MatrixLayout = .rowMajor, name: String? = nil)
+    {
+        let shape = Self.matrixRepeatedShape([1, 1], [rows, cols], layout)
+        self = Self.create([element], shape, name)
+    }
+    
+    //----------------------------------
+    /// repeating a row of `Element`
+    init<C>(repeating row: C, rows: Int,
             layout: MatrixLayout = .rowMajor,
             name: String? = nil) where
         C: Collection, C.Element == Element
     {
-        let shape = Self.matrixShape([rows, cols], layout)
-        self = Self.create(elements, shape, name)
+        let cols = row.count
+        let shape = Self.matrixRepeatedShape([1, cols], [rows, cols], layout)
+        self = Self.create(row, shape, name)
     }
     
-    /// repeating `AnyConvertable` collection
-    init<C>(repeating elements: C, rows: Int = 1, cols: Int = 1,
+    //----------------------------------
+    /// repeating a column `Element`
+    init<C>(repeating col: C, cols: Int,
+            layout: MatrixLayout = .rowMajor,
+            name: String? = nil) where
+        C: Collection, C.Element == Element
+    {
+        let rows = col.count
+        let shape = Self.matrixRepeatedShape([rows, 1], [rows, cols], layout)
+        self = Self.create(col, shape, name)
+    }
+    
+    //----------------------------------
+    /// repeating a row of `AnyConvertable`
+    init<C>(repeating row: C, rows: Int,
             layout: MatrixLayout = .rowMajor,
             name: String? = nil) where
         C: Collection, C.Element: AnyConvertable, Element: AnyConvertable
     {
-        let shape = Self.matrixShape([rows, cols], layout)
-        self = Self.create(elements.lazy.map { Element(any: $0) }, shape, name)
+        let cols = row.count
+        let shape = Self.matrixRepeatedShape([1, cols], [rows, cols], layout)
+        self = Self.create(row.lazy.map { Element(any: $0) }, shape, name)
+    }
+    
+    //----------------------------------
+    /// repeating a column `AnyConvertable`
+    init<C>(repeating col: C, cols: Int,
+            layout: MatrixLayout = .rowMajor,
+            name: String? = nil) where
+        C: Collection, C.Element: AnyConvertable, Element: AnyConvertable
+    {
+        let rows = col.count
+        let shape = Self.matrixRepeatedShape([rows, 1], [rows, cols], layout)
+        self = Self.create(col.lazy.map { Element(any: $0) }, shape, name)
     }
     
     //--------------------------------------------------------------------------
@@ -173,7 +159,34 @@ public extension MatrixView {
         let shape = Self.matrixShape([rows, cols], layout)
         self = Self.create(referenceTo: buffer, shape, name)
     }
+
+    //--------------------------------------------------------------------------
+    // transpose
+    var t: Self {
+        return Self.init(shape: shape.transposed(),
+                         tensorArray: tensorArray,
+                         viewOffset: viewOffset,
+                         isShared: isShared)
+    }
     
+    //--------------------------------------------------------------------------
+    // utilities
+    private static func matrixShape(
+        _ extents: [Int],
+        _ layout: MatrixLayout) -> DataShape
+    {
+        let shape = DataShape(extents: extents)
+        return layout == .rowMajor ? shape : shape.columnMajor()
+    }
+
+    private static func matrixRepeatedShape(
+        _ extents: [Int],
+        _ repeatedExtents: [Int],
+        _ layout: MatrixLayout) -> DataShape
+    {
+        let shape = DataShape(extents: extents).repeated(to: repeatedExtents)
+        return layout == .rowMajor ? shape : shape.columnMajor()
+    }
 
     
     
@@ -201,24 +214,6 @@ public extension MatrixView {
                                               name: name)
         return Matrix<IndexElement>(shape: shape, tensorArray: array,
                                     viewOffset: 0, isShared: false)
-    }
-
-    //--------------------------------------------------------------------------
-    // transpose
-    var t: Self {
-        return Self.init(shape: shape.transposed(),
-                         tensorArray: tensorArray,
-                         viewOffset: viewOffset,
-                         isShared: isShared)
-    }
-    
-    //--------------------------------------------------------------------------
-    // utility
-    private static func matrixShape(_ extents: [Int],
-                                    _ layout: MatrixLayout) -> DataShape {
-        return layout == .rowMajor ?
-            DataShape(extents: extents) :
-            DataShape(extents: extents).columnMajor()
     }
 }
 

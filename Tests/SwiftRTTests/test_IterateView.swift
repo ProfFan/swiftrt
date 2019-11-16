@@ -251,7 +251,7 @@ class test_IterateView: XCTestCase {
     //==========================================================================
     // test_repeatingElement
     func test_repeatingElement() {
-        let matrix = Matrix<Int32>(repeating: [42], rows: 2, cols: 3)
+        let matrix = Matrix<Int32>(repeating: 42, rows: 2, cols: 3)
         let expected: [Int32] = [
             42, 42, 42,
             42, 42, 42,

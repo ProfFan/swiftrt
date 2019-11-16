@@ -657,3 +657,47 @@ public extension TensorView where Element: FloatingPoint {
     }
 }
 
+//==============================================================================
+// utility functions for creating shaped types
+public extension TensorView {
+    static func create(_ shape: DataShape, _ name: String?) -> Self {
+        let name = name ?? String(describing: Self.self)
+        let array = TensorArray<Element>(count: shape.elementCount, name: name)
+        return Self(shape: shape.dense, tensorArray: array,
+                    viewOffset: 0, isShared: false)
+    }
+    
+    static func create(referenceTo buffer: UnsafeBufferPointer<Element>,
+                       _ shape: DataShape, _ name: String?) -> Self {
+        assert(shape.elementCount == buffer.count,
+               "shape count does not match buffer count")
+        // create tensor data reference to buffer
+        let name = name ?? String(describing: Self.self)
+        let array = TensorArray<Element>(referenceTo: buffer, name: name)
+        return Self(shape: shape.dense, tensorArray: array,
+                    viewOffset: 0, isShared: false)
+    }
+    
+    static func create(referenceTo buffer: UnsafeMutableBufferPointer<Element>,
+                       _ shape: DataShape, _ name: String?) -> Self {
+        assert(shape.elementCount == buffer.count,
+               "shape count does not match buffer count")
+        // create tensor data reference to buffer
+        let name = name ?? String(describing: Self.self)
+        let array = TensorArray<Element>(referenceTo: buffer, name: name)
+        return Self(shape: shape.dense, tensorArray: array,
+                    viewOffset: 0, isShared: false)
+    }
+    
+    static func create<C>(_ elements: C, _ shape: DataShape,
+                          _ name: String?) -> Self where
+        C: Collection, C.Element == Element
+    {
+        assert(shape.elementCount == elements.count, countMismatch)
+        let name = name ?? String(describing: Self.self)
+        let array = TensorArray<Element>(elements: elements, name: name)
+        return Self(shape: shape.dense, tensorArray: array,
+                    viewOffset: 0, isShared: false)
+    }
+}
+

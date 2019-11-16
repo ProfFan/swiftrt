@@ -178,6 +178,30 @@ public struct DataShape: Equatable, Codable {
         cmStrides.swapAt(rank-1, rank-2)
         return DataShape(extents: extents, strides: cmStrides)
     }
+
+    //--------------------------------------------------------------------------
+    /// repeated(to repeatedExtents:
+    ///
+    public func repeated(to repeatedExtents: [Int]) -> DataShape {
+        // make sure the extents are compatible
+        assert({
+            for i in 0..<rank {
+                if extents[i] != 1 && extents[i] != repeatedExtents[i] {
+                    return false
+                }
+            }
+            return true
+        }(), "repeated tensor extents must be either 1" +
+            " or match the repeated tensor extents")
+
+        // compute strides, setting stride to 0 for repeated dimensions
+        var repeatedStrides = [Int](repeating: 0, count: extents.count)
+        for i in 0..<rank where repeatedExtents[i] == extents[i] {
+            repeatedStrides[i] = strides[i]
+        }
+        
+        return DataShape(extents: repeatedExtents, strides: repeatedStrides)
+    }
     
     //--------------------------------------------------------------------------
     /// squeezed(axes:

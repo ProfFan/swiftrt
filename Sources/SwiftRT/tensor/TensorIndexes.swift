@@ -16,6 +16,15 @@
 import Foundation
 
 //==============================================================================
+// shaped positions and extents used for indexing and selection
+public typealias NDPosition = [Int]
+public typealias VectorPosition = Int
+public typealias MatrixPosition = (r: Int, c: Int)
+public typealias VolumePosition = (d: Int, r: Int, c: Int)
+public typealias NCHWPosition = (i: Int, ch: Int, r: Int, c: Int)
+public typealias NHWCPosition = (i: Int, r: Int, c: Int, ch: Int)
+
+//==============================================================================
 /// VectorIndex
 public struct VectorIndex: TensorIndexing {
     // properties

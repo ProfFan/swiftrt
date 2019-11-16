@@ -68,44 +68,12 @@ public extension TensorView {
     }
     
     //--------------------------------------------------------------------------
-    /// repeated view
-    init(repeating other: Self, extents: [Int]) {
-        // make sure other has valid extents
-        assert({
-            for i in 0..<other.rank {
-                if other.extents[i] != 1 && other.extents[i] != extents[i] {
-                    return false
-                }
-            }
-            return true
-        }(), "repeated tensor extents must be either 1" +
-            " or match the new tensor extents")
-        
-        // compute strides, setting stride to 0 for repeated dimensions
-        var strides = [Int](repeating: 0, count: extents.count)
-        for i in 0..<other.rank where other.extents[i] == extents[i] {
-            strides[i] = other.shape.strides[i]
-        }
-        
-        self.init(shape: DataShape(extents: extents, strides: strides),
-                  tensorArray: other.tensorArray,
-                  viewOffset: other.viewOffset,
-                  isShared: other.isShared)
-    }
-    
-    //--------------------------------------------------------------------------
     /// concatenated tensors
-    init(concatenating others: Self...,
-        along axis: Int = 0,
-        name: String? = nil)
-    {
-        self = Self(concatenating: others, along: axis, name: name)
+    init(concatenating tensors: Self..., along axis: Int, name: String? = nil) {
+        self = Self(concatenating: tensors, along: axis, name: name)
     }
     
-    init(concatenating tensors: [Self],
-         along axis: Int = 0,
-         name: String? = nil)
-    {
+    init(concatenating tensors: [Self], along axis: Int, name: String? = nil) {
         self = SwiftRT.concat(tensors: tensors, along: axis, name: name)
     }
     
