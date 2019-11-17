@@ -83,6 +83,20 @@ public extension TensorView {
     func createDense() -> Self { return createDense(with: shape) }
     
     //--------------------------------------------------------------------------
+    /// createReductionResult
+    /// creates a tensor of suitable form to recieve a reduction result.
+    func createReductionResult(alongAxes axes: [Int]? = nil) -> Self {
+        var resultExtents: [Int]
+        if let axes = axes {
+            resultExtents = extents
+            axes.forEach { resultExtents[$0] = 1 }
+        } else {
+            resultExtents = singleElementExtents
+        }
+        return Self.create(DataShape(extents: resultExtents), nil)
+    }
+
+    //--------------------------------------------------------------------------
     /// createSingleElement
     /// helper to create a rank extended value
     func createSingleElement(name: String? = nil) -> Self {

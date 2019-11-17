@@ -230,28 +230,28 @@ public extension CpuAsynchronousQueue {
 /// - Parameter result: the scalar tensor where the result will be written
 /// - Precondition: Each value in `axes` must be in the range `-rank..<rank`.
 @inlinable
-public func sum<T>(_ x: T, alongAxes axes: [Int]? = nil, result: inout T)
+public func sum<T>(_ x: T, result: inout T)
     where T: TensorView, T.Element: Numeric
 {
     DeviceContext.currentQueue.reduce(x: x,
                                       into: &result,
                                       initialResult: T.Element.zero,
                                       opId: .add,
-                                      opNext: { $0 + $1 },
+                                      opNext: +,
                                       opFinal: { $0 })
 }
 
-public extension TensorView where Element: AnyNumeric {
+public extension TensorView where Element: Numeric {
     @inlinable
-    func sum(alongAxes: Int...) -> Self {
-        var result = createDense()
-        SwiftRT.sum(self, alongAxes: alongAxes, result: &result)
+    func sum(alongAxes axes: Int...) -> Self {
+        var result = createReductionResult(alongAxes: axes)
+        SwiftRT.sum(self, result: &result)
         return result
     }
     
     @inlinable
     func sum() -> Self {
-        var result = createSingleElement()
+        var result = createReductionResult()
         SwiftRT.sum(self, result: &result)
         return result
     }
