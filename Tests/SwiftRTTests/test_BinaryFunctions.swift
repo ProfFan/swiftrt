@@ -23,6 +23,8 @@ class test_BinaryFunctions: XCTestCase {
     // support terminal test run
     static var allTests = [
         ("test_add", test_add),
+        ("test_addInt32", test_addInt32),
+        ("test_addUInt8", test_addUInt8),
         ("test_addScalar", test_addScalar),
         ("test_addAndAssign", test_addAndAssign),
 
@@ -50,6 +52,26 @@ class test_BinaryFunctions: XCTestCase {
         XCTAssert(result.flatArray == expected)
     }
 
+    //--------------------------------------------------------------------------
+    // test_addInt32
+    func test_addInt32() {
+        let m1 = Matrix<Int32>(3, 2, with: 0..<6)
+        let m2 = Matrix<Int32>(3, 2, with: 0..<6)
+        let result = m1 + m2
+        let expected: [Int32] = [0, 2, 4, 6, 8, 10]
+        XCTAssert(result.flatArray == expected)
+    }
+    
+    //--------------------------------------------------------------------------
+    // test_addUInt8
+    func test_addUInt8() {
+        let m1 = Matrix<UInt8>(3, 2, with: 0..<6)
+        let m2 = Matrix<UInt8>(3, 2, with: 0..<6)
+        let result = m1 + m2
+        let expected: [UInt8] = [0, 2, 4, 6, 8, 10]
+        XCTAssert(result.flatArray == expected)
+    }
+    
     //--------------------------------------------------------------------------
     // test_addScalar
     func test_addScalar() {

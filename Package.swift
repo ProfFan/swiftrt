@@ -34,7 +34,7 @@ let enableTestCpu = !disableTesting
 var products: [PackageDescription.Product] = [
     .library(name: "SwiftRT", targets: ["SwiftRT"])
 ]
-var dependencies: [Target.Dependency] = []
+var dependencies: [Target.Dependency] = ["Numerics"]
 var exclusions: [String] = []
 var targets: [PackageDescription.Target] = []
 
@@ -115,6 +115,9 @@ if !disableTesting {
 let package = Package(
     name: "SwiftRT",
     products: products,
-    dependencies: [],
+    dependencies: [
+        .package(url: "https://github.com/apple/swift-numerics",
+                 .branch("master"))
+    ],
     targets: targets
 )

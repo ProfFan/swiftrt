@@ -13,6 +13,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 //
+import Numerics
 
 //==============================================================================
 // DeviceFunctions
@@ -43,7 +44,7 @@ public protocol DeviceFunctions: DeviceQueueBase {
         T: TensorView, T.Element: Equatable
     /// exp
     func exp<T>(x: T, result: inout T) where
-        T: TensorView, T.Element: AnyFloatingPoint
+        T: TensorView, T.Element: Real
     /// fill(result:with:
     func fill<T>(_ result: inout T, with value: T.Element) where T: TensorView
     /// fillWithIndex(x:startAt:
@@ -51,7 +52,7 @@ public protocol DeviceFunctions: DeviceQueueBase {
         T: TensorView, T.Element: AnyNumeric
     /// log
     func log<T>(x: T, result: inout T) where
-        T: TensorView, T.Element: AnyFloatingPoint
+        T: TensorView, T.Element: Real
     /// Computes the element-wise maximum of two tensors.
     func maximum<T>(lhs: T, rhs: T, result: inout T) where
         T: TensorView, T.Element: Comparable
@@ -68,6 +69,9 @@ public protocol DeviceFunctions: DeviceQueueBase {
     /// notEqual
     func notEqual<T>(lhs: T, rhs: T, result: inout T.BoolView) where
         T: TensorView, T.Element: Equatable
+    /// pow
+    func pow<T>(x: T, y: T, result: inout T) where
+        T: TensorView, T.Element: Real
     /// subtract
     func subtract<T>(lhs: T, rhs: T, result: inout T) where
         T: TensorView, T.Element: Numeric
@@ -78,16 +82,15 @@ public protocol DeviceFunctions: DeviceQueueBase {
     /// reduce
     /// Reduces `x` along the specified axes
     /// - Parameter x: value tensor
-    /// - Parameter into result: the scalar tensor where the result will be written
+    /// - Parameter into result: the scalar tensor where the result will
+    ///  be written. Dimensions with extent of 1 will be reduced
     /// - Parameter initialResult: the initial value of the result
-    /// - Parameter along axes: the axes to operate on
     /// - Parameter opNext: the operation to perform on pairs of elements
     /// - Parameter opFinal: the operation to perform on the final result
     /// - Precondition: Each value in `axes` must be in the range `-rank..<rank`.
     func reduce<T>(x: T,
                    into result: inout T,
                    initialResult: T.Element,
-                   along axes: [Int]?,
                    opId: ReductionOp,
                    opNext: @escaping (T.Element, T.Element) -> T.Element,
                    opFinal: @escaping (T.Element) -> T.Element)

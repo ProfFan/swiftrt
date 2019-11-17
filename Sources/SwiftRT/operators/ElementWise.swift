@@ -13,7 +13,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 //
-import Foundation
+import Real
 
 //==============================================================================
 // >>>>>> User API <<<<<<
@@ -63,7 +63,6 @@ public extension CpuAsynchronousQueue {
     }
 }
 #endif
-
 
 //==============================================================================
 /// maximum
@@ -191,14 +190,14 @@ public extension CpuAsynchronousQueue {
 /// - Returns: result
 @inlinable @inline(__always)
 public func exp<T>(_ x: T) -> T where
-    T: TensorView, T.Element: AnyFloatingPoint
+    T: TensorView, T.Element: Real
 {
     var result = x.createDense()
     DeviceContext.currentQueue.exp(x: x, result: &result)
     return result
 }
 
-public extension TensorView where Element: AnyFloatingPoint {
+public extension TensorView where Element: Real {
     @inlinable @inline(__always)
     func exp() -> Self { SwiftRT.exp(self) }
 }
@@ -209,9 +208,9 @@ public extension TensorView where Element: AnyFloatingPoint {
 public extension DeviceQueue {
     /// exp
     func exp<T>(x: T, result: inout T) where
-        T: TensorView, T.Element: AnyFloatingPoint
+        T: TensorView, T.Element: Real
     {
-        x.map(into: &result) { T.Element(any: Foundation.exp($0.asFloat)) }
+        x.map(into: &result) { .exp($0) }
     }
 }
 
@@ -221,12 +220,10 @@ public extension DeviceQueue {
 public extension CpuAsynchronousQueue {
     /// exp
     func exp<T>(x: T, result: inout T) where
-        T: TensorView, T.Element: AnyFloatingPoint
+        T: TensorView, T.Element: Real
     {
         queue(#function, { x.elements(using: self) }, &result) {
-            $0.map(into: &$1) {
-                T.Element(any: Foundation.exp($0.asFloat))
-            }
+            $0.map(into: &$1) { .exp($0) }
         }
     }
 }
@@ -242,14 +239,14 @@ public extension CpuAsynchronousQueue {
 /// - Returns: result
 @inlinable @inline(__always)
 public func log<T>(_ x: T) -> T where
-    T: TensorView, T.Element: AnyFloatingPoint
+    T: TensorView, T.Element: Real
 {
     var result = x.createDense()
     DeviceContext.currentQueue.log(x: x, result: &result)
     return result
 }
 
-public extension TensorView where Element: AnyFloatingPoint {
+public extension TensorView where Element: Real {
     @inlinable @inline(__always)
     func log() -> Self { SwiftRT.log(self) }
 }
@@ -260,9 +257,9 @@ public extension TensorView where Element: AnyFloatingPoint {
 public extension DeviceQueue {
     /// log
     func log<T>(x: T, result: inout T) where
-        T: TensorView, T.Element: AnyFloatingPoint
+        T: TensorView, T.Element: Real
     {
-        x.map(into: &result) { T.Element(any: Foundation.log($0.asFloat)) }
+        x.map(into: &result) { .log($0) }
     }
 }
 
@@ -272,12 +269,10 @@ public extension DeviceQueue {
 public extension CpuAsynchronousQueue {
     /// log
     func log<T>(x: T, result: inout T) where
-        T: TensorView, T.Element: AnyFloatingPoint
+        T: TensorView, T.Element: Real
     {
         queue(#function, { x.elements(using: self) }, &result) {
-            $0.map(into: &$1) {
-                T.Element(any: Foundation.log($0.asFloat))
-            }
+            $0.map(into: &$1) { .log($0) }
         }
     }
 }
@@ -519,7 +514,7 @@ public extension CpuAsynchronousQueue {
 /// - Returns: result
 @inlinable @inline(__always)
 public func pow<T>(_ x: T, _ y: T) -> T where
-    T: TensorView, T.Element: AnyNumeric
+    T: TensorView, T.Element: Real
 {
     assert(x.extents == y.extents, _messageTensorExtentsMismatch)
     var result = x.createDense()
@@ -527,7 +522,7 @@ public func pow<T>(_ x: T, _ y: T) -> T where
     return result
 }
 
-public extension TensorView where Element: AnyNumeric {
+public extension TensorView where Element: Real {
     @inlinable
     static func **(_ x: Self, _ y: Self) -> Self { SwiftRT.pow(x, y) }
 
@@ -546,11 +541,9 @@ public extension TensorView where Element: AnyNumeric {
 // >>>>>> INTENT <<<<<<
 public extension DeviceQueue {
     func pow<T>(x: T, y: T, result: inout T) where
-        T: TensorView, T.Element: AnyNumeric
+        T: TensorView, T.Element: Real
     {
-        zip(x, y).map(into: &result) {
-            T.Element(any: Foundation.pow($0.asDouble, $1.asDouble))
-        }
+        zip(x, y).map(into: &result) { .pow($0, $1) }
     }
 }
 
@@ -559,15 +552,13 @@ public extension DeviceQueue {
 #if canImport(CpuAsync)
 public extension CpuAsynchronousQueue {
     func pow<T>(x: T, y: T, result: inout T) where
-        T: TensorView, T.Element: AnyNumeric
+        T: TensorView, T.Element: Real
     {
         queue(#function, {
             (x.elements(using: self),
              y.elements(using: self))
         }, &result) {
-            zip($0.0, $0.1).map(into: &$1) {
-                T.Element(any: Foundation.pow($0.asDouble, $1.asDouble))
-            }
+            zip($0.0, $0.1).map(into: &$1) { .pow($0, $1) }
         }
     }
 }
