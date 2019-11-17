@@ -93,6 +93,6 @@ public protocol DeviceFunctions: DeviceQueueBase {
                    initialResult: T.Element,
                    opId: ReductionOp,
                    opNext: @escaping (T.Element, T.Element) -> T.Element,
-                   opFinal: @escaping (T.Element) -> T.Element)
+                   opFinal: ReduceOpFinal<T>?)
         where T: TensorView
 }

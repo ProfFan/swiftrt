@@ -194,7 +194,7 @@ public final class CpuSynchronousQueue: CpuQueueProtocol, LocalDeviceQueue {
     /// delayQueue(atLeast:
     /// causes the queue to sleep for the specified interval for testing
     public func delayQueue(atLeast interval: TimeInterval) {
-        assert(Thread.current === creatorThread, queueThreadViolationMessage)
+        assert(Thread.current === creatorThread, _messageQueueThreadViolation)
         Thread.sleep(forTimeInterval: interval)
     }
     
@@ -202,7 +202,7 @@ public final class CpuSynchronousQueue: CpuQueueProtocol, LocalDeviceQueue {
     /// throwTestError
     /// used for unit testing
     public func throwTestError() {
-        assert(Thread.current === creatorThread, queueThreadViolationMessage)
+        assert(Thread.current === creatorThread, _messageQueueThreadViolation)
         let error = DeviceError.queueError(idPath: [], message: "testError")
         device.report(error)
     }

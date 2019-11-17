@@ -39,6 +39,8 @@ public enum ReductionOp: Int, Codable {
     case mulNonZeros
 }
 
+public typealias ReduceOpFinal<T: TensorView> = (T.Element) -> T.Element
+
 //------------------------------------------------------------------------------
 // >>>>>> INTENT <<<<<<
 // User device function
@@ -49,16 +51,24 @@ public extension DeviceQueue {
                    initialResult: T.Element,
                    opId: ReductionOp,
                    opNext: @escaping (T.Element, T.Element) -> T.Element,
-                   opFinal: @escaping (T.Element) -> T.Element)
+                   opFinal: ReduceOpFinal<T>?)
         where T: TensorView
     {
+        // fill with the initial result
+        fill(&result, with: initialResult)
+        
         do {
-            // do the reduction
-            x.reduce(into: &result, initialResult, opNext)
+            // create a temporary view that is repeated to match the input
+            var res = try result.sharedView(using: self).repeated(to: x.extents)
             
-            // apply op final
-            let buffer = try result.readWrite()
-            buffer[0] = opFinal(buffer[0])
+            // do the reduction
+            x.reduce(into: &res, opNext)
+
+            // apply the final op if there is one
+            if let op = opFinal {
+                let buffer = try result.readWrite()
+                buffer[0] = op(buffer[0])
+            }
         } catch {
             device.report(error)
         }
@@ -75,12 +85,24 @@ public extension CpuAsynchronousQueue {
                    initialResult: T.Element,
                    opId: ReductionOp,
                    opNext: @escaping (T.Element, T.Element) -> T.Element,
-                   opFinal: @escaping (T.Element) -> T.Element)
+                   opFinal: ReduceOpFinal<T>?)
         where T: TensorView
     {
-        queue(#function, { x.elements(using: self) }, &result) {
-            $0.reduce(into: &$1, initialResult, opNext)
-            $1[$1.startIndex] = opFinal($1[$1.startIndex])
+        // fill with the initial result
+        fill(&result, with: initialResult)
+        
+        do {
+            // create a temporary view that is repeated to match the input
+            var res = try result.sharedView(using: self).repeated(to: x.extents)
+            
+            queue(#function, { x.elements(using: self) }, &res) {
+                $0.reduce(into: &$1, opNext)
+                if let op = opFinal {
+                    $1[$1.startIndex] = op($1[$1.startIndex])
+                }
+            }
+        } catch {
+            device.report(error)
         }
     }
 }
@@ -238,7 +260,7 @@ public func sum<T>(_ x: T, result: inout T)
                                       initialResult: T.Element.zero,
                                       opId: .add,
                                       opNext: +,
-                                      opFinal: { $0 })
+                                      opFinal: nil)
 }
 
 public extension TensorView where Element: Numeric {

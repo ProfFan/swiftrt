@@ -22,9 +22,9 @@ let enableCpuAsync = enableAll || !disableTesting ||
     isEnabled("SWIFTRT_ENABLE_ASYNC_CPU") || enableCuda || enableVulkan
 
 // synchronous CPU is the default case
-let enableCpuSync = enableAll || isEnabled("SWIFTRT_ENABLE_SYNC_CPU") ||
-    !enableCpuAsync
-//let enableCpuSync = true
+//let enableCpuSync = enableAll || isEnabled("SWIFTRT_ENABLE_SYNC_CPU") ||
+//    !enableCpuAsync
+let enableCpuSync = true
 
 // discreet asynchronous CPU for unit testing
 let enableTestCpu = !disableTesting

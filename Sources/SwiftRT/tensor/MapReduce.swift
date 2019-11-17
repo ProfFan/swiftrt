@@ -17,6 +17,7 @@
 //==============================================================================
 // map
 public extension TensorView {
+    //--------------------------------------------------------------------------
     /// map a tensor into a tensor
     @inlinable
     func map<R: TensorView>(
@@ -31,6 +32,7 @@ public extension TensorView {
         }
     }
 
+    //--------------------------------------------------------------------------
     /// map a tensor to a new tensor
     @inlinable
     func map(_ transform: (Element) -> Element) -> Self {
@@ -42,21 +44,40 @@ public extension TensorView {
         }
         return result
     }
-    
-    /// reduce to a tensor
+
+    //--------------------------------------------------------------------------
+    /// reduce to a multi-dimensional tensor
+    /// result must have the same extents as `self`, but the actual storage
+    /// can be less via strides for reduction dimensions
     func reduce<T>(
         into result: inout T,
-        _ initialResult: Element,
         _ nextPartialResult: (Element, Element) -> Element)
         where T: TensorView, Element == T.Element
     {
-        var partial = initialResult
-        elements().forEach { partial = nextPartialResult(partial, $0) }
-
-        var collection = result.mutableElements()
-        collection[collection.startIndex] = partial
+        assert(extents == result.extents, _messageElementCountMismatch)
+        let elts = elements()
+        var res = result.mutableElements()
+        zip(res.indices, elts.indices).forEach {
+            res[$0] = nextPartialResult(res[$0], elts[$1])
+        }
     }
     
+//    //--------------------------------------------------------------------------
+//    /// reduce to a single Element tensor
+//    func reduce<T>(
+//        into result: inout T,
+//        _ initialResult: Element,
+//        _ nextPartialResult: (Element, Element) -> Element)
+//        where T: TensorView, Element == T.Element
+//    {
+//        var partial = initialResult
+//        elements().forEach { partial = nextPartialResult(partial, $0) }
+//
+//        var collection = result.mutableElements()
+//        collection[collection.startIndex] = partial
+//    }
+    
+    //--------------------------------------------------------------------------
     /// reduce to a mutable collection
     @inlinable
     func reduce(
@@ -208,6 +229,7 @@ public extension Sequence {
         results[results.startIndex] = partial
     }
     
+    //--------------------------------------------------------------------------
     /// reduce to a mutable collection
     @inlinable
     func reduce<T>(
@@ -221,5 +243,18 @@ public extension Sequence {
             partial = nextPartialResult(partial, value)
         }
         result[result.startIndex] = partial
+    }
+    
+    //--------------------------------------------------------------------------
+    /// reduce to a mutable collection
+    @inlinable
+    func reduce<T>(
+        into result: inout T,
+        _ nextPartialResult: (Element, Element) -> Element)
+        where T: MutableCollection, Element == T.Element
+    {
+        zip(result.indices, self).forEach {
+            result[$0] = nextPartialResult(result[$0], $1)
+        }
     }
 }

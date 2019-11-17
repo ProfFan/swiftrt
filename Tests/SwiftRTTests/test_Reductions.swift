@@ -28,6 +28,8 @@ class test_Reductions: XCTestCase {
     //--------------------------------------------------------------------------
     // test_sumMatrix
     func test_sumMatrix() {
+        Platform.local.servicePriority = [cpuSynchronousServiceName]
+
         let m = Matrix<Float>(3, 2, with: [
             0, 1,
             2, 3,

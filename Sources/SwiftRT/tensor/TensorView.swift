@@ -289,6 +289,15 @@ public extension TensorView {
                         isShared: true)
         }
     }
+
+    //--------------------------------------------------------------------------
+    /// repeated(to extents:
+    func repeated(to extents: [Int]) -> Self {
+        return Self(shape: shape.repeated(to: extents),
+                    tensorArray: tensorArray,
+                    viewOffset: viewOffset,
+                    isShared: isShared)
+    }
     
     //--------------------------------------------------------------------------
     /// flattened

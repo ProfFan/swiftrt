@@ -134,7 +134,7 @@ public final class CudaQueue: LocalDeviceQueue {
     //--------------------------------------------------------------------------
     // wait(for event
     public func wait(for event: QueueEvent) throws {
-        assert(Thread.current === creatorThread, queueThreadViolationMessage)
+        assert(Thread.current === creatorThread, _messageQueueThreadViolation)
         diagnostic("\(waitString) \(name) waiting for " +
                            "QueueEvent(\(event.trackingId))",
                    categories: .queueSync)
@@ -146,7 +146,7 @@ public final class CudaQueue: LocalDeviceQueue {
     //--------------------------------------------------------------------------
     // waitUntilQueueIsComplete
     public func waitUntilQueueIsComplete() throws {
-        assert(Thread.current === creatorThread, queueThreadViolationMessage)
+        assert(Thread.current === creatorThread, _messageQueueThreadViolation)
         diagnostic("\(blockString) \(name) blocking caller until complete",
                    categories: .queueSync)
         try cudaCheck(status: cudaStreamSynchronize(handle))
@@ -235,7 +235,7 @@ public final class CudaQueue: LocalDeviceQueue {
     /// delayQueue(atLeast:
     /// causes the queue to sleep for the specified interval for testing
     public func delayQueue(atLeast interval: TimeInterval) {
-        assert(Thread.current === creatorThread, queueThreadViolationMessage)
+        assert(Thread.current === creatorThread, _messageQueueThreadViolation)
 //        queue {
 //            Thread.sleep(forTimeInterval: interval)
 //        }
@@ -245,7 +245,7 @@ public final class CudaQueue: LocalDeviceQueue {
     /// throwTestError
     /// used for unit testing
     public func throwTestError() {
-        assert(Thread.current === creatorThread, queueThreadViolationMessage)
+        assert(Thread.current === creatorThread, _messageQueueThreadViolation)
 //        queue {
 //            throw DeviceError.queueError(idPath: [], message: "testError")
 //        }

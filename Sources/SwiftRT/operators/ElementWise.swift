@@ -101,7 +101,7 @@ public extension DeviceQueue {
     func maximum<T>(lhs: T, rhs: T, result: inout T) where
         T: TensorView, T.Element: Comparable
     {
-        zip(lhs, rhs).map(into: &result) { $0 <= $1 ? $0 : $1 }
+        zip(lhs, rhs).map(into: &result) { $0 >= $1 ? $0 : $1 }
     }
 }
 
