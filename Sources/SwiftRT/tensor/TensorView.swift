@@ -218,17 +218,23 @@ public enum TensorFormat: Int, Codable {
 
 //==============================================================================
 // TensorView default implementation
-public extension TensorView where Element: AnyScalar {
+public extension TensorView where Element: AnyElement {
     /// element
-    /// - Returns: the first element in the tensor as a value
-    var element: Element {
-        assert(shape.elementCount == 1)
+    /// - Returns: the first element in the tensor
+    var first: Element {
         do {
             return try readOnly()[0]
         } catch {
             DeviceContext.report(error)
             return Element()
         }
+    }
+
+    /// - Returns: the only element in the tensor
+    var element: Element {
+        assert(shape.elementCount == 1, "the `element` property expects " +
+            "the tensor to have a single Element. Use `first` for sets")
+        return first
     }
 }
 

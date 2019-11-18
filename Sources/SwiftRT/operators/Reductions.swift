@@ -38,6 +38,7 @@ public enum ReductionOp: Int, Codable {
     case asum
     case sqrtSumSquares
     case mulNonZeros
+    case compare
 }
 
 public typealias ReduceOpFinal<T: TensorView> = (inout T) -> Void
@@ -117,17 +118,18 @@ public extension CpuAsynchronousQueue {
 
 /// in place
 /// - Parameter x: value tensor
-/// - Parameter alongAxes: the axes to operate on
 /// - Parameter result: the scalar tensor where the result will be written
 /// - Precondition: Each value in `axes` must be in the range `-rank..<rank`.
 @inlinable
-public func all<T>(_ x: T, alongAxes axes: [Int]? = nil) -> T where
+public func all<T>(_ x: T, result: inout T) where
     T: TensorView, T.Element == Bool
 {
-    assert(axes == nil, "not implemented yet")
-    var result = x.createSingleElement()
-    DeviceContext.currentQueue.all(x: x, along: axes, result: &result)
-    return result
+    DeviceContext.currentQueue.reduce(x: x,
+                                      into: &result,
+                                      initialResult: x.first,
+                                      opId: .compare,
+                                      opNext: { $0 && $1 },
+                                      opFinal: nil)
 }
 
 /// returns new view
@@ -137,43 +139,18 @@ public func all<T>(_ x: T, alongAxes axes: [Int]? = nil) -> T where
 public extension TensorView where Element == Bool {
     @inlinable
     func all(alongAxes axes: Int...) -> Self {
-        SwiftRT.all(self, alongAxes: shape.makePositive(indices: axes))
+        var result = createReductionResult(alongAxes: axes)
+        SwiftRT.all(self, result: &result)
+        return result
     }
     
     @inlinable
-    func all() -> Self { SwiftRT.all(self) }
-}
-
-//------------------------------------------------------------------------------
-// >>>>>> INTENT <<<<<<
-// User device function
-public extension DeviceQueue {
-    /// all
-    func all<T>(x: T, along axes: [Int]?, result: inout T) where
-        T: TensorView, T.Element == Bool
-    {
-        assert(axes == nil, "not implemented yet")
-        let xseq = x.elements
-        var rseq = result.mutableElements()
-        rseq[rseq.startIndex] = xseq.first { $0 == false } == nil
+    func all() -> Self {
+        var result = createReductionResult()
+        SwiftRT.all(self, result: &result)
+        return result
     }
 }
-
-//******************************************************************************
-// >>>>>> GENERATED <<<<<<
-#if canImport(CpuAsync)
-public extension CpuAsynchronousQueue {
-    /// all
-    func all<T>(x: T, along axes: [Int]?, result: inout T) where
-        T: TensorView, T.Element == Bool
-    {
-        assert(axes == nil, "not implemented yet")
-        queue(#function, { x.elements(using: self) }, &result) {
-            $1[$1.startIndex] = $0.first { $0 == false } == nil
-        }
-    }
-}
-#endif
 
 //==============================================================================
 // >>>>>> User API <<<<<<
@@ -184,17 +161,18 @@ public extension CpuAsynchronousQueue {
 
 /// in place
 /// - Parameter x: value tensor
-/// - Parameter alongAxes: the axes to operate on
 /// - Parameter result: the scalar tensor where the result will be written
 /// - Precondition: Each value in `axes` must be in the range `-rank..<rank`.
 @inlinable
-public func any<T>(_ x: T, alongAxes axes: [Int]? = nil) -> T where
+public func any<T>(_ x: T, result: inout T) where
     T: TensorView, T.Element == Bool
 {
-    assert(axes == nil, "not implemented yet")
-    var result = x.createSingleElement()
-    DeviceContext.currentQueue.any(x: x, along: axes, result: &result)
-    return result
+    DeviceContext.currentQueue.reduce(x: x,
+                                      into: &result,
+                                      initialResult: x.first,
+                                      opId: .compare,
+                                      opNext: { $0 || $1 },
+                                      opFinal: nil)
 }
 
 /// returns new view
@@ -203,44 +181,19 @@ public func any<T>(_ x: T, alongAxes axes: [Int]? = nil) -> T where
 /// - Precondition: Each value in `axes` must be in the range `-rank..<rank`.
 public extension TensorView where Element == Bool {
     @inlinable
-    func any(alongAxes: Int...) -> Self {
-        SwiftRT.any(self, alongAxes: shape.makePositive(indices: alongAxes))
+    func any(alongAxes axes: Int...) -> Self {
+        var result = createReductionResult(alongAxes: axes)
+        SwiftRT.all(self, result: &result)
+        return result
     }
     
     @inlinable
-    func any() -> Self { SwiftRT.any(self) }
-}
-
-//------------------------------------------------------------------------------
-// >>>>>> INTENT <<<<<<
-// User device function
-public extension DeviceQueue {
-    /// any
-    func any<T>(x: T, along axes: [Int]?, result: inout T) where
-        T: TensorView, T.Element == Bool
-    {
-        assert(axes == nil, "not implemented yet")
-        let xseq = x.elements()
-        var rseq = result.mutableElements()
-        rseq[rseq.startIndex] = xseq.first { $0 == true } != nil
+    func any() -> Self {
+        var result = createReductionResult()
+        SwiftRT.all(self, result: &result)
+        return result
     }
 }
-
-//******************************************************************************
-// >>>>>> GENERATED <<<<<<
-#if canImport(CpuAsync)
-public extension CpuAsynchronousQueue {
-    /// any
-    func any<T>(x: T, along axes: [Int]?, result: inout T) where
-        T: TensorView, T.Element == Bool
-    {
-        assert(axes == nil, "not implemented yet")
-        queue(#function, { x.elements(using: self) }, &result) {
-            $1[$1.startIndex] = $0.first { $0 == true } != nil
-        }
-    }
-}
-#endif
 
 //==============================================================================
 // >>>>>> User API <<<<<<
@@ -285,11 +238,10 @@ public extension TensorView where Element: Numeric {
 /// mean of `x` along the specified axes
 ///
 /// - Parameter x: value tensor
-/// - Parameter alongAxes: the axes to operate on
 /// - Parameter result: the scalar tensor where the result will be written
 /// - Precondition: Each value in `axes` must be in the range `-rank..<rank`.
 @inlinable
-public func mean<T>(_ x: T, alongAxes axes: [Int]? = nil, result: inout T)
+public func mean<T>(_ x: T, result: inout T)
     where T: TensorView, T.Element: FloatingPoint
 {
     let count = T.Element(exactly: x.shape.elementCount)!
@@ -303,16 +255,16 @@ public func mean<T>(_ x: T, alongAxes axes: [Int]? = nil, result: inout T)
 
 public extension TensorView where Element: FloatingPoint {
     @inlinable
-    func mean(alongAxes: Int...) -> Self {
-        var result = createDense()
-        SwiftRT.mean(self, alongAxes: alongAxes, result: &result)
+    func mean(alongAxes axes: Int...) -> Self {
+        var result = createReductionResult(alongAxes: axes)
+        SwiftRT.sum(self, result: &result)
         return result
     }
-
+    
     @inlinable
     func mean() -> Self {
-        var result = createSingleElement()
-        SwiftRT.mean(self, result: &result)
+        var result = createReductionResult()
+        SwiftRT.sum(self, result: &result)
         return result
     }
 }
@@ -327,12 +279,12 @@ public extension TensorView where Element: FloatingPoint {
 /// - Parameter result: the scalar tensor where the result will be written
 /// - Precondition: Each value in `axes` must be in the range `-rank..<rank`.
 @inlinable
-public func prod<T>(_ x: T, alongAxes axes: [Int]? = nil, result: inout T)
-    where T: TensorView, T.Element: AnyNumeric
+public func prod<T>(_ x: T, result: inout T)
+    where T: TensorView, T.Element: Numeric
 {
     DeviceContext.currentQueue.reduce(x: x,
                                       into: &result,
-                                      initialResult: T.Element(any: 1),
+                                      initialResult: T.Element.one,
                                       opId: .mul,
                                       opNext: { $0 * $1 },
                                       opFinal: nil)
@@ -340,16 +292,16 @@ public func prod<T>(_ x: T, alongAxes axes: [Int]? = nil, result: inout T)
 
 public extension TensorView where Element: AnyNumeric {
     @inlinable
-    func prod(alongAxes: Int...) -> Self {
-        var result = createDense()
-        SwiftRT.prod(self, alongAxes: alongAxes, result: &result)
+    func prod(alongAxes axes: Int...) -> Self {
+        var result = createReductionResult(alongAxes: axes)
+        SwiftRT.sum(self, result: &result)
         return result
     }
     
     @inlinable
     func prod() -> Self {
-        var result = createSingleElement()
-        SwiftRT.prod(self, result: &result)
+        var result = createReductionResult()
+        SwiftRT.sum(self, result: &result)
         return result
     }
 }
@@ -360,34 +312,32 @@ public extension TensorView where Element: AnyNumeric {
 /// product of non zero values of `x` along the specified axes
 ///
 /// - Parameter x: value tensor
-/// - Parameter alongAxes: the axes to operate on
 /// - Parameter result: the scalar tensor where the result will be written
 /// - Precondition: Each value in `axes` must be in the range `-rank..<rank`.
 @inlinable
-public func prodNonZeros<T>(_ x: T, alongAxes axes: [Int]? = nil,
-                            result: inout T)
-    where T: TensorView, T.Element: AnyNumeric
+public func prodNonZeros<T>(_ x: T, result: inout T)
+    where T: TensorView, T.Element: Numeric
 {
     DeviceContext.currentQueue.reduce(x: x,
                                       into: &result,
-                                      initialResult: T.Element(any: 1),
+                                      initialResult: T.Element.one,
                                       opId: .mulNonZeros,
                                       opNext: { $1 == 0 ? $0 : $0 * $1 },
                                       opFinal: nil)
 }
 
-public extension TensorView where Element: AnyNumeric {
+public extension TensorView where Element: Numeric {
     @inlinable
-    func prodNonZeros(alongAxes: Int...) -> Self {
-        var result = createDense()
-        SwiftRT.prodNonZeros(self, alongAxes: alongAxes, result: &result)
+    func prodNonZeros(alongAxes axes: Int...) -> Self {
+        var result = createReductionResult(alongAxes: axes)
+        SwiftRT.sum(self, result: &result)
         return result
     }
     
     @inlinable
     func prodNonZeros() -> Self {
-        var result = createSingleElement()
-        SwiftRT.prodNonZeros(self, result: &result)
+        var result = createReductionResult()
+        SwiftRT.sum(self, result: &result)
         return result
     }
 }
@@ -399,33 +349,33 @@ public extension TensorView where Element: AnyNumeric {
 /// TODO: add optional indices
 ///
 /// - Parameter x: value tensor
-/// - Parameter alongAxes: the axes to operate on
 /// - Parameter result: the scalar tensor where the result will be written
 /// - Precondition: Each value in `axes` must be in the range `-rank..<rank`.
 @inlinable
-public func minElement<T>(_ x: T, alongAxes axes: [Int]? = nil, result: inout T)
-    where T: TensorView, T.Element: AnyNumeric & Comparable
+public func minElement<T>(_ x: T, result: inout T)
+    where T: TensorView, T.Element: Numeric & Comparable & AnyElement
 {
-    let first = try! T.Element(any: x.readOnly()[0])
     DeviceContext.currentQueue.reduce(x: x,
                                       into: &result,
-                                      initialResult: first,
+                                      initialResult: x.first,
                                       opId: .min,
                                       opNext: { $0 <= $1 ? $0 : $1 },
                                       opFinal: nil)
 }
 
-public extension TensorView where Element: AnyNumeric  & Comparable {
+public extension TensorView where
+    Element: Numeric & Comparable & AnyElement
+{
     @inlinable
-    func minElement(alongAxes: Int...) -> Self {
-        var result = createDense()
-        SwiftRT.minElement(self, alongAxes: alongAxes, result: &result)
+    func minElement(alongAxes axes: Int...) -> Self {
+        var result = createReductionResult(alongAxes: axes)
+        SwiftRT.minElement(self, result: &result)
         return result
     }
     
     @inlinable
     func minElement() -> Self {
-        var result = createSingleElement()
+        var result = createReductionResult()
         SwiftRT.minElement(self, result: &result)
         return result
     }
@@ -437,33 +387,33 @@ public extension TensorView where Element: AnyNumeric  & Comparable {
 /// returns the maximum element value of `x` along the specified axes
 ///
 /// - Parameter x: value tensor
-/// - Parameter alongAxes: the axes to operate on
 /// - Parameter result: the scalar tensor where the result will be written
 /// - Precondition: Each value in `axes` must be in the range `-rank..<rank`.
 @inlinable
-public func maxElement<T>(_ x: T, alongAxes axes: [Int]? = nil, result: inout T)
-    where T: TensorView, T.Element: AnyNumeric & Comparable
+public func maxElement<T>(_ x: T, result: inout T)
+    where T: TensorView, T.Element: Numeric & Comparable & AnyElement
 {
-    let first = try! T.Element(any: x.readOnly()[0])
     DeviceContext.currentQueue.reduce(x: x,
                                       into: &result,
-                                      initialResult: first,
+                                      initialResult: x.first,
                                       opId: .max,
                                       opNext: { $0 > $1 ? $0 : $1 },
                                       opFinal: nil)
 }
 
-public extension TensorView where Element: AnyNumeric  & Comparable {
+public extension TensorView where
+    Element: Numeric & Comparable & AnyElement
+{
     @inlinable
-    func maxElement(alongAxes: Int...) -> Self {
-        var result = createDense()
-        SwiftRT.maxElement(self, alongAxes: alongAxes, result: &result)
+    func maxElement(alongAxes axes: Int...) -> Self {
+        var result = createReductionResult(alongAxes: axes)
+        SwiftRT.maxElement(self, result: &result)
         return result
     }
     
     @inlinable
     func maxElement() -> Self {
-        var result = createSingleElement()
+        var result = createReductionResult()
         SwiftRT.maxElement(self, result: &result)
         return result
     }
@@ -475,34 +425,32 @@ public extension TensorView where Element: AnyNumeric  & Comparable {
 /// absolute max of `x` along the specified axes
 ///
 /// - Parameter x: value tensor
-/// - Parameter alongAxes: the axes to operate on
 /// - Parameter result: the scalar tensor where the result will be written
 /// - Precondition: Each value in `axes` must be in the range `-rank..<rank`.
 @inlinable
-public func absmax<T>(_ x: T, alongAxes axes: [Int]? = nil, result: inout T)
-    where T: TensorView, T.Element: AnyNumeric & Comparable
+public func absmax<T>(_ x: T, result: inout T)
+    where T: TensorView, T.Element: Numeric & Comparable & AnyElement
 {
-    let first = try! T.Element(any: x.readOnly()[0])
     DeviceContext.currentQueue.reduce(
         x: x,
         into: &result,
-        initialResult: first,
+        initialResult: x.first,
         opId: .amax,
         opNext: { $0.magnitude > $1.magnitude ? $0 : $1 },
         opFinal: nil)
 }
 
-public extension TensorView where Element: AnyNumeric  & Comparable {
+public extension TensorView where Element: Numeric & Comparable & AnyElement {
     @inlinable
-    func absmax(alongAxes: Int...) -> Self {
-        var result = createDense()
-        SwiftRT.absmax(self, alongAxes: alongAxes, result: &result)
+    func absmax(alongAxes axes: Int...) -> Self {
+        var result = createReductionResult(alongAxes: axes)
+        SwiftRT.absmax(self, result: &result)
         return result
     }
     
     @inlinable
     func absmax() -> Self {
-        var result = createSingleElement()
+        var result = createReductionResult()
         SwiftRT.absmax(self, result: &result)
         return result
     }
@@ -514,11 +462,10 @@ public extension TensorView where Element: AnyNumeric  & Comparable {
 /// Sums the absolute values of `x` along the specified axes
 ///
 /// - Parameter x: value tensor
-/// - Parameter alongAxes: the axes to operate on
 /// - Parameter result: the scalar tensor where the result will be written
 /// - Precondition: Each value in `axes` must be in the range `-rank..<rank`.
 @inlinable
-public func abssum<T>(_ x: T, alongAxes axes: [Int]? = nil, result: inout T)
+public func abssum<T>(_ x: T, result: inout T)
     where T: TensorView, T.Element: FloatingPoint
 {
     DeviceContext.currentQueue.reduce(x: x,
@@ -531,15 +478,15 @@ public func abssum<T>(_ x: T, alongAxes axes: [Int]? = nil, result: inout T)
 
 public extension TensorView where Element: FloatingPoint {
     @inlinable
-    func abssum(alongAxes: Int...) -> Self {
-        var result = createDense()
-        SwiftRT.abssum(self, alongAxes: alongAxes, result: &result)
+    func abssum(alongAxes axes: Int...) -> Self {
+        var result = createReductionResult(alongAxes: axes)
+        SwiftRT.abssum(self, result: &result)
         return result
     }
     
     @inlinable
     func abssum() -> Self {
-        var result = createSingleElement()
+        var result = createReductionResult()
         SwiftRT.abssum(self, result: &result)
         return result
     }
@@ -551,12 +498,10 @@ public extension TensorView where Element: FloatingPoint {
 /// Square root of the sum `x` along the specified axes
 ///
 /// - Parameter x: value tensor
-/// - Parameter alongAxes: the axes to operate on
 /// - Parameter result: the scalar tensor where the result will be written
 /// - Precondition: Each value in `axes` must be in the range `-rank..<rank`.
 @inlinable
-public func sqrtSumSquares<T>(_ x: T, alongAxes axes: [Int]? = nil,
-                              result: inout T)
+public func sqrtSumSquares<T>(_ x: T, result: inout T)
     where T: TensorView, T.Element: Real
 {
     DeviceContext.currentQueue.reduce(x: x,
@@ -569,15 +514,15 @@ public func sqrtSumSquares<T>(_ x: T, alongAxes axes: [Int]? = nil,
 
 public extension TensorView where Element: Real {
     @inlinable
-    func sqrtSumSquares(alongAxes: Int...) -> Self {
-        var result = createDense()
-        SwiftRT.sqrtSumSquares(self, alongAxes: alongAxes, result: &result)
+    func sqrtSumSquares(alongAxes axes: Int...) -> Self {
+        var result = createReductionResult(alongAxes: axes)
+        SwiftRT.sqrtSumSquares(self, result: &result)
         return result
     }
     
     @inlinable
     func sqrtSumSquares() -> Self {
-        var result = createSingleElement()
+        var result = createReductionResult()
         SwiftRT.sqrtSumSquares(self, result: &result)
         return result
     }

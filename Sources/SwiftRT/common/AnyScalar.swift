@@ -18,12 +18,16 @@
 import Foundation
 
 //==============================================================================
-/// AnyScalar
-public protocol AnyScalar {
+/// AnyElement
+public protocol AnyElement {
     init()
 }
 
-public protocol AnyFixedSizeScalar: AnyScalar { }
+public protocol AnyFixedSizeScalar: AnyElement { }
+
+public extension Numeric {
+    static var one: Self { 1 }
+}
 
 //==============================================================================
 /// AnyConvertable

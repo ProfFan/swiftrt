@@ -20,15 +20,9 @@ import Numerics
 public protocol DeviceFunctions: DeviceQueueBase {
     //--------------------------------------------------------------------------
     // operator functions
-    /// all
-    func all<T>(x: T, along axes: [Int]?, result: inout T) where
-        T: TensorView, T.Element == Bool
     /// Adds two tensors and produces their sum.
     func add<T>(lhs: T, rhs: T, result: inout T) where
         T: TensorView, T.Element: Numeric
-    /// any
-    func any<T>(x: T, along axes: [Int]?, result: inout T) where
-        T: TensorView, T.Element == Bool
     // cast
     func cast<T, U>(from other: T, to result: inout U) where
         T: TensorView, T.Element: AnyConvertable,
