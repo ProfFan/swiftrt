@@ -62,21 +62,6 @@ public extension TensorView {
         }
     }
     
-//    //--------------------------------------------------------------------------
-//    /// reduce to a single Element tensor
-//    func reduce<T>(
-//        into result: inout T,
-//        _ initialResult: Element,
-//        _ nextPartialResult: (Element, Element) -> Element)
-//        where T: TensorView, Element == T.Element
-//    {
-//        var partial = initialResult
-//        elements().forEach { partial = nextPartialResult(partial, $0) }
-//
-//        var collection = result.mutableElements()
-//        collection[collection.startIndex] = partial
-//    }
-    
     //--------------------------------------------------------------------------
     /// reduce to a mutable collection
     @inlinable
@@ -243,18 +228,5 @@ public extension Sequence {
             partial = nextPartialResult(partial, value)
         }
         result[result.startIndex] = partial
-    }
-    
-    //--------------------------------------------------------------------------
-    /// reduce to a mutable collection
-    @inlinable
-    func reduce<T>(
-        into result: inout T,
-        _ nextPartialResult: (Element, Element) -> Element)
-        where T: MutableCollection, Element == T.Element
-    {
-        zip(result.indices, self).forEach {
-            result[$0] = nextPartialResult(result[$0], $1)
-        }
     }
 }

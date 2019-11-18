@@ -14,6 +14,7 @@
 // limitations under the License.
 //
 import Foundation
+import Real
 
 //==============================================================================
 // assert messages
@@ -39,7 +40,7 @@ public enum ReductionOp: Int, Codable {
     case mulNonZeros
 }
 
-public typealias ReduceOpFinal<T: TensorView> = (T.Element) -> T.Element
+public typealias ReduceOpFinal<T: TensorView> = (inout T) -> Void
 
 //------------------------------------------------------------------------------
 // >>>>>> INTENT <<<<<<
@@ -59,16 +60,14 @@ public extension DeviceQueue {
         
         do {
             // create a temporary view that is repeated to match the input
-            var res = try result.sharedView(using: self).repeated(to: x.extents)
+            var v = try result.sharedView(using: self).repeated(to: x.extents)
+            var resultElements = v.mutableElements()
             
             // do the reduction
-            x.reduce(into: &res, opNext)
-
-            // apply the final op if there is one
-            if let op = opFinal {
-                let buffer = try result.readWrite()
-                buffer[0] = op(buffer[0])
+            zip(x.elements, resultElements.indices).forEach {
+                resultElements[$1] = opNext(resultElements[$1], $0)
             }
+            opFinal?(&result)
         } catch {
             device.report(error)
         }
@@ -96,10 +95,11 @@ public extension CpuAsynchronousQueue {
             var res = try result.sharedView(using: self).repeated(to: x.extents)
             
             queue(#function, { x.elements(using: self) }, &res) {
-                $0.reduce(into: &$1, opNext)
-                if let op = opFinal {
-                    $1[$1.startIndex] = op($1[$1.startIndex])
+                elements, resultElements in
+                zip(elements, resultElements.indices).forEach {
+                    resultElements[$1] = opNext(resultElements[$1], $0)
                 }
+                opFinal?(&res)
             }
         } catch {
             device.report(error)
@@ -298,7 +298,7 @@ public func mean<T>(_ x: T, alongAxes axes: [Int]? = nil, result: inout T)
                                       initialResult: T.Element.zero,
                                       opId: .add,
                                       opNext: { $0 + $1 },
-                                      opFinal: { $0 / count })
+                                      opFinal: { $0 = $0 / count })
 }
 
 public extension TensorView where Element: FloatingPoint {
@@ -335,7 +335,7 @@ public func prod<T>(_ x: T, alongAxes axes: [Int]? = nil, result: inout T)
                                       initialResult: T.Element(any: 1),
                                       opId: .mul,
                                       opNext: { $0 * $1 },
-                                      opFinal: { $0 })
+                                      opFinal: nil)
 }
 
 public extension TensorView where Element: AnyNumeric {
@@ -373,7 +373,7 @@ public func prodNonZeros<T>(_ x: T, alongAxes axes: [Int]? = nil,
                                       initialResult: T.Element(any: 1),
                                       opId: .mulNonZeros,
                                       opNext: { $1 == 0 ? $0 : $0 * $1 },
-                                      opFinal: { $0 })
+                                      opFinal: nil)
 }
 
 public extension TensorView where Element: AnyNumeric {
@@ -412,7 +412,7 @@ public func minElement<T>(_ x: T, alongAxes axes: [Int]? = nil, result: inout T)
                                       initialResult: first,
                                       opId: .min,
                                       opNext: { $0 <= $1 ? $0 : $1 },
-                                      opFinal: { $0 })
+                                      opFinal: nil)
 }
 
 public extension TensorView where Element: AnyNumeric  & Comparable {
@@ -450,7 +450,7 @@ public func maxElement<T>(_ x: T, alongAxes axes: [Int]? = nil, result: inout T)
                                       initialResult: first,
                                       opId: .max,
                                       opNext: { $0 > $1 ? $0 : $1 },
-                                      opFinal: { $0 })
+                                      opFinal: nil)
 }
 
 public extension TensorView where Element: AnyNumeric  & Comparable {
@@ -489,7 +489,7 @@ public func absmax<T>(_ x: T, alongAxes axes: [Int]? = nil, result: inout T)
         initialResult: first,
         opId: .amax,
         opNext: { $0.magnitude > $1.magnitude ? $0 : $1 },
-        opFinal: { $0 })
+        opFinal: nil)
 }
 
 public extension TensorView where Element: AnyNumeric  & Comparable {
@@ -526,7 +526,7 @@ public func abssum<T>(_ x: T, alongAxes axes: [Int]? = nil, result: inout T)
                                       initialResult: T.Element.zero,
                                       opId: .asum,
                                       opNext: { $0 + $1.magnitude },
-                                      opFinal: { $0 })
+                                      opFinal: nil)
 }
 
 public extension TensorView where Element: FloatingPoint {
@@ -557,17 +557,17 @@ public extension TensorView where Element: FloatingPoint {
 @inlinable
 public func sqrtSumSquares<T>(_ x: T, alongAxes axes: [Int]? = nil,
                               result: inout T)
-    where T: TensorView, T.Element: FloatingPoint
+    where T: TensorView, T.Element: Real
 {
     DeviceContext.currentQueue.reduce(x: x,
                                       into: &result,
                                       initialResult: T.Element.zero,
                                       opId: .sqrtSumSquares,
                                       opNext: { $0 + $1 * $1 },
-                                      opFinal: { Foundation.sqrt($0) })
+                                      opFinal: { $0 = sqrt($0) })
 }
 
-public extension TensorView where Element: FloatingPoint {
+public extension TensorView where Element: Real {
     @inlinable
     func sqrtSumSquares(alongAxes: Int...) -> Self {
         var result = createDense()

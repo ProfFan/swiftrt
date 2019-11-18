@@ -563,3 +563,52 @@ public extension CpuAsynchronousQueue {
     }
 }
 #endif
+
+//==============================================================================
+// >>>>>> User API <<<<<<
+/// sqrt(x)
+/// computes the square root of `x`
+///
+/// with placement
+/// - Parameter x: value tensor
+/// - Returns: result
+@inlinable @inline(__always)
+public func sqrt<T>(_ x: T) -> T where
+    T: TensorView, T.Element: Real
+{
+    var result = x.createDense()
+    DeviceContext.currentQueue.sqrt(x: x, result: &result)
+    return result
+}
+
+public extension TensorView where Element: Real {
+    @inlinable @inline(__always)
+    func sqrt() -> Self { SwiftRT.sqrt(self) }
+}
+
+//------------------------------------------------------------------------------
+// >>>>>> INTENT <<<<<<
+// User device function
+public extension DeviceQueue {
+    /// log
+    func sqrt<T>(x: T, result: inout T) where
+        T: TensorView, T.Element: Real
+    {
+        x.map(into: &result) { .sqrt($0) }
+    }
+}
+
+//******************************************************************************
+// >>>>>> GENERATED <<<<<<
+#if canImport(CpuAsync)
+public extension CpuAsynchronousQueue {
+    /// sqrt
+    func sqrt<T>(x: T, result: inout T) where
+        T: TensorView, T.Element: Real
+    {
+        queue(#function, { x.elements(using: self) }, &result) {
+            $0.map(into: &$1) { .sqrt($0) }
+        }
+    }
+}
+#endif

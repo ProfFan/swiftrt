@@ -75,6 +75,9 @@ public protocol DeviceFunctions: DeviceQueueBase {
     /// subtract
     func subtract<T>(lhs: T, rhs: T, result: inout T) where
         T: TensorView, T.Element: Numeric
+    /// sqrt
+    func sqrt<T>(x: T, result: inout T) where
+        T: TensorView, T.Element: Real
     /// squared
     func squared<T>(x: T, result: inout T)
         where T: TensorView, T.Element: Numeric
