@@ -41,7 +41,8 @@ public enum ReductionOp: Int, Codable {
     case compare
 }
 
-public typealias ReduceOpFinal<T: TensorView> = (inout T) -> Void
+public typealias ReduceOpFinal<T: TensorView> =
+    (_ dim: Int, _ value: T.Element) -> T.Element
 
 //------------------------------------------------------------------------------
 // >>>>>> INTENT <<<<<<
@@ -68,7 +69,8 @@ public extension DeviceQueue {
             zip(x.elements, resultElements.indices).forEach {
                 resultElements[$1] = opNext(resultElements[$1], $0)
             }
-            opFinal?(&result)
+            
+//            opFinal?(&result)
         } catch {
             device.report(error)
         }
@@ -100,7 +102,7 @@ public extension CpuAsynchronousQueue {
                 zip(elements, resultElements.indices).forEach {
                     resultElements[$1] = opNext(resultElements[$1], $0)
                 }
-                opFinal?(&res)
+//                opFinal?(&res)
             }
         } catch {
             device.report(error)
@@ -146,7 +148,7 @@ public extension TensorView where Element == Bool {
     
     @inlinable
     func all() -> Self {
-        var result = createReductionResult()
+        var result = createSingleElement()
         SwiftRT.all(self, result: &result)
         return result
     }
@@ -183,14 +185,14 @@ public extension TensorView where Element == Bool {
     @inlinable
     func any(alongAxes axes: Int...) -> Self {
         var result = createReductionResult(alongAxes: axes)
-        SwiftRT.all(self, result: &result)
+        SwiftRT.any(self, result: &result)
         return result
     }
     
     @inlinable
     func any() -> Self {
-        var result = createReductionResult()
-        SwiftRT.all(self, result: &result)
+        var result = createSingleElement()
+        SwiftRT.any(self, result: &result)
         return result
     }
 }
@@ -226,7 +228,7 @@ public extension TensorView where Element: Numeric {
     
     @inlinable
     func sum() -> Self {
-        var result = createReductionResult()
+        var result = createSingleElement()
         SwiftRT.sum(self, result: &result)
         return result
     }
@@ -244,27 +246,27 @@ public extension TensorView where Element: Numeric {
 public func mean<T>(_ x: T, result: inout T)
     where T: TensorView, T.Element: FloatingPoint
 {
-    let count = T.Element(exactly: x.shape.elementCount)!
+    let divisors = x.extents.map { T.Element(exactly: $0)! }
     DeviceContext.currentQueue.reduce(x: x,
                                       into: &result,
                                       initialResult: T.Element.zero,
                                       opId: .add,
                                       opNext: { $0 + $1 },
-                                      opFinal: { $0 = $0 / count })
+                                      opFinal: { $1 / divisors[$0] })
 }
 
 public extension TensorView where Element: FloatingPoint {
     @inlinable
     func mean(alongAxes axes: Int...) -> Self {
         var result = createReductionResult(alongAxes: axes)
-        SwiftRT.sum(self, result: &result)
+        SwiftRT.mean(self, result: &result)
         return result
     }
     
     @inlinable
     func mean() -> Self {
-        var result = createReductionResult()
-        SwiftRT.sum(self, result: &result)
+        var result = createSingleElement()
+        SwiftRT.mean(self, result: &result)
         return result
     }
 }
@@ -294,14 +296,14 @@ public extension TensorView where Element: AnyNumeric {
     @inlinable
     func prod(alongAxes axes: Int...) -> Self {
         var result = createReductionResult(alongAxes: axes)
-        SwiftRT.sum(self, result: &result)
+        SwiftRT.prod(self, result: &result)
         return result
     }
     
     @inlinable
     func prod() -> Self {
-        var result = createReductionResult()
-        SwiftRT.sum(self, result: &result)
+        var result = createSingleElement()
+        SwiftRT.prod(self, result: &result)
         return result
     }
 }
@@ -330,14 +332,14 @@ public extension TensorView where Element: Numeric {
     @inlinable
     func prodNonZeros(alongAxes axes: Int...) -> Self {
         var result = createReductionResult(alongAxes: axes)
-        SwiftRT.sum(self, result: &result)
+        SwiftRT.prodNonZeros(self, result: &result)
         return result
     }
     
     @inlinable
     func prodNonZeros() -> Self {
-        var result = createReductionResult()
-        SwiftRT.sum(self, result: &result)
+        var result = createSingleElement()
+        SwiftRT.prodNonZeros(self, result: &result)
         return result
     }
 }
@@ -375,7 +377,7 @@ public extension TensorView where
     
     @inlinable
     func minElement() -> Self {
-        var result = createReductionResult()
+        var result = createSingleElement()
         SwiftRT.minElement(self, result: &result)
         return result
     }
@@ -413,7 +415,7 @@ public extension TensorView where
     
     @inlinable
     func maxElement() -> Self {
-        var result = createReductionResult()
+        var result = createSingleElement()
         SwiftRT.maxElement(self, result: &result)
         return result
     }
@@ -450,7 +452,7 @@ public extension TensorView where Element: Numeric & Comparable & AnyElement {
     
     @inlinable
     func absmax() -> Self {
-        var result = createReductionResult()
+        var result = createSingleElement()
         SwiftRT.absmax(self, result: &result)
         return result
     }
@@ -486,7 +488,7 @@ public extension TensorView where Element: FloatingPoint {
     
     @inlinable
     func abssum() -> Self {
-        var result = createReductionResult()
+        var result = createSingleElement()
         SwiftRT.abssum(self, result: &result)
         return result
     }
@@ -509,7 +511,7 @@ public func sqrtSumSquares<T>(_ x: T, result: inout T)
                                       initialResult: T.Element.zero,
                                       opId: .sqrtSumSquares,
                                       opNext: { $0 + $1 * $1 },
-                                      opFinal: { $0 = sqrt($0) })
+                                      opFinal: { _ , elt in .sqrt(elt) })
 }
 
 public extension TensorView where Element: Real {
@@ -522,7 +524,7 @@ public extension TensorView where Element: Real {
     
     @inlinable
     func sqrtSumSquares() -> Self {
-        var result = createReductionResult()
+        var result = createSingleElement()
         SwiftRT.sqrtSumSquares(self, result: &result)
         return result
     }

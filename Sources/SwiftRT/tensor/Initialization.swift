@@ -85,14 +85,9 @@ public extension TensorView {
     //--------------------------------------------------------------------------
     /// createReductionResult
     /// creates a tensor of suitable form to recieve a reduction result.
-    func createReductionResult(alongAxes axes: [Int]? = nil) -> Self {
-        var resultExtents: [Int]
-        if let axes = axes {
-            resultExtents = extents
-            axes.forEach { resultExtents[$0] = 1 }
-        } else {
-            resultExtents = singleElementExtents
-        }
+    func createReductionResult(alongAxes axes: [Int]) -> Self {
+        var resultExtents = extents
+        axes.forEach { resultExtents[$0] = 1 }
         return Self.create(DataShape(extents: resultExtents), nil)
     }
 
