@@ -83,7 +83,7 @@ public extension VectorView {
         let shape = DataShape(extents: [buffer.count])
         self = Self.create(referenceTo: buffer, shape, name)
     }
-        
+    
     //--------------------------------------------------------------------------
     // typed views
     func createBoolTensor(with extents: [Int]) -> Vector<Bool> {
