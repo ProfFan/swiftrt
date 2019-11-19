@@ -142,12 +142,6 @@ public extension TensorView {
 //==============================================================================
 // view subscripting helpers
 
-/// makePositive(range:count:
-/// - Parameter range: a range expression specifying the bounds of
-/// the desired range. Negative bounds are relative to the end of the range
-/// - Parameter count: the number of elements in the collection that
-/// the range calculation should be relative to.
-/// - Returns: a positive range relative to the specified bounding `count`
 @inlinable @inline(__always)
 public func makePositive<R>(range: R, count: Int) -> Range<Int> where
     R: RangeExpression, R.Bound == Int
@@ -157,6 +151,23 @@ public func makePositive<R>(range: R, count: Int) -> Range<Int> where
     let lower = r.lowerBound < 0 ? r.lowerBound + count : r.lowerBound
     let upper = r.upperBound < 0 ? r.upperBound + count : r.upperBound
     return lower..<upper
+}
+
+/// makePositive(range:count:
+/// - Parameter range: a range expression specifying the bounds of
+/// the desired range. Negative bounds are relative to the end of the range
+/// - Parameter count: the number of elements in the collection that
+/// the range calculation should be relative to.
+/// - Returns: a positive range relative to the specified bounding `count`
+@inlinable @inline(__always)
+public func makePositive(range: RangeInterval, count: Int)
+    -> ResolvedRangeInterval
+{
+    var from = range.from ?? 0
+    if from < 0 { from += count }
+    var to = range.to ?? count
+    if to < 0 { to += count }
+    return (from, to, range.step ?? 1)
 }
 
 /// makeStepped(view:parent:steps:

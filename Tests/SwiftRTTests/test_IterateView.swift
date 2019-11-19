@@ -27,10 +27,10 @@ class test_IterateView: XCTestCase {
         ("test_Matrix", test_Matrix),
         ("test_MatrixRange", test_MatrixRange),
         ("test_MatrixSteppedRange", test_MatrixSteppedRange),
-//        ("test_Volume", test_Volume),
+        ("test_Volume", test_Volume),
         ("test_VectorSubView", test_VectorSubView),
         ("test_MatrixSubView", test_MatrixSubView),
-//        ("test_VolumeSubView", test_VolumeSubView),
+        ("test_VolumeSubView", test_VolumeSubView),
         ("test_perfVector", test_perfVector),
         ("test_perfMatrix", test_perfMatrix),
         ("test_perfVolume", test_perfVolume),
@@ -125,17 +125,14 @@ class test_IterateView: XCTestCase {
         XCTAssert(v1 == expected1)
     }
     
-//    //==========================================================================
-//    // test_Volume
-//    func test_Volume() {
-//        let expected = [Int32](0..<24)
-//        let volume = Volume<Int32>((2, 3, 4), elements: expected)
-//        //            print(volume.formatted((2,0)))
-//
-//        let values = volume.flatArray
-//        XCTAssert(values == expected)
-//    }
-//
+    //==========================================================================
+    // test_Volume
+    func test_Volume() {
+        let expected = [Int32](0..<24)
+        let volume = Volume<Int32>(2, 3, 4, with: expected)
+        XCTAssert(volume.flatArray == expected)
+    }
+
     //==========================================================================
     // test_VectorSubView
     func test_VectorSubView() {
@@ -163,23 +160,21 @@ class test_IterateView: XCTestCase {
         XCTAssert(values == expected)
     }
     
-//    //==========================================================================
-//    // test_VolumeSubView
-//    func test_VolumeSubView() {
-//        let volume = Volume<Int32>((3, 3, 4), with: 0..<36)
-//        let view = volume.view(at: [1, 1, 1], extents: [2, 2, 3])
-//        //            print(view.formatted((2,0)))
-//
-//        let expected: [Int32] = [
-//            17, 18, 19,
-//            21, 22, 23,
-//
-//            29, 30, 31,
-//            33, 34, 35,
-//        ]
-//        let values = view.flatArray
-//        XCTAssert(values == expected)
-//    }
+    //==========================================================================
+    // test_VolumeSubView
+    func test_VolumeSubView() {
+        let volume = Volume<Int32>(3, 3, 4, with: 0..<36)
+        let view = volume.view(at: [1, 1, 1], extents: [2, 2, 3])
+
+        let expected: [Int32] = [
+            17, 18, 19,
+            21, 22, 23,
+
+            29, 30, 31,
+            33, 34, 35,
+        ]
+        XCTAssert(view.flatArray == expected)
+    }
     
     //==========================================================================
     // test_perfVector
@@ -286,53 +281,42 @@ class test_IterateView: XCTestCase {
         XCTAssert(matrix.flatArray == expected)
     }
     
-//    //==========================================================================
-//    // test_repeatingColInVolume
-//    func test_repeatingColInVolume() {
-//        let pattern = Volume<Int32>((1, 3, 1), elements: [
-//            1,
-//            0,
-//            1,
-//        ])
-//
-//        let matrix = Volume<Int32>((2, 3, 4), repeating: pattern)
-//        let expected: [Int32] = [
-//            1, 1, 1, 1,
-//            0, 0, 0, 0,
-//            1, 1, 1, 1,
-//
-//            1, 1, 1, 1,
-//            0, 0, 0, 0,
-//            1, 1, 1, 1,
-//        ]
-//
-//        let values = matrix.flatArray
-//        XCTAssert(values == expected)
-//    }
+    //==========================================================================
+    // test_repeatingColInVolume
+    func test_repeatingColInVolume() {
+        let volume = Volume<Int32>(repeating: [1, 0, 1], deps: 2, cols: 4)
+        let expected: [Int32] = [
+            1, 1, 1, 1,
+            0, 0, 0, 0,
+            1, 1, 1, 1,
+
+            1, 1, 1, 1,
+            0, 0, 0, 0,
+            1, 1, 1, 1,
+        ]
+        XCTAssert(volume.flatArray == expected)
+    }
     
-//    //==========================================================================
-//    // test_repeatingMatrix
-//    func test_repeatingMatrix() {
-//        let pattern = Volume<Int32>((1, 3, 4), elements: [
-//            1, 0, 1, 0,
-//            0, 1, 0, 1,
-//            1, 0, 1, 0,
-//        ])
-//
-//        let matrix = Volume<Int32>((2, 3, 4), repeating: pattern)
-//        let expected: [Int32] = [
-//            1, 0, 1, 0,
-//            0, 1, 0, 1,
-//            1, 0, 1, 0,
-//
-//            1, 0, 1, 0,
-//            0, 1, 0, 1,
-//            1, 0, 1, 0,
-//        ]
-//
-//        let values = matrix.flatArray
-//        XCTAssert(values == expected)
-//    }
+    //==========================================================================
+    // test_repeatingMatrix
+    func test_repeatingMatrix() {
+        let volume = Volume<Int32>(repeating: [
+            [1, 0, 1, 0],
+            [0, 1, 0, 1],
+            [1, 0, 1, 0],
+        ], deps: 2)
+
+        let expected: [Int32] = [
+            1, 0, 1, 0,
+            0, 1, 0, 1,
+            1, 0, 1, 0,
+
+            1, 0, 1, 0,
+            0, 1, 0, 1,
+            1, 0, 1, 0,
+        ]
+        XCTAssert(volume.flatArray == expected)
+    }
     
     //==========================================================================
     // test_repeatingMatrixSubView

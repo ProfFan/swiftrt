@@ -422,3 +422,234 @@ public struct Matrix<Element>: MatrixView {
     }
 }
 
+//******************************************************************************
+//******************************************************************************
+//******************************************************************************
+
+//==============================================================================
+// VolumeView protocol
+public protocol VolumeView: TensorView {}
+
+extension Volume: Codable where Element: Codable {}
+
+extension Volume: CustomStringConvertible where Element: AnyConvertable {
+    public var description: String { return formatted() }
+}
+
+//==============================================================================
+// VolumeView extensions
+public extension VolumeView {
+    //--------------------------------------------------------------------------
+    /// reserved space
+    init(extents: [Int], name: String? = nil) {
+        self = Self.create(DataShape(extents: extents), name)
+    }
+    
+    init(_ deps: Int, _ rows: Int, _ cols: Int, name: String? = nil) {
+        self.init(extents: [deps, rows, cols], name: name)
+    }
+    
+    //--------------------------------------------------------------------------
+    /// from flat `Element` collection
+    init<C>(_ deps: Int = 1, _ rows: Int = 1, _ cols: Int?, elements: C,
+            name: String? = nil) where
+        C: Collection, C.Element == Element
+    {
+        let cols = cols ?? elements.count
+        let shape = DataShape(extents: [deps, rows, cols])
+        self = Self.create(elements, shape, name)
+    }
+    
+    //--------------------------------------------------------------------------
+    /// from flat `AnyConvertable` collection
+    init<C>(_ deps: Int = 1, _ rows: Int = 1, _ cols: Int?, with elements: C,
+            name: String? = nil) where
+        C: Collection, C.Element: AnyConvertable, Element: AnyConvertable
+    {
+        let cols = cols ?? elements.count
+        let shape = DataShape(extents: [deps, rows, cols])
+        self = Self.create(elements.lazy.map { Element(any: $0) }, shape, name)
+    }
+    
+    //----------------------------------
+    /// repeating an Element
+    init(repeating element: Element,
+         deps: Int = 1, rows: Int = 1, cols: Int = 1,
+         name: String? = nil)
+    {
+        let shape = DataShape(extents: [1, 1, 1])
+            .repeated(to: [deps, rows, cols])
+        self = Self.create([element], shape, name)
+    }
+    
+    //----------------------------------
+    /// repeating a row of `Element`
+    init<C>(repeating elements: C, deps: Int, rows: Int,
+            name: String? = nil) where
+        C: Collection, C.Element == Element
+    {
+        let cols = elements.count
+        let shape = DataShape(extents: [1, 1, cols])
+            .repeated(to: [deps, rows, cols])
+        self = Self.create(elements, shape, name)
+    }
+    
+    //----------------------------------
+    /// repeating a column `Element`
+    init<C>(repeating elements: C, deps: Int, cols: Int,
+            name: String? = nil) where
+        C: Collection, C.Element == Element
+    {
+        let rows = elements.count
+        let shape = DataShape(extents: [1, rows, 1])
+            .repeated(to: [deps, rows, cols])
+        self = Self.create(elements, shape, name)
+    }
+    
+    //----------------------------------
+    /// repeating a row of `AnyConvertable`
+    init<C>(repeating elements: C, deps: Int, name: String? = nil) where
+        C: Collection, C.Element: Collection,
+        C.Element.Element == Element
+    {
+        let rows = elements.count
+        let cols = elements[elements.startIndex].count
+        let shape = DataShape(extents: [1, rows, cols])
+            .repeated(to: [deps, rows, cols])
+        self = Self.create(elements.joined(), shape, name)
+    }
+
+    //----------------------------------
+    /// repeating a row of `AnyConvertable`
+    init<C>(repeating elements: C, deps: Int, rows: Int,
+            name: String? = nil) where
+        C: Collection, C.Element: AnyConvertable, Element: AnyConvertable
+    {
+        let cols = elements.count
+        let shape = DataShape(extents: [1, 1, cols])
+            .repeated(to: [deps, rows, cols])
+        self = Self.create(elements.lazy.map { Element(any: $0) }, shape, name)
+    }
+    
+    //----------------------------------
+    /// repeating a column `AnyConvertable`
+    init<C>(repeating elements: C, deps: Int, cols: Int,
+            name: String? = nil) where
+        C: Collection, C.Element: AnyConvertable, Element: AnyConvertable
+    {
+        let rows = elements.count
+        let shape = DataShape(extents: [1, rows, 1])
+            .repeated(to: [deps, rows, cols])
+        self = Self.create(elements.lazy.map { Element(any: $0) }, shape, name)
+    }
+    
+    //----------------------------------
+    /// repeating a matrix `AnyConvertable`
+    init<C>(repeating elements: C, deps: Int, name: String? = nil) where
+        C: Collection, C.Element: Collection,
+        C.Element.Element: AnyConvertable, Element: AnyConvertable
+    {
+        let rows = elements.count
+        let cols = elements[elements.startIndex].count
+        let shape = DataShape(extents: [1, rows, cols])
+            .repeated(to: [deps, rows, cols])
+        self = Self.create(elements.joined().lazy.map { Element(any: $0) },
+                           shape, name)
+    }
+    
+    //--------------------------------------------------------------------------
+    /// with reference to read only buffer
+    /// useful for memory mapped databases, or hardware device buffers
+    init(referenceTo buffer: UnsafeBufferPointer<Element>,
+         deps: Int, rows: Int, cols: Int,
+         name: String? = nil)
+    {
+        let shape = DataShape(extents: [deps, rows, cols])
+        self = Self.create(referenceTo: buffer, shape, name)
+    }
+    
+    //--------------------------------------------------------------------------
+    /// with reference to read write buffer
+    /// useful for memory mapped databases, or hardware device buffers
+    init(referenceTo buffer: UnsafeMutableBufferPointer<Element>,
+         deps: Int, rows: Int, cols: Int,
+         name: String? = nil)
+    {
+        let shape = DataShape(extents: [deps, rows, cols])
+        self = Self.create(referenceTo: buffer, shape, name)
+    }
+    
+    
+    //--------------------------------------------------------------------------
+    // typed views
+    func createBoolTensor(with extents: [Int]) -> Volume<Bool> {
+        Volume<Bool>(extents: extents)
+    }
+    
+    func createIndexTensor(with extents: [Int]) -> Volume<IndexElement> {
+        Volume<IndexElement>(extents: extents)
+    }
+}
+
+//==============================================================================
+// range subscripting
+public extension VolumeView {
+    //--------------------------------------------------------------------------
+    // TODO: probably move these off onto the TensorViewCollection
+    var startIndex: VolumeIndex { return VolumeIndex(view: self, at: (0, 0, 0))}
+    var endIndex: VolumeIndex { return VolumeIndex(endOf: self) }
+    
+    @inlinable @inline(__always)
+    subscript<D, R, C>(d: D, r: R, c: C) -> Self where
+        D: RangeExpression, D.Bound == Int,
+        R: RangeExpression, R.Bound == Int,
+        C: RangeExpression, C.Bound == Int
+    {
+        let dRange = makePositive(range: d, count: extents[0])
+        let rRange = makePositive(range: r, count: extents[1])
+        let cRange = makePositive(range: c, count: extents[2])
+        let viewPosition = [dRange.lowerBound,
+                            rRange.lowerBound,
+                            cRange.lowerBound]
+        let viewExtents = [dRange.count, rRange.count, cRange.count]
+        return view(at: viewPosition, extents: viewExtents)
+    }
+    
+    @inlinable @inline(__always)
+    subscript(_ d: RangeInterval, r: RangeInterval, c: RangeInterval) -> Self {
+        let dRange = makePositive(range: d, count: extents[0])
+        let rRange = makePositive(range: r, count: extents[1])
+        let cRange = makePositive(range: c, count: extents[2])
+        let viewPosition = [dRange.from, rRange.from, cRange.from]
+        let viewExtents = [dRange.to, rRange.to, cRange.to]
+        let steps = [dRange.step, rRange.step, cRange.step]
+        let (subExtents, subStrides) = makeStepped(view: viewExtents,
+                                                   parent: shape.strides,
+                                                   steps: steps)
+        return view(at: viewPosition, extents: subExtents, strides: subStrides)
+    }
+}
+
+//==============================================================================
+// Volume
+public struct Volume<Element>: VolumeView {
+    // properties
+    public let isShared: Bool
+    public let format: TensorFormat = .volume
+    public let shape: DataShape
+    public var tensorArray: TensorArray<Element>
+    public let viewOffset: Int
+    public let singleElementExtents = [1, 1, 1]
+    
+    public init(shape: DataShape,
+                tensorArray: TensorArray<Element>,
+                viewOffset: Int,
+                isShared: Bool)
+    {
+        self.shape = shape
+        self.tensorArray = tensorArray
+        self.viewOffset = viewOffset
+        self.isShared = isShared
+    }
+}
+

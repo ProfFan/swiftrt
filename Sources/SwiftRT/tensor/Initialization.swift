@@ -31,6 +31,9 @@ public extension TensorView where Element: AnyConvertable {
     }
 }
 
+public typealias RangeInterval = (from: Int?, to: Int?, step: Int?)
+public typealias ResolvedRangeInterval = (from: Int, to: Int, step: Int)
+
 //==============================================================================
 //
 public extension TensorView {
