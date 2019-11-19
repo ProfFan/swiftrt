@@ -246,7 +246,7 @@ class test_IterateView: XCTestCase {
     //==========================================================================
     // test_repeatingElement
     func test_repeatingElement() {
-        let matrix = Matrix<Int32>(repeating: 42, rows: 2, cols: 3)
+        let matrix = Matrix<Int32>(with: 42).repeated(to: [2, 3])
         let expected: [Int32] = [
             42, 42, 42,
             42, 42, 42,
@@ -259,7 +259,7 @@ class test_IterateView: XCTestCase {
     //==========================================================================
     // test_repeatingRow
     func test_repeatingRow() {
-        let matrix = Matrix<Int32>(repeatingRow: 0...2, count: 2)
+        let matrix = Matrix<Int32>(1, 3, with: 0...2).repeated(to: [2, 3])
         let expected: [Int32] = [
             0, 1, 2,
             0, 1, 2,
@@ -272,7 +272,7 @@ class test_IterateView: XCTestCase {
     //==========================================================================
     // test_repeatingCol
     func test_repeatingCol() {
-        let matrix = Matrix<Int32>(repeatingCol: 0...2, count: 2)
+        let matrix = Matrix<Int32>(3, 1, with: 0...2).repeated(to: [3, 2])
         let expected: [Int32] = [
             0, 0,
             1, 1,
@@ -284,7 +284,7 @@ class test_IterateView: XCTestCase {
     //==========================================================================
     // test_repeatingColInVolume
     func test_repeatingColInVolume() {
-        let volume = Volume<Int32>(repeating: [1, 0, 1], deps: 2, cols: 4)
+        let v = Volume<Int32>(1, 3, 1, with: [1, 0, 1]).repeated(to: [2, 3, 4])
         let expected: [Int32] = [
             1, 1, 1, 1,
             0, 0, 0, 0,
@@ -294,17 +294,21 @@ class test_IterateView: XCTestCase {
             0, 0, 0, 0,
             1, 1, 1, 1,
         ]
-        XCTAssert(volume.flatArray == expected)
+        XCTAssert(v.flatArray == expected)
     }
     
     //==========================================================================
     // test_repeatingMatrix
     func test_repeatingMatrix() {
-        let volume = Volume<Int32>(repeating: [
-            [1, 0, 1, 0],
-            [0, 1, 0, 1],
-            [1, 0, 1, 0],
-        ], deps: 2)
+        let volume = Volume<Int32>(with:
+            [
+                [
+                    [1, 0, 1, 0],
+                    [0, 1, 0, 1],
+                    [1, 0, 1, 0],
+                ],
+            ]
+        ).repeated(to: [2, 3, 4])
 
         let expected: [Int32] = [
             1, 0, 1, 0,
@@ -321,7 +325,7 @@ class test_IterateView: XCTestCase {
     //==========================================================================
     // test_repeatingMatrixSubView
     func test_repeatingMatrixSubView() {
-        let matrix = Matrix<Int32>(repeatingCol: [1, 0, 1], count: 4)
+        let matrix = Matrix<Int32>(3, 1, with: [1, 0, 1]).repeated(to: [3, 4])
         let expected: [Int32] = [
             1, 1, 1, 1,
             0, 0, 0, 0,

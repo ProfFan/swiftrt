@@ -39,6 +39,15 @@ public extension VectorView {
     }
     
     //--------------------------------------------------------------------------
+    /// from single `AnyConvertable`
+    init<T>(with element: T, name: String? = nil) where
+        T: AnyConvertable, Element: AnyConvertable
+    {
+        let shape = DataShape(extents: [1])
+        self = Self.create([Element(any: element)], shape, name)
+    }
+    
+    //--------------------------------------------------------------------------
     /// from flat `Element` collection
     init<C>(elements: C, name: String? = nil) where
         C: Collection, C.Element == Element
@@ -54,22 +63,6 @@ public extension VectorView {
         self = Self.create(elements.lazy.map { Element(any: $0) },
                            DataShape(extents: [elements.count]),
                            name)
-    }
-    
-    //----------------------------------
-    /// repeating an Element
-    init(repeating element: Element, count: Int, name: String? = nil) {
-        let shape = DataShape(extents: [1]).repeated(to: [count])
-        self = Self.create([element], shape, name)
-    }
-    
-    //----------------------------------
-    /// repeating any Element
-    init<T>(repeating element: T, count: Int, name: String? = nil) where
-        T: AnyConvertable, Element: AnyConvertable
-    {
-        let shape = DataShape(extents: [1]).repeated(to: [count])
-        self = Self.create([Element(any: element)], shape, name)
     }
     
     //--------------------------------------------------------------------------
@@ -90,8 +83,7 @@ public extension VectorView {
         let shape = DataShape(extents: [buffer.count])
         self = Self.create(referenceTo: buffer, shape, name)
     }
-    
-    
+        
     //--------------------------------------------------------------------------
     // typed views
     func createBoolTensor(with extents: [Int]) -> Vector<Bool> {
@@ -210,91 +202,66 @@ public extension MatrixView {
     {
         self.init(extents: [rows, cols], layout: layout, name: name)
     }
-    
+
+    //--------------------------------------------------------------------------
+    /// from single `AnyConvertable`
+    init<T>(with element: T,
+            layout: MatrixLayout = .rowMajor,
+            name: String? = nil) where
+        T: AnyConvertable, Element: AnyConvertable
+    {
+        let shape = DataShape(extents: [1, 1])
+        self = Self.create([Element(any: element)], shape, name)
+    }
+
     //--------------------------------------------------------------------------
     /// from flat `Element` collection
-    init<C>(_ rows: Int = 1, _ cols: Int = 1, elements: C,
+    init<C>(_ rows: Int , _ cols: Int, elements: C,
             layout: MatrixLayout = .rowMajor,
             name: String? = nil) where
         C: Collection, C.Element == Element
     {
         let shape = Self.matrixShape([rows, cols], layout)
+        assert(shape.elementCount == elements.count)
         self = Self.create(elements, shape, name)
     }
 
     //--------------------------------------------------------------------------
     /// from flat `AnyConvertable` collection
-    init<C>(_ rows: Int = 1, _ cols: Int = 1, with elements: C,
+    init<C>(_ rows: Int, _ cols: Int, with elements: C,
             layout: MatrixLayout = .rowMajor,
             name: String? = nil) where
         C: Collection, C.Element: AnyConvertable, Element: AnyConvertable
     {
         let shape = Self.matrixShape([rows, cols], layout)
-        self = Self.create(elements.lazy.map { Element(any: $0) }, shape, name)
-    }
-    
-    //----------------------------------
-    /// repeating an Element
-    init(repeating element: Element, rows: Int = 1, cols: Int = 1,
-         layout: MatrixLayout = .rowMajor, name: String? = nil)
-    {
-        let shape = Self.matrixRepeatedShape([1, 1], [rows, cols], layout)
-        self = Self.create([element], shape, name)
-    }
-    
-    //----------------------------------
-    /// repeating a row of `Element`
-    init<C>(repeatingRow elements: C, count: Int,
-            layout: MatrixLayout = .rowMajor,
-            name: String? = nil) where
-        C: Collection, C.Element == Element
-    {
-        let cols = elements.count
-        let shape = Self.matrixRepeatedShape([1, cols], [count, cols], layout)
-        self = Self.create(elements, shape, name)
-    }
-    
-    //----------------------------------
-    /// repeating a column `Element`
-    init<C>(repeatingCol elements: C, count: Int,
-            layout: MatrixLayout = .rowMajor,
-            name: String? = nil) where
-        C: Collection, C.Element == Element
-    {
-        let rows = elements.count
-        let shape = Self.matrixRepeatedShape([rows, 1], [rows, count], layout)
-        self = Self.create(elements, shape, name)
-    }
-    
-    //----------------------------------
-    /// repeating a row of `AnyConvertable`
-    init<C>(repeatingRow elements: C, count: Int,
-            layout: MatrixLayout = .rowMajor,
-            name: String? = nil) where
-        C: Collection, C.Element: AnyConvertable, Element: AnyConvertable
-    {
-        let cols = elements.count
-        let shape = Self.matrixRepeatedShape([1, cols], [count, cols], layout)
-        self = Self.create(elements.lazy.map { Element(any: $0) }, shape, name)
-    }
-    
-    //----------------------------------
-    /// repeating a column `AnyConvertable`
-    init<C>(repeatingCol elements: C, count: Int,
-            layout: MatrixLayout = .rowMajor,
-            name: String? = nil) where
-        C: Collection, C.Element: AnyConvertable, Element: AnyConvertable
-    {
-        let rows = elements.count
-        let shape = Self.matrixRepeatedShape([rows, 1], [rows, count], layout)
+        assert(shape.elementCount == elements.count)
         self = Self.create(elements.lazy.map { Element(any: $0) }, shape, name)
     }
     
     //--------------------------------------------------------------------------
+    /// from structred 2D `Element` collection
+    init<T>(elements: [[T]], name: String? = nil) where T == Element{
+        let shape = DataShape(extents: [elements.count, elements.first!.count])
+        self = Self.create(elements.joined(), shape, name)
+    }
+    
+    //--------------------------------------------------------------------------
+    /// from structred 2D `AnyConvertable` collection
+    init<T>(with elements: [[T]], name: String? = nil)
+        where T: AnyConvertable, Element: AnyConvertable
+    {
+        let shape = DataShape(extents: [elements.count, elements.first!.count])
+        let flatElements = elements.joined().lazy.map {
+            Element(any: $0)
+        }
+        self = Self.create(flatElements, shape, name)
+    }
+
+    //--------------------------------------------------------------------------
     /// with reference to read only buffer
     /// useful for memory mapped databases, or hardware device buffers
-    init(referenceTo buffer: UnsafeBufferPointer<Element>,
-         rows: Int, cols: Int,
+    init(_ rows: Int, _ cols: Int,
+         referenceTo buffer: UnsafeBufferPointer<Element>,
          layout: MatrixLayout = .rowMajor,
          name: String? = nil)
     {
@@ -305,15 +272,14 @@ public extension MatrixView {
     //--------------------------------------------------------------------------
     /// with reference to read write buffer
     /// useful for memory mapped databases, or hardware device buffers
-    init(referenceTo buffer: UnsafeMutableBufferPointer<Element>,
-         rows: Int, cols: Int,
+    init(_ rows: Int, _ cols: Int,
+         referenceTo buffer: UnsafeMutableBufferPointer<Element>,
          layout: MatrixLayout = .rowMajor,
          name: String? = nil)
     {
         let shape = Self.matrixShape([rows, cols], layout)
         self = Self.create(referenceTo: buffer, shape, name)
     }
-
     
     //--------------------------------------------------------------------------
     // typed views
@@ -450,118 +416,65 @@ public extension VolumeView {
     }
     
     //--------------------------------------------------------------------------
+    /// from single `AnyConvertable`
+    init<T>(with element: T, name: String? = nil) where
+        T: AnyConvertable, Element: AnyConvertable
+    {
+        let shape = DataShape(extents: [1, 1, 1])
+        self = Self.create([Element(any: element)], shape, name)
+    }
+    
+    //--------------------------------------------------------------------------
     /// from flat `Element` collection
-    init<C>(_ deps: Int = 1, _ rows: Int = 1, _ cols: Int?, elements: C,
-            name: String? = nil) where
+    init<C>(_ deps: Int, _ rows: Int, _ cols: Int,
+            elements: C, name: String? = nil) where
         C: Collection, C.Element == Element
     {
-        let cols = cols ?? elements.count
         let shape = DataShape(extents: [deps, rows, cols])
+        assert(shape.elementCount == elements.count)
         self = Self.create(elements, shape, name)
     }
     
     //--------------------------------------------------------------------------
     /// from flat `AnyConvertable` collection
-    init<C>(_ deps: Int = 1, _ rows: Int = 1, _ cols: Int?, with elements: C,
-            name: String? = nil) where
+    init<C>(_ deps: Int, _ rows: Int, _ cols: Int,
+            with elements: C, name: String? = nil) where
         C: Collection, C.Element: AnyConvertable, Element: AnyConvertable
     {
-        let cols = cols ?? elements.count
         let shape = DataShape(extents: [deps, rows, cols])
+        assert(shape.elementCount == elements.count)
         self = Self.create(elements.lazy.map { Element(any: $0) }, shape, name)
     }
     
-    //----------------------------------
-    /// repeating an Element
-    init(repeating element: Element,
-         deps: Int = 1, rows: Int = 1, cols: Int = 1,
-         name: String? = nil)
-    {
-        let shape = DataShape(extents: [1, 1, 1])
-            .repeated(to: [deps, rows, cols])
-        self = Self.create([element], shape, name)
+    //--------------------------------------------------------------------------
+    /// from structred 3D `Element` collection
+    init<T>(elements: [[[T]]], name: String? = nil) where T == Element{
+        let shape = DataShape(extents: [elements.count,
+                                        elements.first!.count,
+                                        elements.first!.first!.count])
+        let flatElements = elements.joined().joined()
+        self = Self.create(flatElements, shape, name)
     }
     
-    //----------------------------------
-    /// repeating a row of `Element`
-    init<C>(repeating elements: C, deps: Int, rows: Int,
-            name: String? = nil) where
-        C: Collection, C.Element == Element
+    //--------------------------------------------------------------------------
+    /// from structred 3D `AnyConvertable` collection
+    init<T>(with elements: [[[T]]], name: String? = nil)
+        where T: AnyConvertable, Element: AnyConvertable
     {
-        let cols = elements.count
-        let shape = DataShape(extents: [1, 1, cols])
-            .repeated(to: [deps, rows, cols])
-        self = Self.create(elements, shape, name)
-    }
-    
-    //----------------------------------
-    /// repeating a column `Element`
-    init<C>(repeating elements: C, deps: Int, cols: Int,
-            name: String? = nil) where
-        C: Collection, C.Element == Element
-    {
-        let rows = elements.count
-        let shape = DataShape(extents: [1, rows, 1])
-            .repeated(to: [deps, rows, cols])
-        self = Self.create(elements, shape, name)
-    }
-    
-    //----------------------------------
-    /// repeating a row of `AnyConvertable`
-    init<C>(repeating elements: C, deps: Int, name: String? = nil) where
-        C: Collection, C.Element: Collection,
-        C.Element.Element == Element
-    {
-        let rows = elements.count
-        let cols = elements[elements.startIndex].count
-        let shape = DataShape(extents: [1, rows, cols])
-            .repeated(to: [deps, rows, cols])
-        self = Self.create(elements.joined(), shape, name)
-    }
-
-    //----------------------------------
-    /// repeating a row of `AnyConvertable`
-    init<C>(repeating elements: C, deps: Int, rows: Int,
-            name: String? = nil) where
-        C: Collection, C.Element: AnyConvertable, Element: AnyConvertable
-    {
-        let cols = elements.count
-        let shape = DataShape(extents: [1, 1, cols])
-            .repeated(to: [deps, rows, cols])
-        self = Self.create(elements.lazy.map { Element(any: $0) }, shape, name)
-    }
-    
-    //----------------------------------
-    /// repeating a column `AnyConvertable`
-    init<C>(repeating elements: C, deps: Int, cols: Int,
-            name: String? = nil) where
-        C: Collection, C.Element: AnyConvertable, Element: AnyConvertable
-    {
-        let rows = elements.count
-        let shape = DataShape(extents: [1, rows, 1])
-            .repeated(to: [deps, rows, cols])
-        self = Self.create(elements.lazy.map { Element(any: $0) }, shape, name)
-    }
-    
-    //----------------------------------
-    /// repeating a matrix `AnyConvertable`
-    init<C>(repeating elements: C, deps: Int, name: String? = nil) where
-        C: Collection, C.Element: Collection,
-        C.Element.Element: AnyConvertable, Element: AnyConvertable
-    {
-        let rows = elements.count
-        let cols = elements[elements.startIndex].count
-        let shape = DataShape(extents: [1, rows, cols])
-            .repeated(to: [deps, rows, cols])
-        self = Self.create(elements.joined().lazy.map { Element(any: $0) },
-                           shape, name)
+        let shape = DataShape(extents: [elements.count,
+                                        elements.first!.count,
+                                        elements.first!.first!.count])
+        let flatElements = elements.joined().joined().lazy.map {
+            Element(any: $0)
+        }
+        self = Self.create(flatElements, shape, name)
     }
     
     //--------------------------------------------------------------------------
     /// with reference to read only buffer
     /// useful for memory mapped databases, or hardware device buffers
-    init(referenceTo buffer: UnsafeBufferPointer<Element>,
-         deps: Int, rows: Int, cols: Int,
+    init(_ deps: Int, _ rows: Int, _ cols: Int,
+         referenceTo buffer: UnsafeBufferPointer<Element>,
          name: String? = nil)
     {
         let shape = DataShape(extents: [deps, rows, cols])
@@ -571,14 +484,13 @@ public extension VolumeView {
     //--------------------------------------------------------------------------
     /// with reference to read write buffer
     /// useful for memory mapped databases, or hardware device buffers
-    init(referenceTo buffer: UnsafeMutableBufferPointer<Element>,
-         deps: Int, rows: Int, cols: Int,
+    init(_ deps: Int, _ rows: Int, _ cols: Int,
+         referenceTo buffer: UnsafeMutableBufferPointer<Element>,
          name: String? = nil)
     {
         let shape = DataShape(extents: [deps, rows, cols])
         self = Self.create(referenceTo: buffer, shape, name)
     }
-    
     
     //--------------------------------------------------------------------------
     // typed views
