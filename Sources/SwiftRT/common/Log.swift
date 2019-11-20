@@ -18,10 +18,10 @@ import Dispatch
 
 //==============================================================================
 /// LogInfo
-/// this is used to manage which log to use and message parameters
+/// this is used to manage which logWriter to use and message parameters
 public struct LogInfo {
-    /// the log to write to
-    var log: Log
+    /// the logWriter to write to
+    var logWriter: Log
     /// the reporting level of the object, which allows different objects
     /// to have different reporting levels to fine tune output
     var logLevel: LogLevel = .error
@@ -34,7 +34,7 @@ public struct LogInfo {
     var nestingLevel: Int
     /// a helper to create logging info for a child object in a hierarchy
     public func child(_ name: String) -> LogInfo {
-        return LogInfo(log: log,
+        return LogInfo(logWriter: logWriter,
                        logLevel: .error,
                        namePath: "\(namePath)/\(name)",
                        nestingLevel: nestingLevel + 1)
@@ -42,7 +42,7 @@ public struct LogInfo {
     /// a helper to create logging info for an object in a flat
     /// reporting structure
     public func flat(_ name: String) -> LogInfo {
-        return LogInfo(log: log,
+        return LogInfo(logWriter: logWriter,
                        logLevel: .error,
                        namePath: "\(namePath)/\(name)",
                        nestingLevel: nestingLevel)
@@ -52,8 +52,8 @@ public struct LogInfo {
 //==============================================================================
 // _Logging
 public protocol _Logging {
-    /// the log to write to
-    var log: Log { get }
+    /// the logWriter to write to
+    var logWriter: Log { get }
     /// the level of reporting for this node
     var logLevel: LogLevel { get }
     /// the name path of this node for hierarchical structures
@@ -62,11 +62,11 @@ public protocol _Logging {
     /// message formatting.
     var logNestingLevel: Int { get }
 
-    /// tests if a message will be written to the log
+    /// tests if a message will be written to the logWriter
     /// - Parameter level: the level of the message (error, warning, ...)
     func willLog(level: LogLevel) -> Bool
     
-    /// writes a message to the log
+    /// writes a message to the logWriter
     /// - Parameter message: the message to write
     /// - Parameter level: the level of the message (error, warning, ...)
     /// - Parameter indent: optional indent level for formatting
@@ -80,7 +80,7 @@ public protocol _Logging {
                   trailing: String,
                   minCount: Int)
     
-    /// writes a diagnostic message to the log
+    /// writes a diagnostic message to the logWriter
     /// - Parameter message: the message to write
     /// - Parameter categories: the categories this message applies to
     /// - Parameter indent: optional indent level for formatting
@@ -99,7 +99,7 @@ public extension _Logging {
     //--------------------------------------------------------------------------
     /// writeLog
     func willLog(level: LogLevel) -> Bool {
-        return level <= log.level || level <= logLevel
+        return level <= logWriter.level || level <= logLevel
     }
 
     //--------------------------------------------------------------------------
@@ -111,7 +111,7 @@ public extension _Logging {
                   minCount: Int = 80)
     {
         guard willLog(level: level) else { return }
-        log.write(level: level,
+        logWriter.write(level: level,
                   message: message(),
                   nestingLevel: indent + logNestingLevel,
                   trailing: trailing, minCount: minCount)
@@ -127,12 +127,12 @@ public extension _Logging {
                     minCount: Int = 80)
     {
         guard willLog(level: .diagnostic) else { return}
-        // if subcategories have been selected on the log object
+        // if subcategories have been selected on the logWriter object
         // then make sure the caller's category is desired
-        if let mask = log.categories?.rawValue,
+        if let mask = logWriter.categories?.rawValue,
             categories.rawValue & mask == 0 { return }
         
-        log.write(level: .diagnostic,
+        logWriter.write(level: .diagnostic,
                   message: message(),
                   nestingLevel: indent + logNestingLevel,
                   trailing: trailing, minCount: minCount)
@@ -152,7 +152,7 @@ public extension _Logging {
 public protocol Logging : _Logging { }
 
 public extension Logging {
-    var log: Log { return DeviceContext.local.logInfo.log }
+    var logWriter: Log { return DeviceContext.local.logInfo.logWriter }
     var logLevel: LogLevel { return DeviceContext.local.logInfo.logLevel }
     var logNamePath: String { return DeviceContext.local.logInfo.namePath }
     var logNestingLevel: Int { return DeviceContext.local.logInfo.nestingLevel }
@@ -165,7 +165,7 @@ public protocol Logger : _Logging {
 }
 
 extension Logger {
-    public var log: Log { return logInfo.log }
+    public var logWriter: Log { return logInfo.logWriter }
     public var logLevel: LogLevel { return logInfo.logLevel }
     public var logNamePath: String { return logInfo.namePath }
     public var logNestingLevel: Int { return logInfo.nestingLevel }
@@ -173,7 +173,7 @@ extension Logger {
 
 //==============================================================================
 /// LogWriter
-/// implemented by objects that write to a log.
+/// implemented by objects that write to a logWriter.
 public protocol LogWriter: ObjectTracking {
     /// the diagnostic categories that will be logged. If `nil`,
     /// all diagnostic categories will be logged
@@ -184,12 +184,12 @@ public protocol LogWriter: ObjectTracking {
     var _silent: Bool { get set }
     /// the tabsize to use for message formatting
     var _tabSize: Int { get set }
-    /// A log can be written to freely by any thread, so create write queue
+    /// A logWriter can be written to freely by any thread, so create write queue
     var queue: DispatchQueue { get }
     
     //--------------------------------------------------------------------------
     /// write
-    /// writes an entry into the log
+    /// writes an entry into the logWriter
     /// - Parameter level: the level of the message
     /// - Parameter message: the message string to write
     /// - Parameter nestingLevel: formatting nesting level
@@ -205,7 +205,7 @@ public protocol LogWriter: ObjectTracking {
 
     //--------------------------------------------------------------------------
     /// output(message:
-    /// writes the formatted message to the log
+    /// writes the formatted message to the logWriter
     func output(message: String)
 }
 
@@ -286,7 +286,7 @@ final public class Log: LogWriter {
             let mgr = FileManager()
             if !mgr.fileExists(atPath: fileURL.path) {
                 if !mgr.createFile(atPath: fileURL.path, contents: nil) {
-                    print("failed to create log file at: \(fileURL.path)")
+                    print("failed to create logWriter file at: \(fileURL.path)")
                 }
             }
 

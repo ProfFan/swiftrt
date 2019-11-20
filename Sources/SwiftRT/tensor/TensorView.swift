@@ -15,6 +15,11 @@
 //
 import Foundation
 
+// hack for now to bridge getting to Swift auto differentiation
+#if !canImport(TensorFlow)
+public protocol Differentiable {}
+#endif
+
 //==============================================================================
 /// TensorView protocol
 /// A TensorView object is the primary interface for working with data in
@@ -39,7 +44,7 @@ import Foundation
 ///
 /// Data repeating (broadcasting) is an instrinsic feature
 ///
-public protocol TensorView: Logging {
+public protocol TensorView: Differentiable, Logging {
     //--------------------------------------------------------------------------
     /// the type of element stored by the tensor
     associatedtype Element

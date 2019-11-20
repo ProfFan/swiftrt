@@ -150,6 +150,28 @@ public extension VectorView {
 
 //==============================================================================
 // Vector
+#if canImport(TensorFlow)
+public struct Vector<Element>: VectorView {
+    // properties
+    @noDerivative public let isShared: Bool
+    @noDerivative public let format: TensorFormat = .vector
+    @noDerivative public let shape: DataShape
+    @noDerivative public var tensorArray: TensorArray<Element>
+    @noDerivative public let viewOffset: Int
+    @noDerivative public let singleElementExtents = [1]
+    
+    public init(shape: DataShape,
+                tensorArray: TensorArray<Element>,
+                viewOffset: Int,
+                isShared: Bool)
+    {
+        self.shape = shape
+        self.tensorArray = tensorArray
+        self.viewOffset = viewOffset
+        self.isShared = isShared
+    }
+}
+#else
 public struct Vector<Element>: VectorView {
     // properties
     public let isShared: Bool
@@ -170,6 +192,7 @@ public struct Vector<Element>: VectorView {
         self.isShared = isShared
     }
 }
+#endif
 
 //******************************************************************************
 //******************************************************************************
@@ -367,6 +390,28 @@ public extension MatrixView {
 
 //==============================================================================
 // Matrix
+#if canImport(TensorFlow)
+public struct Matrix<Element>: MatrixView {
+    // properties
+    @noDerivative public let isShared: Bool
+    @noDerivative public let format: TensorFormat = .matrix
+    @noDerivative public let shape: DataShape
+    @noDerivative public var tensorArray: TensorArray<Element>
+    @noDerivative public let viewOffset: Int
+    @noDerivative public let singleElementExtents = [1, 1]
+
+    public init(shape: DataShape,
+                tensorArray: TensorArray<Element>,
+                viewOffset: Int,
+                isShared: Bool)
+    {
+        self.shape = shape
+        self.tensorArray = tensorArray
+        self.viewOffset = viewOffset
+        self.isShared = isShared
+    }
+}
+#else
 public struct Matrix<Element>: MatrixView {
     // properties
     public let isShared: Bool
@@ -387,6 +432,7 @@ public struct Matrix<Element>: MatrixView {
         self.isShared = isShared
     }
 }
+#endif
 
 //******************************************************************************
 //******************************************************************************
@@ -544,6 +590,28 @@ public extension VolumeView {
 
 //==============================================================================
 // Volume
+#if canImport(TensorFlow)
+public struct Volume<Element>: VolumeView {
+    // properties
+    @noDerivative public let isShared: Bool
+    @noDerivative public let format: TensorFormat = .volume
+    @noDerivative public let shape: DataShape
+    @noDerivative public var tensorArray: TensorArray<Element>
+    @noDerivative public let viewOffset: Int
+    @noDerivative public let singleElementExtents = [1, 1, 1]
+    
+    public init(shape: DataShape,
+                tensorArray: TensorArray<Element>,
+                viewOffset: Int,
+                isShared: Bool)
+    {
+        self.shape = shape
+        self.tensorArray = tensorArray
+        self.viewOffset = viewOffset
+        self.isShared = isShared
+    }
+}
+#else
 public struct Volume<Element>: VolumeView {
     // properties
     public let isShared: Bool
@@ -564,4 +632,4 @@ public struct Volume<Element>: VolumeView {
         self.isShared = isShared
     }
 }
-
+#endif

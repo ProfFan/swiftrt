@@ -185,7 +185,6 @@ public extension CpuAsynchronousQueue {
 /// exp(x)
 /// computes the exponential value of `x`
 ///
-/// with placement
 /// - Parameter x: value tensor
 /// - Returns: result
 @inlinable @inline(__always)
@@ -199,7 +198,10 @@ public func exp<T>(_ x: T) -> T where
 
 public extension TensorView where Element: Real {
     @inlinable @inline(__always)
-    func exp() -> Self { SwiftRT.exp(self) }
+    func exp(_ x: Self) -> Self { SwiftRT.exp(x) }
+
+    @inlinable @inline(__always)
+    func exp() -> Self { exp(self) }
 }
 
 //------------------------------------------------------------------------------
@@ -248,7 +250,10 @@ public func log<T>(_ x: T) -> T where
 
 public extension TensorView where Element: Real {
     @inlinable @inline(__always)
-    func log() -> Self { SwiftRT.log(self) }
+    func log(_ x: Self) -> Self { SwiftRT.log(x) }
+
+    @inlinable @inline(__always)
+    func log() -> Self { log(self) }
 }
 
 //------------------------------------------------------------------------------
