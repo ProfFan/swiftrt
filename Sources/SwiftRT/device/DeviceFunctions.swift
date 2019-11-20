@@ -28,7 +28,7 @@ public protocol DeviceFunctions: DeviceQueueBase {
         T: TensorView, T.Element: AnyConvertable,
         U: TensorView, U.Element: AnyConvertable
     /// concat
-    func concat<T>(tensors: [T], along axis: Int, result: inout T) where
+    func concat<T>(tensors: [T], alongAxis axis: Int, result: inout T) where
         T: TensorView
     /// div
     func div<T>(lhs: T, rhs: T, result: inout T) where

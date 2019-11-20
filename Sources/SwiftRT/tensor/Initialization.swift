@@ -58,12 +58,16 @@ public extension TensorView {
     
     //--------------------------------------------------------------------------
     /// concatenated tensors
-    init(concatenating tensors: Self..., along axis: Int, name: String? = nil) {
-        self = Self(concatenating: tensors, along: axis, name: name)
+    init(concatenating tensors: Self..., alongAxis axis: Int = 0,
+         name: String? = nil)
+    {
+        self = Self(concatenating: tensors, alongAxis: axis, name: name)
     }
     
-    init(concatenating tensors: [Self], along axis: Int, name: String? = nil) {
-        self = SwiftRT.concat(tensors: tensors, along: axis, name: name)
+    init(concatenating tensors: [Self], alongAxis axis: Int = 0,
+         name: String? = nil)
+    {
+        self = SwiftRT.concat(tensors: tensors, alongAxis: axis, name: name)
     }
     
     //--------------------------------------------------------------------------
