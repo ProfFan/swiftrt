@@ -45,9 +45,6 @@ public extension TensorView where Element: Numeric {
     static func += (lhs: inout Self, rhs: Element) { lhs = lhs + rhs }
     
     @inlinable @inline(__always)
-    static func += (lhs: inout Self, rhs: Self) { lhs = lhs + rhs }
-
-    @inlinable @inline(__always)
     static func +(lhs: Self, rhs: Element) -> Self {
         lhs + lhs.create(repeating: rhs)
     }
@@ -108,9 +105,6 @@ public extension TensorView where Element: Numeric {
     @inlinable @inline(__always)
     static func -= (lhs: inout Self, rhs: Element) { lhs = lhs - rhs }
     
-    @inlinable @inline(__always)
-    static func -= (lhs: inout Self, rhs: Self) { lhs = lhs - rhs }
-
     @inlinable @inline(__always)
     static func - (lhs: Self, rhs: Element) -> Self {
         lhs - lhs.create(repeating: rhs)

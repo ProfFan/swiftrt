@@ -418,19 +418,20 @@ public func notEqual<T>(_ lhs: T, _ rhs: T) -> T.BoolView where
 public extension TensorView where Element: Equatable {
     @inlinable
     static func .!=(_ lhs: Self, _ rhs: Self) -> BoolView { notEqual(lhs, rhs) }
-    
-    @inlinable
-    static func != (lhs: Self, rhs: Self) -> Bool {
-        // the extents must not match or they are not equal
-        guard lhs.extents != rhs.extents else { return true }
 
-        // if lhs is an alias for rhs, then they match
-        if (lhs.tensorArray === rhs.tensorArray &&
-            lhs.viewOffset == rhs.viewOffset) { return false }
-
-        // compare elements
-        return (lhs .!= rhs).any().element
-    }
+    // ambiguous with AdditiveArithmetic
+//    @inlinable
+//    static func != (lhs: Self, rhs: Self) -> Bool {
+//        // the extents must not match or they are not equal
+//        guard lhs.extents != rhs.extents else { return true }
+//
+//        // if lhs is an alias for rhs, then they match
+//        if (lhs.tensorArray === rhs.tensorArray &&
+//            lhs.viewOffset == rhs.viewOffset) { return false }
+//
+//        // compare elements
+//        return (lhs .!= rhs).any().element
+//    }
 }
 
 //------------------------------------------------------------------------------

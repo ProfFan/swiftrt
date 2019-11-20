@@ -66,7 +66,7 @@ class test_ElementWise: XCTestCase {
         ]
         XCTAssert(c1.flatArray == c1Expected)
         
-        let c2 = t1.concat(t2, along: 1)
+        let c2 = t1.concat(t2, alongAxis: 1)
         XCTAssert(c2.extents == [2, 6])
         let c2Expected: [Float] = [
             1, 2, 3,  7,  8,  9,

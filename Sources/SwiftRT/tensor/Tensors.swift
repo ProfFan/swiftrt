@@ -25,6 +25,14 @@ extension Vector: CustomStringConvertible where Element: AnyConvertable {
     public var description: String { return formatted() }
 }
 
+extension Vector: Equatable where Element: Equatable { }
+
+extension Vector: AdditiveArithmetic where Element: Numeric {
+    public static var zero: Vector<Element> {
+        Vector<Element>(element: Element.zero)
+    }
+}
+
 //==============================================================================
 // MatrixView extensions
 public extension VectorView {
@@ -36,6 +44,12 @@ public extension VectorView {
     
     init(count: Int, name: String? = nil) {
         self.init(extents: [count], name: name)
+    }
+    
+    //--------------------------------------------------------------------------
+    /// from single `Element`
+    init(element: Element, name: String? = nil) {
+        self = Self.create([element], DataShape(extents: [1]), name)
     }
     
     //--------------------------------------------------------------------------
@@ -191,6 +205,14 @@ extension Matrix: CustomStringConvertible where Element: AnyConvertable {
     public var description: String { return formatted() }
 }
 
+extension Matrix: Equatable where Element: Equatable { }
+
+extension Matrix: AdditiveArithmetic where Element: Numeric {
+    public static var zero: Matrix<Element> {
+        Matrix<Element>(element: Element.zero)
+    }
+}
+
 //==============================================================================
 // MatrixView extensions
 public extension MatrixView {
@@ -208,10 +230,15 @@ public extension MatrixView {
     }
 
     //--------------------------------------------------------------------------
+    /// from single `Element`
+    init(element: Element, name: String? = nil) {
+        let shape = DataShape(extents: [1, 1])
+        self = Self.create([element], shape, name)
+    }
+
+    //--------------------------------------------------------------------------
     /// from single `AnyConvertable`
-    init<T>(with element: T,
-            layout: MatrixLayout = .rowMajor,
-            name: String? = nil) where
+    init<T>(with element: T, name: String? = nil) where
         T: AnyConvertable, Element: AnyConvertable
     {
         let shape = DataShape(extents: [1, 1])
@@ -429,6 +456,14 @@ extension Volume: CustomStringConvertible where Element: AnyConvertable {
     public var description: String { return formatted() }
 }
 
+extension Volume: Equatable where Element: Equatable { }
+
+extension Volume: AdditiveArithmetic where Element: Numeric {
+    public static var zero: Volume<Element> {
+        Volume<Element>(element: Element.zero)
+    }
+}
+
 //==============================================================================
 // VolumeView extensions
 public extension VolumeView {
@@ -442,6 +477,13 @@ public extension VolumeView {
         self.init(extents: [deps, rows, cols], name: name)
     }
     
+    //--------------------------------------------------------------------------
+    /// from single `Element`
+    init(element: Element, name: String? = nil) {
+        let shape = DataShape(extents: [1, 1, 1])
+        self = Self.create([element], shape, name)
+    }
+
     //--------------------------------------------------------------------------
     /// from single `AnyConvertable`
     init<T>(with element: T, name: String? = nil) where
