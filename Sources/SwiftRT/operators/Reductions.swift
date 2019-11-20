@@ -346,7 +346,7 @@ public extension TensorView where Element: Numeric {
 
 //==============================================================================
 // >>>>>> User API <<<<<<
-/// minElement(x:alongAxes:
+/// min(x:alongAxes:
 /// returns the minimum element value of `x` along the specified axes
 /// TODO: add optional indices
 ///
@@ -354,7 +354,7 @@ public extension TensorView where Element: Numeric {
 /// - Parameter result: the scalar tensor where the result will be written
 /// - Precondition: Each value in `axes` must be in the range `-rank..<rank`.
 @inlinable
-public func minElement<T>(_ x: T, result: inout T)
+public func min<T>(_ x: T, result: inout T)
     where T: TensorView, T.Element: Numeric & Comparable & AnyElement
 {
     DeviceContext.currentQueue.reduce(x: x,
@@ -369,16 +369,16 @@ public extension TensorView where
     Element: Numeric & Comparable & AnyElement
 {
     @inlinable
-    func minElement(alongAxes axes: Int...) -> Self {
+    func min(alongAxes axes: Int...) -> Self {
         var result = createReductionResult(alongAxes: axes)
-        SwiftRT.minElement(self, result: &result)
+        SwiftRT.min(self, result: &result)
         return result
     }
     
     @inlinable
-    func minElement() -> Self {
+    func min() -> Self {
         var result = createSingleElement()
-        SwiftRT.minElement(self, result: &result)
+        SwiftRT.min(self, result: &result)
         return result
     }
 }
@@ -392,7 +392,7 @@ public extension TensorView where
 /// - Parameter result: the scalar tensor where the result will be written
 /// - Precondition: Each value in `axes` must be in the range `-rank..<rank`.
 @inlinable
-public func maxElement<T>(_ x: T, result: inout T)
+public func max<T>(_ x: T, result: inout T)
     where T: TensorView, T.Element: Numeric & Comparable & AnyElement
 {
     DeviceContext.currentQueue.reduce(x: x,
@@ -407,16 +407,16 @@ public extension TensorView where
     Element: Numeric & Comparable & AnyElement
 {
     @inlinable
-    func maxElement(alongAxes axes: Int...) -> Self {
+    func max(alongAxes axes: Int...) -> Self {
         var result = createReductionResult(alongAxes: axes)
-        SwiftRT.maxElement(self, result: &result)
+        SwiftRT.max(self, result: &result)
         return result
     }
     
     @inlinable
-    func maxElement() -> Self {
+    func max() -> Self {
         var result = createSingleElement()
-        SwiftRT.maxElement(self, result: &result)
+        SwiftRT.max(self, result: &result)
         return result
     }
 }

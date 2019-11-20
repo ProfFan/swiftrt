@@ -34,7 +34,7 @@ public extension VectorView {
         self = Self.create(DataShape(extents: extents), name)
     }
     
-    init(_ count: Int, name: String? = nil) {
+    init(count: Int, name: String? = nil) {
         self.init(extents: [count], name: name)
     }
     
@@ -92,25 +92,6 @@ public extension VectorView {
     
     func createIndexTensor(with extents: [Int]) -> Vector<IndexElement> {
         Vector<IndexElement>(extents: extents)
-    }
-    
-    //--------------------------------------------------------------------------
-    // utilities
-    private static func matrixShape(
-        _ extents: [Int],
-        _ layout: MatrixLayout) -> DataShape
-    {
-        let shape = DataShape(extents: extents)
-        return layout == .rowMajor ? shape : shape.columnMajor()
-    }
-    
-    private static func matrixRepeatedShape(
-        _ extents: [Int],
-        _ repeatedExtents: [Int],
-        _ layout: MatrixLayout) -> DataShape
-    {
-        let shape = DataShape(extents: extents).repeated(to: repeatedExtents)
-        return layout == .rowMajor ? shape : shape.columnMajor()
     }
 }
 
