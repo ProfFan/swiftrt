@@ -41,8 +41,7 @@ public enum ReductionOp: Int, Codable {
     case compare
 }
 
-public typealias ReduceOpFinal<T: TensorView> =
-    (_ dim: Int, _ value: T.Element) -> T.Element
+public typealias ReduceOpFinal<T: TensorView> = (T.Element) -> T.Element
 
 //------------------------------------------------------------------------------
 // >>>>>> INTENT <<<<<<
@@ -69,8 +68,14 @@ public extension DeviceQueue {
             zip(x.elements, resultElements.indices).forEach {
                 resultElements[$1] = opNext(resultElements[$1], $0)
             }
-            
-//            opFinal?(&result)
+
+            if let finalOp = opFinal {
+                // do the reduction
+                var results = result.mutableElements(using: self)
+                results.indices.forEach {
+                    results[$0] = finalOp(results[$0])
+                }
+            }
         } catch {
             device.report(error)
         }
@@ -96,13 +101,19 @@ public extension CpuAsynchronousQueue {
         do {
             // create a temporary view that is repeated to match the input
             var res = try result.sharedView(using: self).repeated(to: x.extents)
-            
             queue(#function, { x.elements(using: self) }, &res) {
                 elements, resultElements in
                 zip(elements, resultElements.indices).forEach {
                     resultElements[$1] = opNext(resultElements[$1], $0)
                 }
-//                opFinal?(&res)
+            }
+            
+            if let finalOp = opFinal {
+                queue(#function, { }, &result) { _, results in
+                    results.indices.forEach {
+                        results[$0] = finalOp(results[$0])
+                    }
+                }
             }
         } catch {
             device.report(error)
@@ -246,13 +257,7 @@ public extension TensorView where Element: Numeric {
 public func mean<T>(_ x: T, result: inout T)
     where T: TensorView, T.Element: FloatingPoint
 {
-    let divisors = x.extents.map { T.Element(exactly: $0)! }
-    DeviceContext.currentQueue.reduce(x: x,
-                                      into: &result,
-                                      initialResult: T.Element.zero,
-                                      opId: .add,
-                                      opNext: { $0 + $1 },
-                                      opFinal: { $1 / divisors[$0] })
+    sum(x, result: &result)
 }
 
 public extension TensorView where Element: FloatingPoint {
@@ -513,7 +518,7 @@ public func sqrtSumSquares<T>(_ x: T, result: inout T)
                                       initialResult: T.Element.zero,
                                       opId: .sqrtSumSquares,
                                       opNext: { $0 + $1 * $1 },
-                                      opFinal: { _ , elt in .sqrt(elt) })
+                                      opFinal: { .sqrt($0) })
 }
 
 public extension TensorView where Element: Real {
