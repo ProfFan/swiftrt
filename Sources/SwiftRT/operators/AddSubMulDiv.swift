@@ -20,7 +20,6 @@ infix operator .>= : ComparisonPrecedence
 infix operator .>  : ComparisonPrecedence
 infix operator .== : ComparisonPrecedence
 infix operator .!= : ComparisonPrecedence
-infix operator .=
 
 //==============================================================================
 /// Elementwise add tensors

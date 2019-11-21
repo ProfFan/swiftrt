@@ -19,10 +19,12 @@ import XCTest
 public func allTests() -> [XCTestCaseEntry] {
     return [
         testCase(test_BinaryFunctions.allTest),
+        testCase(test_Comparative.allTest),
         testCase(test_DataMigration.allTests),
         testCase(test_ElementWise.allTests),
         testCase(test_Initialize.allTests),
         testCase(test_IterateView.allTests),
+        testCase(test_Reductions.allTests),
     ]
 }
 #endif

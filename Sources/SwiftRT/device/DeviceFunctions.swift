@@ -23,7 +23,7 @@ public protocol DeviceFunctions: DeviceQueueBase {
     /// Adds two tensors and produces their sum.
     func add<T>(lhs: T, rhs: T, result: inout T) where
         T: TensorView, T.Element: Numeric
-    // cast
+    /// cast
     func cast<T, U>(from other: T, to result: inout U) where
         T: TensorView, T.Element: AnyConvertable,
         U: TensorView, U.Element: AnyConvertable
@@ -33,6 +33,10 @@ public protocol DeviceFunctions: DeviceQueueBase {
     /// div
     func div<T>(lhs: T, rhs: T, result: inout T) where
         T: TensorView, T.Element: FloatingPoint
+    /// elementsAlmostEqual
+    func elementsAlmostEqual<T>(lhs: T, rhs: T, tolerance: T.Element,
+                                result: inout T.BoolView) where
+        T: TensorView, T.Element: SignedNumeric & Comparable
     /// equal
     func equal<T>(lhs: T, rhs: T, result: inout T.BoolView) where
         T: TensorView, T.Element: Equatable

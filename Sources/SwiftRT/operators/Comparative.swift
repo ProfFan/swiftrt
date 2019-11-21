@@ -196,8 +196,60 @@ public extension CpuAsynchronousQueue {
 }
 #endif
 
-//elementsAlmostEqual(expected, tolerance: tolerance)
+//==============================================================================
+// >>>>>> User API <<<<<<
+/// elementsAlmostEqual
+/// Performs element-wise equality comparison within the tolerance range
+/// and returns a tensor of Bool values
+public func elementsAlmostEqual<T>(_ lhs: T, _ rhs: T,
+                                   tolerance: T.Element) -> T.BoolView where
+    T: TensorView, T.Element: SignedNumeric & Comparable
+{
+    assert(lhs.extents == rhs.extents, _messageTensorExtentsMismatch)
+    var result = lhs.createBoolTensor()
+    DeviceContext.currentQueue.elementsAlmostEqual(lhs: lhs, rhs: rhs,
+                                                   tolerance: tolerance,
+                                                   result: &result)
+    return result
+}
 
+public extension TensorView where Element: SignedNumeric & Comparable {
+    func elementsAlmostEqual(_ other: Self, tolerance: Element) -> BoolView {
+        SwiftRT.elementsAlmostEqual(self, other, tolerance: tolerance)
+    }
+}
+
+//------------------------------------------------------------------------------
+// >>>>>> INTENT <<<<<<
+// User device function
+public extension DeviceQueue {
+    /// equal
+    func elementsAlmostEqual<T>(lhs: T, rhs: T, tolerance: T.Element,
+                            result: inout T.BoolView) where
+        T: TensorView, T.Element: SignedNumeric & Comparable
+    {
+        zip(lhs, rhs).map(into: &result) { abs($0 - $1) <= tolerance }
+    }
+}
+
+//******************************************************************************
+// >>>>>> GENERATED <<<<<<
+#if canImport(CpuAsync)
+public extension CpuAsynchronousQueue {
+    /// equal
+    func elementsAlmostEqual<T>(lhs: T, rhs: T, tolerance: T.Element,
+                            result: inout T.BoolView) where
+        T: TensorView, T.Element: SignedNumeric & Comparable
+    {
+        queue(#function, {
+            (lhs.elements(using: self),
+             rhs.elements(using: self))
+        }, &result) {
+            zip($0.0, $0.1).map(into: &$1) { abs($0 - $1) <= tolerance }
+        }
+    }
+}
+#endif
 
 //==============================================================================
 // >>>>>> User API <<<<<<
@@ -267,9 +319,8 @@ public extension CpuAsynchronousQueue {
 
 @differentiating(maximum)
 @inlinable @inline(__always)
-func vjpMaximum<T>(_ lhs: T, _ rhs: T) -> (
-    value: T, pullback: (T) -> (T, T)
-) where
+func vjpMaximum<T>(_ lhs: T, _ rhs: T)
+    -> (value: T, pullback: (T) -> (T, T)) where
     T: DifferentiableTensorView
 {
     let value = maximum(lhs, rhs)
