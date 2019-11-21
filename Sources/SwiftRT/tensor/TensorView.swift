@@ -15,6 +15,11 @@
 //
 import Foundation
 
+// hack for now to bridge getting to Swift auto differentiation
+#if !canImport(TensorFlow)
+public protocol Differentiable {}
+#endif
+
 //==============================================================================
 /// TensorView protocol
 /// A TensorView object is the primary interface for working with data in
@@ -138,6 +143,17 @@ public extension TensorView {
         }
     }
 }
+
+//==============================================================================
+/// DifferentiableTensorView
+///
+/// Marker protocol for `TensorView` that conform to `Differentiable`.
+///
+/// While this protoocl is not strictly necessary, it is used to reduce the
+/// number of generic requirements when writing `@differentiable` attributes on
+/// generic differentiable `TensorView` functions.
+public protocol DifferentiableTensorView: TensorView & Differentiable where
+    Self == TangentVector, Element: AnyDifferentiableScalar {}
 
 //==============================================================================
 // view subscripting helpers

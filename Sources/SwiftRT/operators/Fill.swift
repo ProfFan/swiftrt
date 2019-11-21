@@ -19,21 +19,21 @@
 ///
 /// - Parameter tensors: array of tensors whose elements will be joined
 /// - Parameter axis: dimension to append the elements
-func concat<T>(tensors: [T], along axis: Int = 0,
+func concat<T>(tensors: [T], alongAxis axis: Int = 0,
                name: String? = nil) -> T where T: TensorView
 {
     assert(tensors.count > 1)
     let joined = tensors[0].shape.joined(with: tensors[1...].map { $0.shape },
-                                         along: axis)
+                                         alongAxis: axis)
     var result = tensors[0].createDense(with: joined, name: name)
-    DeviceContext.currentQueue.concat(tensors: tensors, along: axis,
+    DeviceContext.currentQueue.concat(tensors: tensors, alongAxis: axis,
                                       result: &result)
     return result
 }
 
 public extension TensorView {
-    func concat(_ others: Self..., along axis: Int = 0) -> Self {
-        SwiftRT.concat(tensors: [self] + others, along: axis)
+    func concat(_ others: Self..., alongAxis axis: Int = 0) -> Self {
+        SwiftRT.concat(tensors: [self] + others, alongAxis: axis)
     }
 }
 
@@ -41,7 +41,7 @@ public extension TensorView {
 // >>>>>> INTENT <<<<<<
 // User device function
 public extension DeviceQueue {
-    func concat<T>(tensors: [T], along axis: Int, result: inout T) where
+    func concat<T>(tensors: [T], alongAxis axis: Int, result: inout T) where
         T: TensorView
     {
         do {
@@ -64,7 +64,7 @@ public extension DeviceQueue {
 // >>>>>> GENERATED <<<<<<
 #if canImport(CpuAsync)
 public extension CpuAsynchronousQueue {
-    func concat<T>(tensors: [T], along axis: Int, result: inout T) where
+    func concat<T>(tensors: [T], alongAxis axis: Int, result: inout T) where
         T: TensorView
     {
         let inputs: () throws -> ([TensorValueCollection<T>]) = {

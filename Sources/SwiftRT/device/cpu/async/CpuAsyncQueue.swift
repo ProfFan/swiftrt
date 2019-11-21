@@ -162,7 +162,7 @@ public final class CpuAsynchronousQueue: DeviceQueue, CpuQueueProtocol, LocalDev
     //--------------------------------------------------------------------------
     /// queues a closure on the queue for execution
     /// This will catch and propagate the last asynchronous error thrown.
-    private func queue(_ body: @escaping () throws -> Void) {
+    private func queue(body: @escaping () throws -> Void) {
         // if the queue is in an error state, no additional work
         // will be queued
         guard lastError == nil else { return }

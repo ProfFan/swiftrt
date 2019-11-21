@@ -20,7 +20,7 @@ public func all<T>(_ x: T, alongAxes axes: Vector<IndexElement>? = nil,
                    result: inout T)
     where T: TensorView, T.Element == Bool
 {
-    DeviceContext.currentQueue.all(x: x, along: axes, result: &result)
+    DeviceContext.currentQueue.all(x: x, alongAxis: axes, result: &result)
 }
 
 /// returns new view
@@ -76,7 +76,7 @@ public func mean<T>(_ x: T, alongAxes axes: Vector<IndexElement>? = nil,
                     result: inout T)
     where T: TensorView, T.Element: BinaryFloatingPoint
 {
-    DeviceContext.currentQueue.mean(x: x, along: axes, result: &result)
+    DeviceContext.currentQueue.mean(x: x, alongAxis: axes, result: &result)
 }
 
 /// return result
@@ -90,7 +90,7 @@ public func mean<T>(_ x: T, alongAxes axes: Vector<IndexElement>? = nil) -> T
 {
     let extents = [Int](repeating: 1, count: x.rank)
     var result = x.createDense(with: extents)
-    DeviceContext.currentQueue.mean(x: x, along: axes, result: &result)
+    DeviceContext.currentQueue.mean(x: x, alongAxis: axes, result: &result)
     return result
 }
 
@@ -157,7 +157,7 @@ public func sum<T>(_ x: T, alongAxes axes: Vector<IndexElement>? = nil,
                    result: inout T)
     where T: TensorView, T.Element: Numeric
 {
-    DeviceContext.currentQueue.sum(x: x, along: axes, result: &result)
+    DeviceContext.currentQueue.sum(x: x, alongAxis: axes, result: &result)
 }
 
 /// return result
@@ -171,7 +171,7 @@ public func sum<T>(_ x: T, alongAxes axes: Vector<IndexElement>? = nil) -> T
 {
     let extents = [Int](repeating: 1, count: x.rank)
     var result = x.createDense(with: extents)
-    DeviceContext.currentQueue.sum(x: x, along: axes, result: &result)
+    DeviceContext.currentQueue.sum(x: x, alongAxis: axes, result: &result)
     return result
 }
 
@@ -231,10 +231,10 @@ public func variance<T>(_ x: T, alongAxes axes: Vector<IndexElement>? = nil,
 {
 //    if let axes = axes {
 //    } else {
-    DeviceContext.currentQueue.mean(x: x, along: axes, result: &mean)
+    DeviceContext.currentQueue.mean(x: x, alongAxis: axes, result: &mean)
     let meanVec = T(with: x.extents, repeating: mean)
     DeviceContext.currentQueue.mean(x: squaredDifference(x, meanVec),
-                          along: axes, result: &result)
+                          alongAxis: axes, result: &result)
 //    }
 }
 

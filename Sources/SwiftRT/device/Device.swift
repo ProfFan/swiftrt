@@ -44,8 +44,8 @@ public protocol ComputePlatform: DeviceErrorHandling, ObjectTracking, Logger {
     /// the platform id. Usually zero, but can be assigned in case a higher
     /// level object (e.g. cluster) will maintain a platform collection
     var id: Int { get set }
-    /// the root log
-    var log: Log { get set }
+    /// the root logWriter
+    var logWriter: Log { get set }
     /// location of dynamically loaded service modules
     var serviceModuleDirectory: URL { get set }
     /// ordered list of service names specifying the order for auto selection

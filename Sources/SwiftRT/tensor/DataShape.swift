@@ -84,7 +84,7 @@ public struct DataShape: Equatable, Codable {
     /// - Parameter others: array of data shapes to join
     /// - Parameter axis: the joining axis
     /// - Returns: returns a new shape that is the join with the others
-    public func joined(with others: [DataShape], along axis: Int) ->
+    public func joined(with others: [DataShape], alongAxis axis: Int) ->
         DataShape
     {
         assert(others.first(where: { $0.rank != rank }) == nil,
