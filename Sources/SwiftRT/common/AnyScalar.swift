@@ -612,15 +612,12 @@ extension Double : AnyFloatingPoint {
     }
 }
 
+//==============================================================================
+/// AnyDifferentiableScalar
+///
+// NOTE: This is similar to `TensorFlowFloatingPoint`:
+// https://github.com/tensorflow/swift-apis/blob/d056376170211a45249f82dfac8e1bc57dce1b74/Sources/TensorFlow/Core/DataTypes.swift#L84
 
-
-
-
-
-
-
-
-
-
-
-
+public protocol AnyDifferentiableScalar: Differentiable & FloatingPoint & AnyConvertable where
+    Self == TangentVector {}
+extension Float: AnyDifferentiableScalar {}
