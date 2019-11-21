@@ -149,7 +149,6 @@ public extension VectorView {
 
 //==============================================================================
 /// Derivative registration
-
 extension VectorView where Self: DifferentiableTensorView {
     @inlinable @inline(__always)
     func vjpSubscript<R>(r: R) -> (value: Self, pullback: (Self) -> Self) where
