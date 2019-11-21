@@ -431,18 +431,20 @@ public extension TensorView where
 /// - Precondition: Each value in `axes` must be in the range `-rank..<rank`.
 @inlinable
 public func absmax<T>(_ x: T, result: inout T)
-    where T: TensorView, T.Element: Numeric & Comparable & AnyElement
+    where T: TensorView, T.Element: SignedNumeric & Comparable & AnyElement
 {
     DeviceContext.currentQueue.reduce(
         x: x,
         into: &result,
         initialResult: x.first,
         opId: .amax,
-        opNext: { $0.magnitude > $1.magnitude ? $0 : $1 },
+        opNext: { max(abs($0), abs($1)) },
         opFinal: nil)
 }
 
-public extension TensorView where Element: Numeric & Comparable & AnyElement {
+public extension TensorView where
+    Element: SignedNumeric & Comparable & AnyElement
+{
     @inlinable
     func absmax(alongAxes axes: Int...) -> Self {
         var result = createReductionResult(alongAxes: axes)

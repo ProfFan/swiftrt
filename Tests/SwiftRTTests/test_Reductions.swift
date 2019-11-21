@@ -27,6 +27,9 @@ class test_Reductions: XCTestCase {
         ("test_allVector", test_allVector),
         ("test_anyVector", test_anyVector),
         ("test_meanMatrix", test_meanMatrix),
+        ("test_maxMatrix", test_maxMatrix),
+        ("test_minMatrix", test_minMatrix),
+        ("test_absmaxMatrix", test_absmaxMatrix),
     ]
     
     //--------------------------------------------------------------------------
@@ -176,5 +179,98 @@ class test_Reductions: XCTestCase {
 //        }
     }
     
+    //--------------------------------------------------------------------------
+    // test_maxMatrix
+    func test_maxMatrix() {
+        let m = Matrix<Float>(with:
+            [
+                [-1, 3, -6],
+                [1, -3,  6],
+            ]
+        )
+        
+        // cols
+        do {
+            let expected: [Float] = [3, 6]
+            let result = m.max(alongAxes: 1)
+            XCTAssert(result.flatArray == expected)
+        }
+
+        // rows
+        do {
+            let expected: [Float] = [1, 3, 6]
+            let result = m.max(alongAxes: 0)
+            XCTAssert(result.flatArray == expected)
+        }
+
+        // all
+        do {
+            let result = m.max()
+            XCTAssert(result.element == 6)
+        }
+    }
+
+    //--------------------------------------------------------------------------
+    // test_minMatrix
+    func test_minMatrix() {
+        let m = Matrix<Float>(with:
+            [
+                [-1, 3, -6],
+                [1, -3,  6],
+            ]
+        )
+        
+        // cols
+        do {
+            let expected: [Float] = [-6, -3]
+            let result = m.min(alongAxes: 1)
+            XCTAssert(result.flatArray == expected)
+        }
+
+        // rows
+        do {
+            let expected: [Float] = [-1, -3, -6]
+            let result = m.min(alongAxes: 0)
+            XCTAssert(result.flatArray == expected)
+        }
+
+        // all
+        do {
+            let result = m.min()
+            XCTAssert(result.element == -6)
+        }
+    }
+    
+    //--------------------------------------------------------------------------
+    // test_absmaxMatrix
+    func test_absmaxMatrix() {
+        let m = Matrix<Float>(with:
+            [
+                [-1, 3, -6],
+                [1, -3,  6],
+            ]
+        )
+        
+        // cols
+        do {
+            let expected: [Float] = [6, 6]
+            let result = m.absmax(alongAxes: 1)
+            XCTAssert(result.flatArray == expected)
+        }
+
+        // rows
+        do {
+            let expected: [Float] = [1, 3, 6]
+            let result = m.absmax(alongAxes: 0)
+            XCTAssert(result.flatArray == expected)
+        }
+
+        // all
+        do {
+            let result = m.absmax()
+            XCTAssert(result.element == 6)
+        }
+    }
 
 }
+
