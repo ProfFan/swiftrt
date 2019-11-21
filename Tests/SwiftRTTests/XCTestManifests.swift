@@ -15,10 +15,10 @@
 //
 import XCTest
 
-#if !os(macOS)
+#if !canImport(ObjectiveC)
 public func allTests() -> [XCTestCaseEntry] {
     return [
-        testCase(test_BinaryFunctions.allTest),
+        testCase(test_BinaryFunctions.allTests),
         testCase(test_DataMigration.allTests),
         testCase(test_ElementWise.allTests),
         testCase(test_Initialize.allTests),
