@@ -25,6 +25,14 @@ extension Vector: CustomStringConvertible where Element: AnyConvertable {
     public var description: String { return formatted() }
 }
 
+extension Vector: Equatable where Element: Equatable { }
+
+extension Vector: AdditiveArithmetic where Element: Numeric {
+    public static var zero: Vector<Element> {
+        Vector<Element>(element: Element.zero)
+    }
+}
+
 //==============================================================================
 // MatrixView extensions
 public extension VectorView {
@@ -34,8 +42,14 @@ public extension VectorView {
         self = Self.create(DataShape(extents: extents), name)
     }
     
-    init(_ count: Int, name: String? = nil) {
+    init(count: Int, name: String? = nil) {
         self.init(extents: [count], name: name)
+    }
+    
+    //--------------------------------------------------------------------------
+    /// from single `Element`
+    init(element: Element, name: String? = nil) {
+        self = Self.create([element], DataShape(extents: [1]), name)
     }
     
     //--------------------------------------------------------------------------
@@ -93,25 +107,6 @@ public extension VectorView {
     func createIndexTensor(with extents: [Int]) -> Vector<IndexElement> {
         Vector<IndexElement>(extents: extents)
     }
-    
-    //--------------------------------------------------------------------------
-    // utilities
-    private static func matrixShape(
-        _ extents: [Int],
-        _ layout: MatrixLayout) -> DataShape
-    {
-        let shape = DataShape(extents: extents)
-        return layout == .rowMajor ? shape : shape.columnMajor()
-    }
-    
-    private static func matrixRepeatedShape(
-        _ extents: [Int],
-        _ repeatedExtents: [Int],
-        _ layout: MatrixLayout) -> DataShape
-    {
-        let shape = DataShape(extents: extents).repeated(to: repeatedExtents)
-        return layout == .rowMajor ? shape : shape.columnMajor()
-    }
 }
 
 //==============================================================================
@@ -124,7 +119,11 @@ public extension VectorView {
     
     @inlinable @inline(__always)
     subscript(r: UnboundedRange) -> Self { self }
-    
+
+    // TODO(TF-281): Rewrite `@differentiable` attribute as a `@differentiating`
+    // attribute when `@differentiating` supports subscript declaration
+    // references.
+    @differentiable(vjp: vjpSubscript where Self: DifferentiableTensorView)
     @inlinable @inline(__always)
     subscript<R>(r: R) -> Self where
         R: RangeExpression, R.Bound == Int
@@ -145,6 +144,19 @@ public extension VectorView {
                                                    parent: shape.strides,
                                                    steps: steps)
         return view(at: viewPosition, extents: subExtents, strides: subStrides)
+    }
+}
+
+//==============================================================================
+/// Derivative registration
+extension VectorView where Self: DifferentiableTensorView {
+    @inlinable @inline(__always)
+    func vjpSubscript<R>(r: R) -> (value: Self, pullback: (Self) -> Self) where
+        R: RangeExpression, R.Bound == Int
+    {
+        let value = self[r]
+        // FIXME: Implement pullback.
+        return (value, { v in fatalError() })
     }
 }
 
@@ -171,6 +183,12 @@ public struct Vector<Element>: VectorView {
     }
 }
 
+extension Vector: Differentiable & DifferentiableTensorView where
+    Element: AnyDifferentiableScalar
+{
+    public typealias TangentVector = Vector
+}
+
 //******************************************************************************
 //******************************************************************************
 //******************************************************************************
@@ -185,6 +203,14 @@ extension Matrix: Codable where Element: Codable {}
 
 extension Matrix: CustomStringConvertible where Element: AnyConvertable {
     public var description: String { return formatted() }
+}
+
+extension Matrix: Equatable where Element: Equatable { }
+
+extension Matrix: AdditiveArithmetic where Element: Numeric {
+    public static var zero: Matrix<Element> {
+        Matrix<Element>(element: Element.zero)
+    }
 }
 
 //==============================================================================
@@ -204,10 +230,15 @@ public extension MatrixView {
     }
 
     //--------------------------------------------------------------------------
+    /// from single `Element`
+    init(element: Element, name: String? = nil) {
+        let shape = DataShape(extents: [1, 1])
+        self = Self.create([element], shape, name)
+    }
+
+    //--------------------------------------------------------------------------
     /// from single `AnyConvertable`
-    init<T>(with element: T,
-            layout: MatrixLayout = .rowMajor,
-            name: String? = nil) where
+    init<T>(with element: T, name: String? = nil) where
         T: AnyConvertable, Element: AnyConvertable
     {
         let shape = DataShape(extents: [1, 1])
@@ -367,6 +398,7 @@ public extension MatrixView {
 
 //==============================================================================
 // Matrix
+
 public struct Matrix<Element>: MatrixView {
     // properties
     public let isShared: Bool
@@ -402,6 +434,14 @@ extension Volume: CustomStringConvertible where Element: AnyConvertable {
     public var description: String { return formatted() }
 }
 
+extension Volume: Equatable where Element: Equatable { }
+
+extension Volume: AdditiveArithmetic where Element: Numeric {
+    public static var zero: Volume<Element> {
+        Volume<Element>(element: Element.zero)
+    }
+}
+
 //==============================================================================
 // VolumeView extensions
 public extension VolumeView {
@@ -415,6 +455,13 @@ public extension VolumeView {
         self.init(extents: [deps, rows, cols], name: name)
     }
     
+    //--------------------------------------------------------------------------
+    /// from single `Element`
+    init(element: Element, name: String? = nil) {
+        let shape = DataShape(extents: [1, 1, 1])
+        self = Self.create([element], shape, name)
+    }
+
     //--------------------------------------------------------------------------
     /// from single `AnyConvertable`
     init<T>(with element: T, name: String? = nil) where
@@ -564,4 +611,3 @@ public struct Volume<Element>: VolumeView {
         self.isShared = isShared
     }
 }
-

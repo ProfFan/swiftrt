@@ -25,7 +25,7 @@ class test_Initialize: XCTestCase {
         ("test_cast", test_cast),
         ("test_concatMatrixRows", test_concatMatrixRows),
         ("test_concatMatrixCols", test_concatMatrixCols),
-//        ("test_repeatElement", test_repeatElement),
+        ("test_repeatElement", test_repeatElement),
         ("test_repeatRowVector", test_repeatRowVector),
         ("test_repeatColVector", test_repeatColVector),
 //        ("test_add", test_add),
@@ -44,15 +44,14 @@ class test_Initialize: XCTestCase {
         XCTAssert(iMatrix.flatArray == expected)
     }
 
-//    //--------------------------------------------------------------------------
-//    // test_repeatElement
-//    func test_repeatElement() {
-//        let value: Int32 = 42
-//        let volume = Volume<Int32>((2, 3, 10), repeating: Volume(value))
-//        let expected = [Int32](repeating: value, count: volume.elementCount)
-//        let values = volume.flatArray
-//        XCTAssert(values == expected)
-//    }
+    //--------------------------------------------------------------------------
+    // test_repeatElement
+    func test_repeatElement() {
+        let value: Int32 = 42
+        let volume = Volume<Int32>(element: value).repeated(to: [2, 3, 10])
+        let expected = [Int32](repeating: value, count: volume.elementCount)
+        XCTAssert(volume.flatArray == expected)
+    }
     
     //--------------------------------------------------------------------------
     // test_repeatRowVector
@@ -89,16 +88,15 @@ class test_Initialize: XCTestCase {
     func test_concatMatrixRows() {
         let t1 = Matrix<Float>(2, 3, with: 1...6)
         let t2 = Matrix<Float>(2, 3, with: 7...12)
-        let c3 = Matrix<Float>(concatenating: t1, t2, along: 0)
+        let c3 = Matrix<Float>(concatenating: t1, t2)
         XCTAssert(c3.extents == [4, 3])
-        let c3Result = c3.flatArray
         let c1Expected: [Float] = [
             1,  2,  3,
             4,  5,  6,
             7,  8,  9,
             10, 11, 12,
         ]
-        XCTAssert(c3Result == c1Expected)
+        XCTAssert(c3.flatArray == c1Expected)
     }
 
     //--------------------------------------------------------------------------
@@ -106,15 +104,12 @@ class test_Initialize: XCTestCase {
     func test_concatMatrixCols() {
         let t1 = Matrix<Float>(2, 3, with: 1...6)
         let t2 = Matrix<Float>(2, 3, with: 7...12)
-        let c3 = Matrix<Float>(concatenating: t1, t2, along: 0)
-        XCTAssert(c3.extents == [4, 3])
-        let c3Result = c3.flatArray
+        let c3 = Matrix<Float>(concatenating: t1, t2, alongAxis: 1)
+        XCTAssert(c3.extents == [2, 6])
         let c1Expected: [Float] = [
-            1,  2,  3,
-            4,  5,  6,
-            7,  8,  9,
-            10, 11, 12,
+            1,  2,  3, 7,  8,  9,
+            4,  5,  6, 10, 11, 12,
         ]
-        XCTAssert(c3Result == c1Expected)
+        XCTAssert(c3.flatArray == c1Expected)
     }
 }

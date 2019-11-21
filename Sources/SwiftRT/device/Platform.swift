@@ -67,13 +67,13 @@ final public class Platform: LocalPlatform {
     }()
 
     //--------------------------------------------------------------------------
-    /// log
-    /// the caller can specify a root log which will be inherited by the
+    /// logWriter
+    /// the caller can specify a root logWriter which will be inherited by the
     /// device queue hierarchy, but can be overridden at any point down
     /// the tree
-    public var log: Log {
-        get { return logInfo.log }
-        set { logInfo.log = newValue }
+    public var logWriter: Log {
+        get { return logInfo.logWriter }
+        set { logInfo.logWriter = newValue }
     }
     
     //--------------------------------------------------------------------------
@@ -82,7 +82,7 @@ final public class Platform: LocalPlatform {
     /// member to access the shared instance.
     private init() {
         // create the log
-        logInfo = LogInfo(log: Log(isStatic: true), logLevel: .error,
+        logInfo = LogInfo(logWriter: Log(isStatic: true), logLevel: .error,
                           namePath: String(describing: Platform.self),
                           nestingLevel: 0)
     }
@@ -109,12 +109,12 @@ public protocol LocalPlatform : ComputePlatform {
 public extension LocalPlatform {
     //--------------------------------------------------------------------------
     /// log
-    /// the caller can specify a root log which will be inherited by the
+    /// the caller can specify a root logWriter which will be inherited by the
     /// device queue hierarchy, but can be overridden at any point down
     /// the tree
     static var log: Log {
-        get { return Platform.local.log }
-        set { Platform.local.log = newValue }
+        get { return Platform.local.logWriter }
+        set { Platform.local.logWriter = newValue }
     }
     
     static var cpuConfiguration: [CpuPropertyKey: Any] { [

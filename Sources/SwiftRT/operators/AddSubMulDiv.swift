@@ -20,7 +20,6 @@ infix operator .>= : ComparisonPrecedence
 infix operator .>  : ComparisonPrecedence
 infix operator .== : ComparisonPrecedence
 infix operator .!= : ComparisonPrecedence
-infix operator .=
 
 //==============================================================================
 /// Elementwise add tensors
@@ -29,7 +28,7 @@ infix operator .=
 /// - Returns: result
 @inlinable @inline(__always)
 public func add<T>(_ lhs: T, _ rhs: T) -> T
-    where T: TensorView, T.Element: Numeric
+    where T: TensorView, T.Element: AdditiveArithmetic
 {
     var result = lhs.createDense()
     assert(lhs.extents == rhs.extents, _messageTensorExtentsMismatch)
@@ -37,16 +36,13 @@ public func add<T>(_ lhs: T, _ rhs: T) -> T
     return result
 }
 
-public extension TensorView where Element: Numeric {
+public extension TensorView where Element: AdditiveArithmetic {
     @inlinable @inline(__always)
     static func + (lhs: Self, rhs: Self) -> Self { add(lhs, rhs) }
 
     @inlinable @inline(__always)
     static func += (lhs: inout Self, rhs: Element) { lhs = lhs + rhs }
     
-    @inlinable @inline(__always)
-    static func += (lhs: inout Self, rhs: Self) { lhs = lhs + rhs }
-
     @inlinable @inline(__always)
     static func +(lhs: Self, rhs: Element) -> Self {
         lhs + lhs.create(repeating: rhs)
@@ -63,7 +59,7 @@ public extension TensorView where Element: Numeric {
 // User device function
 public extension DeviceQueue {
     func add<T>(lhs: T, rhs: T, result: inout T) where
-        T: TensorView, T.Element: Numeric
+        T: TensorView, T.Element: AdditiveArithmetic
     {
         zip(lhs, rhs).map(into: &result, +)
     }
@@ -74,7 +70,7 @@ public extension DeviceQueue {
 #if canImport(CpuAsync)
 public extension CpuAsynchronousQueue {
     func add<T>(lhs: T, rhs: T, result: inout T) where
-        T: TensorView, T.Element: Numeric
+        T: TensorView, T.Element: AdditiveArithmetic
     {
         queue(#function, {
             (lhs.elements(using: self),
@@ -93,7 +89,7 @@ public extension CpuAsynchronousQueue {
 /// - Returns: result
 @inlinable @inline(__always)
 public func subtract<T>(_ lhs: T, _ rhs: T) -> T
-    where T: TensorView, T.Element: Numeric
+    where T: TensorView, T.Element: AdditiveArithmetic
 {
     assert(lhs.extents == rhs.extents, _messageTensorExtentsMismatch)
     var result = lhs.createDense()
@@ -101,16 +97,13 @@ public func subtract<T>(_ lhs: T, _ rhs: T) -> T
     return result
 }
 
-public extension TensorView where Element: Numeric {
+public extension TensorView where Element: AdditiveArithmetic {
     @inlinable @inline(__always)
     static func - (lhs: Self, rhs: Self) -> Self { subtract(lhs, rhs) }
 
     @inlinable @inline(__always)
     static func -= (lhs: inout Self, rhs: Element) { lhs = lhs - rhs }
     
-    @inlinable @inline(__always)
-    static func -= (lhs: inout Self, rhs: Self) { lhs = lhs - rhs }
-
     @inlinable @inline(__always)
     static func - (lhs: Self, rhs: Element) -> Self {
         lhs - lhs.create(repeating: rhs)
@@ -127,7 +120,7 @@ public extension TensorView where Element: Numeric {
 // User device function
 public extension DeviceQueue {
     func subtract<T>(lhs: T, rhs: T, result: inout T) where
-        T: TensorView, T.Element: Numeric
+        T: TensorView, T.Element: AdditiveArithmetic
     {
         zip(lhs, rhs).map(into: &result, -)
     }
@@ -138,7 +131,7 @@ public extension DeviceQueue {
 #if canImport(CpuAsync)
 public extension CpuAsynchronousQueue {
     func subtract<T>(lhs: T, rhs: T, result: inout T) where
-        T: TensorView, T.Element: Numeric
+        T: TensorView, T.Element: AdditiveArithmetic
     {
         queue(#function, {
             (lhs.elements(using: self),
@@ -281,3 +274,71 @@ public extension CpuAsynchronousQueue {
 }
 #endif
 
+//==============================================================================
+/// Derivative registration
+
+public extension TensorView where Self: DifferentiableTensorView {
+    @differentiating(+)
+    @inlinable @inline(__always)
+    static func vjpAdd(lhs: Self, rhs: Self) -> (
+        value: Self, pullback: (Self) -> (Self, Self)
+    ) {
+        return (lhs + rhs, { v in (v, v) })
+    }
+
+    @differentiating(+)
+    @inlinable @inline(__always)
+    static func vjpAdd(lhs: Self, rhs: Element) -> (
+        value: Self, pullback: (Self) -> (Self, Element)
+    ) {
+        return (lhs + rhs, { v in (v, v.sum().element) })
+    }
+
+    @differentiating(+)
+    @inlinable @inline(__always)
+    static func vjpAdd(lhs: Element, rhs: Self) -> (
+        value: Self, pullback: (Self) -> (Element, Self)
+    ) {
+        return (lhs + rhs, { v in (v.sum().element, v) })
+    }
+
+    @differentiating(-)
+    @inlinable @inline(__always)
+    static func vjpSubtract(lhs: Self, rhs: Self) -> (
+        value: Self, pullback: (Self) -> (Self, Self)
+    ) {
+        return (lhs - rhs, { v in (v, -v) })
+    }
+
+    @differentiating(-)
+    @inlinable @inline(__always)
+    static func vjpSubtract(lhs: Self, rhs: Element) -> (
+        value: Self, pullback: (Self) -> (Self, Element)
+    ) {
+        return (lhs - rhs, { v in (v, -v.sum().element) })
+    }
+
+    @differentiating(*)
+    @inlinable @inline(__always)
+    static func vjpMultiply(lhs: Self, rhs: Self) -> (
+        value: Self, pullback: (Self) -> (Self, Self)
+    ) {
+        return (lhs * rhs, { v in (v * lhs, v * rhs) })
+    }
+
+    @differentiating(*)
+    @inlinable @inline(__always)
+    static func vjpMultiply(lhs: Self, rhs: Element) -> (
+        value: Self, pullback: (Self) -> (Self, Element)
+    ) {
+        return (lhs * rhs, { v in (v * lhs, (v * rhs).sum().element) })
+    }
+
+    @differentiating(*)
+    @inlinable @inline(__always)
+    static func vjpMultiply(lhs: Element, rhs: Self) -> (
+        value: Self, pullback: (Self) -> (Element, Self)
+    ) {
+        return (lhs * rhs, { v in ((v * lhs).sum().element, v * rhs) })
+    }
+}
