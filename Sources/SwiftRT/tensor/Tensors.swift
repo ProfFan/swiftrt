@@ -119,7 +119,11 @@ public extension VectorView {
     
     @inlinable @inline(__always)
     subscript(r: UnboundedRange) -> Self { self }
-    
+
+    // TODO(TF-281): Rewrite `@differentiable` attribute as a `@differentiating`
+    // attribute when `@differentiating` supports subscript declaration
+    // references.
+    @differentiable(vjp: vjpSubscript where Self: DifferentiableTensorView)
     @inlinable @inline(__always)
     subscript<R>(r: R) -> Self where
         R: RangeExpression, R.Bound == Int
@@ -144,29 +148,21 @@ public extension VectorView {
 }
 
 //==============================================================================
-// Vector
-#if canImport(TensorFlow)
-public struct Vector<Element>: VectorView {
-    // properties
-    @noDerivative public let isShared: Bool
-    @noDerivative public let format: TensorFormat = .vector
-    @noDerivative public let shape: DataShape
-    @noDerivative public var tensorArray: TensorArray<Element>
-    @noDerivative public let viewOffset: Int
-    @noDerivative public let singleElementExtents = [1]
-    
-    public init(shape: DataShape,
-                tensorArray: TensorArray<Element>,
-                viewOffset: Int,
-                isShared: Bool)
+/// Derivative registration
+
+extension VectorView where Self: DifferentiableTensorView {
+    @inlinable @inline(__always)
+    func vjpSubscript<R>(r: R) -> (value: Self, pullback: (Self) -> Self) where
+        R: RangeExpression, R.Bound == Int
     {
-        self.shape = shape
-        self.tensorArray = tensorArray
-        self.viewOffset = viewOffset
-        self.isShared = isShared
+        let value = self[r]
+        // FIXME: Implement pullback.
+        return (value, { v in fatalError() })
     }
 }
-#else
+
+//==============================================================================
+// Vector
 public struct Vector<Element>: VectorView {
     // properties
     public let isShared: Bool
@@ -187,7 +183,12 @@ public struct Vector<Element>: VectorView {
         self.isShared = isShared
     }
 }
-#endif
+
+extension Vector: Differentiable & DifferentiableTensorView where
+    Element: AnyDifferentiableScalar
+{
+    public typealias TangentVector = Vector
+}
 
 //******************************************************************************
 //******************************************************************************
@@ -398,28 +399,7 @@ public extension MatrixView {
 
 //==============================================================================
 // Matrix
-#if canImport(TensorFlow)
-public struct Matrix<Element>: MatrixView {
-    // properties
-    @noDerivative public let isShared: Bool
-    @noDerivative public let format: TensorFormat = .matrix
-    @noDerivative public let shape: DataShape
-    @noDerivative public var tensorArray: TensorArray<Element>
-    @noDerivative public let viewOffset: Int
-    @noDerivative public let singleElementExtents = [1, 1]
 
-    public init(shape: DataShape,
-                tensorArray: TensorArray<Element>,
-                viewOffset: Int,
-                isShared: Bool)
-    {
-        self.shape = shape
-        self.tensorArray = tensorArray
-        self.viewOffset = viewOffset
-        self.isShared = isShared
-    }
-}
-#else
 public struct Matrix<Element>: MatrixView {
     // properties
     public let isShared: Bool
@@ -440,7 +420,6 @@ public struct Matrix<Element>: MatrixView {
         self.isShared = isShared
     }
 }
-#endif
 
 //******************************************************************************
 //******************************************************************************
@@ -613,28 +592,6 @@ public extension VolumeView {
 
 //==============================================================================
 // Volume
-#if canImport(TensorFlow)
-public struct Volume<Element>: VolumeView {
-    // properties
-    @noDerivative public let isShared: Bool
-    @noDerivative public let format: TensorFormat = .volume
-    @noDerivative public let shape: DataShape
-    @noDerivative public var tensorArray: TensorArray<Element>
-    @noDerivative public let viewOffset: Int
-    @noDerivative public let singleElementExtents = [1, 1, 1]
-    
-    public init(shape: DataShape,
-                tensorArray: TensorArray<Element>,
-                viewOffset: Int,
-                isShared: Bool)
-    {
-        self.shape = shape
-        self.tensorArray = tensorArray
-        self.viewOffset = viewOffset
-        self.isShared = isShared
-    }
-}
-#else
 public struct Volume<Element>: VolumeView {
     // properties
     public let isShared: Bool
@@ -655,4 +612,3 @@ public struct Volume<Element>: VolumeView {
         self.isShared = isShared
     }
 }
-#endif

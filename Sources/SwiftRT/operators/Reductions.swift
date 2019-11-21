@@ -536,3 +536,15 @@ public extension TensorView where Element: Real {
         return result
     }
 }
+
+//==============================================================================
+/// Derivative registration
+
+public extension TensorView where Self: DifferentiableTensorView {
+    @differentiating(mean)
+    @inlinable @inline(__always)
+    func vjpMean() -> (value: Self, pullback: (Self) -> (Self)) {
+        // FIXME: Implement pullback.
+        return (mean(), { v in fatalError() })
+    }
+}

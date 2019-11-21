@@ -618,3 +618,85 @@ public extension CpuAsynchronousQueue {
     }
 }
 #endif
+
+//==============================================================================
+/// Derivative registration
+
+@differentiating(maximum)
+@inlinable @inline(__always)
+func vjpMaximum<T>(_ lhs: T, _ rhs: T) -> (
+    value: T, pullback: (T) -> (T, T)
+) where
+    T: DifferentiableTensorView
+{
+    let value = maximum(lhs, rhs)
+    // FIXME: Implement pullback.
+    return (value, { v in fatalError() })
+}
+
+@differentiating(maximum)
+@inlinable @inline(__always)
+func vjpMaximum<T>(_ lhs: T, _ rhs: T.Element) -> (
+    value: T, pullback: (T) -> (T, T.Element)
+) where
+    T: DifferentiableTensorView
+{
+    let value = maximum(lhs, rhs)
+    // FIXME: Implement pullback.
+    return (value, { v in fatalError() })
+}
+
+@differentiating(maximum)
+@inlinable @inline(__always)
+func vjpMaximum<T>(_ lhs: T.Element, _ rhs: T) -> (
+    value: T, pullback: (T) -> (T.Element, T)) where
+    T: DifferentiableTensorView
+{
+    let value = maximum(lhs, rhs)
+    // FIXME: Implement pullback.
+    return (value, { v in fatalError() })
+}
+
+@differentiating(minimum)
+@inlinable @inline(__always)
+func vjpMinimum<T>(_ lhs: T, _ rhs: T) -> (
+    value: T, pullback: (T) -> (T, T)
+) where
+    T: DifferentiableTensorView
+{
+    let value = minimum(lhs, rhs)
+    // FIXME: Implement pullback.
+    return (value, { v in fatalError() })
+}
+
+@differentiating(minimum)
+@inlinable @inline(__always)
+func vjpMinimum<T>(_ lhs: T, _ rhs: T.Element) -> (
+    value: T, pullback: (T) -> (T, T.Element)
+) where
+    T: DifferentiableTensorView
+{
+    let value = minimum(lhs, rhs)
+    // FIXME: Implement pullback.
+    return (value, { v in fatalError() })
+}
+
+@differentiating(minimum)
+@inlinable @inline(__always)
+func vjpMinimum<T>(_ lhs: T.Element, _ rhs: T) -> (
+    value: T, pullback: (T) -> (T.Element, T)
+) where
+    T: DifferentiableTensorView
+{
+    let value = minimum(lhs, rhs)
+    // FIXME: Implement pullback.
+    return (value, { v in fatalError() })
+}
+
+extension TensorView where Self: DifferentiableTensorView {
+    @differentiating(squared)
+    @inlinable @inline(__always)
+    func vjpSquared() -> (value: Self, pullback: (Self) -> (Self)) {
+        return (squared(), { v in v * (self + self) })
+    }
+}

@@ -44,7 +44,7 @@ public protocol Differentiable {}
 ///
 /// Data repeating (broadcasting) is an instrinsic feature
 ///
-public protocol TensorView: Differentiable, Logging {
+public protocol TensorView: Logging {
     //--------------------------------------------------------------------------
     /// the type of element stored by the tensor
     associatedtype Element
@@ -143,6 +143,17 @@ public extension TensorView {
         }
     }
 }
+
+//==============================================================================
+/// DifferentiableTensorView
+///
+/// Marker protocol for `TensorView` that conform to `Differentiable`.
+///
+/// While this protoocl is not strictly necessary, it is used to reduce the
+/// number of generic requirements when writing `@differentiable` attributes on
+/// generic differentiable `TensorView` functions.
+public protocol DifferentiableTensorView: TensorView & Differentiable where
+    Self == TangentVector, Element: AnyDifferentiableScalar {}
 
 //==============================================================================
 // view subscripting helpers
