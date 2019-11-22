@@ -49,10 +49,7 @@ class test_IterateView: XCTestCase {
         let count: Int32 = 10
         let expected = [Int32](0..<count)
         let vector = Vector<Int32>(elements: expected)
-        print(vector.formatted((2,0)))
-
-        let values = vector.flatArray
-        XCTAssert(values == expected)
+        XCTAssert(vector.flatArray == expected)
     }
 
     //==========================================================================
@@ -150,14 +147,11 @@ class test_IterateView: XCTestCase {
     func test_MatrixSubView() {
         let matrix = Matrix<Int32>(3, 4, with: 0..<12)
         let view = matrix.view(at: [1, 1], extents: [2, 2])
-        print(view.formatted((2,0)))
-        
         let expected: [Int32] = [
             5, 6,
             9, 10
         ]
-        let values = view.flatArray
-        XCTAssert(values == expected)
+        XCTAssert(view.flatArray == expected)
     }
     
     //==========================================================================
