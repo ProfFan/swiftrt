@@ -37,8 +37,8 @@ class test_DataMigration: XCTestCase {
     // stresses view mutation and async copies on device
     func test_stressCopyOnWriteDevice() {
         do {
-            Platform.log.level = .diagnostic
-            Platform.log.categories = [.dataAlloc, .dataCopy, .dataMutation]
+//            Platform.log.level = .diagnostic
+//            Platform.log.categories = [.dataAlloc, .dataCopy, .dataMutation]
             
             let matrix = Matrix<Float>(3, 2, with: 0..<6, name: "matrix")
             let index = (1, 1)
@@ -62,8 +62,8 @@ class test_DataMigration: XCTestCase {
 	// test_viewMutateOnWrite
 	func test_viewMutateOnWrite() {
 		do {
-            Platform.log.level = .diagnostic
-            Platform.log.categories = [.dataAlloc, .dataCopy, .dataMutation]
+//            Platform.log.level = .diagnostic
+//            Platform.log.categories = [.dataAlloc, .dataCopy, .dataMutation]
 
             // create a Matrix and give it an optional name for logging
             var m0 = Matrix<Float>(3, 4, with: 0..<12, name: "weights")
@@ -117,8 +117,8 @@ class test_DataMigration: XCTestCase {
     //
     func test_tensorDataMigration() {
         do {
-            Platform.log.level = .diagnostic
-            Platform.log.categories = [.dataAlloc, .dataCopy, .dataMutation]
+//            Platform.log.level = .diagnostic
+//            Platform.log.categories = [.dataAlloc, .dataCopy, .dataMutation]
 
             // create a named queue on two different discreet devices
             // cpu devices 1 and 2 are discreet memory versions for testing
@@ -194,8 +194,8 @@ class test_DataMigration: XCTestCase {
     // test_mutateOnDevice
     func test_mutateOnDevice() {
         do {
-            Platform.log.level = .diagnostic
-            Platform.log.categories = [.dataAlloc, .dataCopy, .dataMutation]
+//            Platform.log.level = .diagnostic
+//            Platform.log.categories = [.dataAlloc, .dataCopy, .dataMutation]
             
             // create a named queue on two different discreet devices
             // cpu devices 1 and 2 are discreet memory versions for testing
@@ -286,8 +286,8 @@ class test_DataMigration: XCTestCase {
     // test_copyOnWriteDevice
     func test_copyOnWriteDevice() {
         do {
-            Platform.log.level = .diagnostic
-            Platform.log.categories = [.dataAlloc, .dataCopy, .dataMutation]
+//            Platform.log.level = .diagnostic
+//            Platform.log.categories = [.dataAlloc, .dataCopy, .dataMutation]
             
             // create a named queue on two different discreet devices
             // cpu devices 1 and 2 are discreet memory versions for testing
@@ -325,8 +325,8 @@ class test_DataMigration: XCTestCase {
     // test_copyOnWriteCrossDevice
     func test_copyOnWriteCrossDevice() {
         do {
-            Platform.log.level = .diagnostic
-            Platform.log.categories = [.dataAlloc, .dataCopy, .dataMutation]
+//            Platform.log.level = .diagnostic
+//            Platform.log.categories = [.dataAlloc, .dataCopy, .dataMutation]
             
             // create a named queue on two different discreet devices
             // cpu devices 1 and 2 are discreet memory versions for testing
@@ -382,8 +382,8 @@ class test_DataMigration: XCTestCase {
     // NOTE: uses the default queue
     func test_copyOnWrite() {
         do {
-            Platform.log.level = .diagnostic
-            //            Platform.log.categories = [.dataAlloc, .dataCopy, .dataMutation]
+//            Platform.log.level = .diagnostic
+//            Platform.log.categories = [.dataAlloc, .dataCopy, .dataMutation]
             
             let index = (1, 1)
             var matrix1 = Matrix<Float>(3, 2)

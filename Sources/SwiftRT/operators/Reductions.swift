@@ -258,6 +258,14 @@ public func mean<T>(_ x: T, result: inout T)
     where T: TensorView, T.Element: FloatingPoint
 {
     sum(x, result: &result)
+    let sExtents = result.shape.squeezed().extents
+    let dExtents = sExtents.map { T.Element(exactly: $0)! }
+    let shape = DataShape(extents: sExtents).repeated(to: result.extents)
+    let divisor = T.create(dExtents, shape, nil)
+    print(dExtents)
+    print(divisor)
+    result /= divisor
+    print(result)
 }
 
 public extension TensorView where Element: FloatingPoint {

@@ -38,8 +38,8 @@ class test_IterateView: XCTestCase {
         ("test_repeatingValue", test_repeatingElement),
         ("test_repeatingRow", test_repeatingRow),
         ("test_repeatingCol", test_repeatingCol),
-//        ("test_repeatingColInVolume", test_repeatingColInVolume),
-//        ("test_repeatingMatrix", test_repeatingMatrix),
+        ("test_repeatingColInVolume", test_repeatingColInVolume),
+        ("test_repeatingMatrix", test_repeatingMatrix),
         ("test_repeatingMatrixSubView", test_repeatingMatrixSubView),
     ]
     
@@ -199,8 +199,6 @@ class test_IterateView: XCTestCase {
         let cols = 1024
         
         let matrix = Matrix<Int32>((rows, cols), any: 0..<(rows * cols))
-        //            print(matrix.formatted((2,0)))
-        
         let values = matrix.elements
         
         self.measure {
@@ -219,8 +217,6 @@ class test_IterateView: XCTestCase {
         
         let matrix = Volume<Int32>((depths, rows, cols),
                                    any: 0..<(depths * rows * cols))
-        //            print(matrix.formatted((2,0)))
-        
         let values = matrix.elements
         
         self.measure {

@@ -278,14 +278,14 @@ class test_Reductions: XCTestCase {
         //--------------------------------------------------------------------------
         // test_meanMatrix
         func test_meanMatrix() {
-            Platform.local.servicePriority = [cpuSynchronousServiceName]
-    
-            let m = Matrix<Float>(3, 2, with: [
-                0, 1,
-                2, 3,
-                4, 5
-            ])
-    
+//            Platform.local.servicePriority = [cpuSynchronousServiceName]
+//
+//            let m = Matrix<Float>(3, 2, with: [
+//                0, 1,
+//                2, 3,
+//                4, 5
+//            ])
+//
 //            // mean all
 //            do {
 //                let result = m.mean()
@@ -298,28 +298,28 @@ class test_Reductions: XCTestCase {
 //                XCTAssert(result.extents == [1, 1])
 //                XCTAssert(result.element == 15 / 6)
 //            }
-    
-            // mean cols
-            do {
-                let result = m.mean(alongAxes: 1)
-                let expected: [Float] = [
-                    0.5,
-                    2.5,
-                    4.5
-                ]
-                XCTAssert(result.extents == [3, 1])
-                XCTAssert(result.flatArray == expected)
-            }
-    
-            // mean rows
-            do {
-                let result = m.mean(alongAxes: 0)
-                let expected: [Float] = [
-                    3, 4.5
-                ]
-                XCTAssert(result.extents == [1, 2])
-                XCTAssert(result.flatArray == expected)
-            }
+//
+//            // mean cols
+//            do {
+//                let result = m.mean(alongAxes: 1)
+//                let expected: [Float] = [
+//                    0.5,
+//                    2.5,
+//                    4.5
+//                ]
+//                XCTAssert(result.extents == [3, 1])
+//                XCTAssert(result.flatArray == expected)
+//            }
+//
+//            // mean rows
+//            do {
+//                let result = m.mean(alongAxes: 0)
+//                let expected: [Float] = [
+//                    3, 4.5
+//                ]
+//                XCTAssert(result.extents == [1, 2])
+//                XCTAssert(result.flatArray == expected)
+//            }
         }
 
     //--------------------------------------------------------------------------
