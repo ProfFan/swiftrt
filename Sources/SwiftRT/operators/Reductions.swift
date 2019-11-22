@@ -61,7 +61,9 @@ public extension DeviceQueue {
         
         do {
             // create a temporary view that is repeated to match the input
-            var v = try result.sharedView(using: self).repeated(to: x.extents)
+            // create a temporary view that is repeated to match the input
+            var v = try result.sharedView(
+                using: self, reshaped: result.shape.repeated(to: x.extents))
             var resultElements = v.mutableElements()
             
             // do the reduction
@@ -100,7 +102,9 @@ public extension CpuAsynchronousQueue {
         
         do {
             // create a temporary view that is repeated to match the input
-            var res = try result.sharedView(using: self).repeated(to: x.extents)
+            var res = try result.sharedView(
+                using: self, reshaped: result.shape.repeated(to: x.extents))
+            
             queue(#function, { x.elements(using: self) }, &res) {
                 elements, resultElements in
                 zip(elements, resultElements.indices).forEach {

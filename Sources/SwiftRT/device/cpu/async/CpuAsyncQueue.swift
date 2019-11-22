@@ -88,7 +88,7 @@ public final class CpuAsynchronousQueue: DeviceQueue, CpuQueueProtocol, LocalDev
     ///
     public func queue<Inputs, R>(
         _ functionName: @autoclosure () -> String,
-        _ inputs: () throws -> Inputs,
+        _ inputs: () -> Inputs,
         _ result: inout R,
         _ body: @escaping (Inputs, inout R.MutableValues)
         -> Void) where R: TensorView
@@ -101,24 +101,19 @@ public final class CpuAsynchronousQueue: DeviceQueue, CpuQueueProtocol, LocalDev
         diagnostic("\(schedulingString): \(functionName())",
             categories: .scheduling)
         
-        do {
-            // get the parameter sequences
-            let input = try inputs()
-            var sharedView = try result.sharedView(using: self)
-            var results = sharedView.mutableElements(using: self)
-            
-            if executeSynchronously {
+        // get the parameter sequences
+        let input = inputs()
+        var results = result.mutableElements(using: self)
+        
+        if executeSynchronously {
+            body(input, &results)
+        } else {
+            // queue the work
+            commandQueue.async {
                 body(input, &results)
-            } else {
-                // queue the work
-                commandQueue.async {
-                    body(input, &results)
-                }
-                diagnostic("\(schedulingString): \(functionName()) complete",
-                    categories: .scheduling)
             }
-        } catch {
-            self.report(error)
+            diagnostic("\(schedulingString): \(functionName()) complete",
+                categories: .scheduling)
         }
     }
 
