@@ -218,9 +218,9 @@ extension ReductionOp {
                 ReductionOp.min: CUDNN_REDUCE_TENSOR_MIN,
                 ReductionOp.max: CUDNN_REDUCE_TENSOR_MAX,
                 ReductionOp.amax: CUDNN_REDUCE_TENSOR_AMAX,
-                ReductionOp.avg: CUDNN_REDUCE_TENSOR_AVG,
-                ReductionOp.norm1: CUDNN_REDUCE_TENSOR_NORM1,
-                ReductionOp.norm2: CUDNN_REDUCE_TENSOR_NORM2,
+                ReductionOp.mean: CUDNN_REDUCE_TENSOR_AVG,
+                ReductionOp.asum: CUDNN_REDUCE_TENSOR_NORM1,
+                ReductionOp.sqrtSumSquares: CUDNN_REDUCE_TENSOR_NORM2,
             ]
             return ops[self]!
         }

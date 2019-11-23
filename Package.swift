@@ -14,7 +14,10 @@ import Darwin.C
 func isEnabled(_ id: String) -> Bool { getenv(id) != nil }
 let enableAll = isEnabled("SWIFTRT_ENABLE_ALL_SERVICES")
 let disableTesting = isEnabled("SWIFTRT_DISABLE_TESTING")
+
+// make sure to set Xcode Runpath Seatch Paths to /usr/local/cuda/lib
 let enableCuda = enableAll || isEnabled("SWIFTRT_ENABLE_CUDA")
+
 let enableVulkan = enableAll || isEnabled("SWIFTRT_ENABLE_VULKAN")
 
 // if using cuda or vulkan then the default is an async cpu
