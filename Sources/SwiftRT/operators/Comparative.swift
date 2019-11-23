@@ -45,34 +45,6 @@ public func maximum<T>(_ lhs: T.Element, _ rhs: T) -> T where
     maximum(rhs.create(repeating: lhs), rhs)
 }
 
-//------------------------------------------------------------------------------
-// >>>>>> INTENT <<<<<<
-// User device function
-public extension DeviceQueue {
-    func maximum<T>(lhs: T, rhs: T, result: inout T) where
-        T: TensorView, T.Element: Comparable
-    {
-        zip(lhs, rhs).map(into: &result) { $0 >= $1 ? $0 : $1 }
-    }
-}
-
-//******************************************************************************
-// >>>>>> GENERATED <<<<<<
-#if canImport(CpuAsync)
-public extension CpuAsynchronousQueue {
-    func maximum<T>(lhs: T, rhs: T, result: inout T) where
-        T: TensorView, T.Element: Comparable
-    {
-        queue(#function, {
-            (lhs.elements(using: self),
-             rhs.elements(using: self))
-        }, &result) {
-            zip($0.0, $0.1).map(into: &$1) { $0 >= $1 ? $0 : $1 }
-        }
-    }
-}
-#endif
-
 //==============================================================================
 /// minimum
 /// Computes the element-wise minimum of two tensors
@@ -103,36 +75,7 @@ public func minimum<T>(_ lhs: T.Element, _ rhs: T) -> T
     minimum(rhs.create(repeating: lhs), rhs)
 }
 
-//------------------------------------------------------------------------------
-// >>>>>> INTENT <<<<<<
-// User device function
-public extension DeviceQueue {
-    func minimum<T>(lhs: T, rhs: T, result: inout T) where
-        T: TensorView, T.Element: Comparable
-    {
-        zip(lhs, rhs).map(into: &result) { $0 <= $1 ? $0 : $1 }
-    }
-}
-
-//******************************************************************************
-// >>>>>> GENERATED <<<<<<
-#if canImport(CpuAsync)
-public extension CpuAsynchronousQueue {
-    func minimum<T>(lhs: T, rhs: T, result: inout T) where
-        T: TensorView, T.Element: Comparable
-    {
-        queue(#function, {
-            (lhs.elements(using: self),
-             rhs.elements(using: self))
-        }, &result) {
-            zip($0.0, $0.1).map(into: &$1) { $0 <= $1 ? $0 : $1 }
-        }
-    }
-}
-#endif
-
 //==============================================================================
-// >>>>>> User API <<<<<<
 /// equal
 /// Performs element-wise equality comparison and returns a
 /// tensor of Bool values
@@ -166,38 +109,7 @@ public extension TensorView where Element: Equatable {
     }
 }
 
-//------------------------------------------------------------------------------
-// >>>>>> INTENT <<<<<<
-// User device function
-public extension DeviceQueue {
-    /// equal
-    func equal<T>(lhs: T, rhs: T, result: inout T.BoolView) where
-        T: TensorView, T.Element: Equatable
-    {
-        zip(lhs, rhs).map(into: &result, ==)
-    }
-}
-
-//******************************************************************************
-// >>>>>> GENERATED <<<<<<
-#if canImport(CpuAsync)
-public extension CpuAsynchronousQueue {
-    /// equal
-    func equal<T>(lhs: T, rhs: T, result: inout T.BoolView) where
-        T: TensorView, T.Element: Equatable
-    {
-        queue(#function, {
-            (lhs.elements(using: self),
-             rhs.elements(using: self))
-        }, &result) {
-            zip($0.0, $0.1).map(into: &$1, ==)
-        }
-    }
-}
-#endif
-
 //==============================================================================
-// >>>>>> User API <<<<<<
 /// elementsAlmostEqual
 /// Performs element-wise equality comparison within the tolerance range
 /// and returns a tensor of Bool values
@@ -219,40 +131,7 @@ public extension TensorView where Element: SignedNumeric & Comparable {
     }
 }
 
-//------------------------------------------------------------------------------
-// >>>>>> INTENT <<<<<<
-// User device function
-public extension DeviceQueue {
-    /// equal
-    func elementsAlmostEqual<T>(lhs: T, rhs: T, tolerance: T.Element,
-                            result: inout T.BoolView) where
-        T: TensorView, T.Element: SignedNumeric & Comparable
-    {
-        zip(lhs, rhs).map(into: &result) { abs($0 - $1) <= tolerance }
-    }
-}
-
-//******************************************************************************
-// >>>>>> GENERATED <<<<<<
-#if canImport(CpuAsync)
-public extension CpuAsynchronousQueue {
-    /// equal
-    func elementsAlmostEqual<T>(lhs: T, rhs: T, tolerance: T.Element,
-                            result: inout T.BoolView) where
-        T: TensorView, T.Element: SignedNumeric & Comparable
-    {
-        queue(#function, {
-            (lhs.elements(using: self),
-             rhs.elements(using: self))
-        }, &result) {
-            zip($0.0, $0.1).map(into: &$1) { abs($0 - $1) <= tolerance }
-        }
-    }
-}
-#endif
-
 //==============================================================================
-// >>>>>> User API <<<<<<
 /// notEqual
 /// Computes `lhs != rhs` element-wise and returns a `TensorView` of Boolean
 /// values.
@@ -283,36 +162,6 @@ public extension TensorView where Element: Equatable {
 //        return (lhs .!= rhs).any().element
 //    }
 }
-
-//------------------------------------------------------------------------------
-// >>>>>> INTENT <<<<<<
-// User device function
-public extension DeviceQueue {
-    /// notEqual
-    func notEqual<T>(lhs: T, rhs: T, result: inout T.BoolView) where
-        T: TensorView, T.Element: Equatable
-    {
-        zip(lhs, rhs).map(into: &result, !=)
-    }
-}
-
-//******************************************************************************
-// >>>>>> GENERATED <<<<<<
-#if canImport(CpuAsync)
-public extension CpuAsynchronousQueue {
-    /// equal
-    func notEqual<T>(lhs: T, rhs: T, result: inout T.BoolView) where
-        T: TensorView, T.Element: Equatable
-    {
-        queue(#function, {
-            (lhs.elements(using: self),
-             rhs.elements(using: self))
-        }, &result) {
-            zip($0.0, $0.1).map(into: &$1, !=)
-        }
-    }
-}
-#endif
 
 //==============================================================================
 /// Derivative registration

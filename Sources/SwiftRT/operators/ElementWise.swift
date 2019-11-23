@@ -16,7 +16,6 @@
 import Real
 
 //==============================================================================
-// >>>>>> User API <<<<<<
 /// cast(from:to:
 /// casts elements of `x` to the output type
 ///
@@ -37,35 +36,7 @@ public func cast<T, U>(_ other: U) -> T where
     return result
 }
 
-//------------------------------------------------------------------------------
-// >>>>>> INTENT <<<<<<
-// User device function
-public extension DeviceQueue {
-    func cast<T, U>(from x: T, to result: inout U) where
-        T: TensorView, T.Element: AnyConvertable,
-        U: TensorView, U.Element: AnyConvertable
-    {
-        x.map(into: &result) { U.Element(any: $0) }
-    }
-}
-
-//******************************************************************************
-// >>>>>> GENERATED <<<<<<
-#if canImport(CpuAsync)
-public extension CpuAsynchronousQueue {
-    func cast<T, U>(from x: T, to result: inout U) where
-        T: TensorView, T.Element: AnyConvertable,
-        U: TensorView, U.Element: AnyConvertable
-    {
-        queue(#function, { x.elements(using: self) }, &result) {
-            $0.map(into: &$1) { U.Element(any: $0) }
-        }
-    }
-}
-#endif
-
 //==============================================================================
-// >>>>>> User API <<<<<<
 /// exp(x)
 /// computes the exponential value of `x`
 ///
@@ -88,35 +59,7 @@ public extension TensorView where Element: Real {
     func exp() -> Self { exp(self) }
 }
 
-//------------------------------------------------------------------------------
-// >>>>>> INTENT <<<<<<
-// User device function
-public extension DeviceQueue {
-    /// exp
-    func exp<T>(x: T, result: inout T) where
-        T: TensorView, T.Element: Real
-    {
-        x.map(into: &result) { .exp($0) }
-    }
-}
-
-//******************************************************************************
-// >>>>>> GENERATED <<<<<<
-#if canImport(CpuAsync)
-public extension CpuAsynchronousQueue {
-    /// exp
-    func exp<T>(x: T, result: inout T) where
-        T: TensorView, T.Element: Real
-    {
-        queue(#function, { x.elements(using: self) }, &result) {
-            $0.map(into: &$1) { .exp($0) }
-        }
-    }
-}
-#endif
-
 //==============================================================================
-// >>>>>> User API <<<<<<
 /// log(x)
 /// computes the log of `x`
 ///
@@ -140,35 +83,7 @@ public extension TensorView where Element: Real {
     func log() -> Self { log(self) }
 }
 
-//------------------------------------------------------------------------------
-// >>>>>> INTENT <<<<<<
-// User device function
-public extension DeviceQueue {
-    /// log
-    func log<T>(x: T, result: inout T) where
-        T: TensorView, T.Element: Real
-    {
-        x.map(into: &result) { .log($0) }
-    }
-}
-
-//******************************************************************************
-// >>>>>> GENERATED <<<<<<
-#if canImport(CpuAsync)
-public extension CpuAsynchronousQueue {
-    /// log
-    func log<T>(x: T, result: inout T) where
-        T: TensorView, T.Element: Real
-    {
-        queue(#function, { x.elements(using: self) }, &result) {
-            $0.map(into: &$1) { .log($0) }
-        }
-    }
-}
-#endif
-
 //==============================================================================
-// >>>>>> User API <<<<<<
 /// neg(x)
 /// computes the negated value of `x`
 ///
@@ -192,36 +107,7 @@ public extension TensorView where Element: FloatingPoint {
     static prefix func - (x: Self) -> Self { x.neg() }
 }
 
-//------------------------------------------------------------------------------
-// >>>>>> INTENT <<<<<<
-// User device function
-public extension DeviceQueue {
-    /// neg
-    /// returns the element-wise negation of `x`
-    func neg<T>(x: T, result: inout T) where
-        T: TensorView, T.Element: SignedNumeric
-    {
-        x.map(into: &result, -)
-    }
-}
-
-//******************************************************************************
-// >>>>>> GENERATED <<<<<<
-#if canImport(CpuAsync)
-public extension CpuAsynchronousQueue {
-    /// neg
-    func neg<T>(x: T, result: inout T) where
-        T: TensorView, T.Element: SignedNumeric
-    {
-        queue(#function, { x.elements(using: self) }, &result) {
-            $0.map(into: &$1, -)
-        }
-    }
-}
-#endif
-
 //==============================================================================
-// >>>>>> User API <<<<<<
 /// squared(x)
 /// computes the elementwise squares of `x`
 ///
@@ -241,34 +127,8 @@ public extension TensorView where Element: Numeric {
     func squared() -> Self { SwiftRT.squared(self) }
 }
 
-//------------------------------------------------------------------------------
-// >>>>>> INTENT <<<<<<
-// User device function
-public extension DeviceQueue {
-    func squared<T>(x: T, result: inout T) where
-        T: TensorView, T.Element: Numeric
-    {
-        x.map(into: &result) { $0 * $0 }
-    }
-}
-
-//******************************************************************************
-// >>>>>> GENERATED <<<<<<
-#if canImport(CpuAsync)
-public extension CpuAsynchronousQueue {
-    func squared<T>(x: T, result: inout T) where
-        T: TensorView, T.Element: Numeric
-    {
-        queue(#function, { x.elements(using: self) }, &result) {
-            $0.map(into: &$1) { $0 * $0 }
-        }
-    }
-}
-#endif
-
 //==============================================================================
-// >>>>>> User API <<<<<<
-/// squared(x)
+/// pow(x)
 /// computes elementwise `x` to the power of `y`
 ///
 /// - Parameter x: value tensor
@@ -299,35 +159,7 @@ public extension TensorView where Element: Real {
     }
 }
 
-//------------------------------------------------------------------------------
-// >>>>>> INTENT <<<<<<
-public extension DeviceQueue {
-    func pow<T>(x: T, y: T, result: inout T) where
-        T: TensorView, T.Element: Real
-    {
-        zip(x, y).map(into: &result) { .pow($0, $1) }
-    }
-}
-
-//******************************************************************************
-// >>>>>> GENERATED <<<<<<
-#if canImport(CpuAsync)
-public extension CpuAsynchronousQueue {
-    func pow<T>(x: T, y: T, result: inout T) where
-        T: TensorView, T.Element: Real
-    {
-        queue(#function, {
-            (x.elements(using: self),
-             y.elements(using: self))
-        }, &result) {
-            zip($0.0, $0.1).map(into: &$1) { .pow($0, $1) }
-        }
-    }
-}
-#endif
-
 //==============================================================================
-// >>>>>> User API <<<<<<
 /// sqrt(x)
 /// computes the square root of `x`
 ///
@@ -347,33 +179,6 @@ public extension TensorView where Element: Real {
     @inlinable @inline(__always)
     func sqrt() -> Self { SwiftRT.sqrt(self) }
 }
-
-//------------------------------------------------------------------------------
-// >>>>>> INTENT <<<<<<
-// User device function
-public extension DeviceQueue {
-    /// log
-    func sqrt<T>(x: T, result: inout T) where
-        T: TensorView, T.Element: Real
-    {
-        x.map(into: &result) { .sqrt($0) }
-    }
-}
-
-//******************************************************************************
-// >>>>>> GENERATED <<<<<<
-#if canImport(CpuAsync)
-public extension CpuAsynchronousQueue {
-    /// sqrt
-    func sqrt<T>(x: T, result: inout T) where
-        T: TensorView, T.Element: Real
-    {
-        queue(#function, { x.elements(using: self) }, &result) {
-            $0.map(into: &$1) { .sqrt($0) }
-        }
-    }
-}
-#endif
 
 //==============================================================================
 /// Derivative registration

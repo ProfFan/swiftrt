@@ -43,91 +43,7 @@ public enum ReductionOp: Int, Codable {
 
 public typealias ReduceOpFinal<T: TensorView> = (T.Element) -> T.Element
 
-//------------------------------------------------------------------------------
-// >>>>>> INTENT <<<<<<
-// User device function
-public extension DeviceQueue {
-    // reduce
-    func reduce<T>(x: T,
-                   into result: inout T,
-                   initialResult: T.Element,
-                   opId: ReductionOp,
-                   opNext: @escaping (T.Element, T.Element) -> T.Element,
-                   opFinal: ReduceOpFinal<T>?)
-        where T: TensorView
-    {
-        // fill with the initial result
-        fill(&result, with: initialResult)
-        
-        do {
-            // create a temporary view that is repeated to match the input
-            // create a temporary view that is repeated to match the input
-            var v = try result.sharedView(
-                using: self, reshaped: result.shape.repeated(to: x.extents))
-            var resultElements = v.mutableElements()
-            
-            // do the reduction
-            zip(x.elements, resultElements.indices).forEach {
-                resultElements[$1] = opNext(resultElements[$1], $0)
-            }
-
-            if let finalOp = opFinal {
-                // do the reduction
-                var results = result.mutableElements(using: self)
-                results.indices.forEach {
-                    results[$0] = finalOp(results[$0])
-                }
-            }
-        } catch {
-            device.report(error)
-        }
-    }
-}
-
-//******************************************************************************
-// >>>>>> GENERATED <<<<<<
-#if canImport(CpuAsync)
-public extension CpuAsynchronousQueue {
-    // reduce
-    func reduce<T>(x: T,
-                   into result: inout T,
-                   initialResult: T.Element,
-                   opId: ReductionOp,
-                   opNext: @escaping (T.Element, T.Element) -> T.Element,
-                   opFinal: ReduceOpFinal<T>?)
-        where T: TensorView
-    {
-        // fill with the initial result
-        fill(&result, with: initialResult)
-        
-        do {
-            // create a temporary view that is repeated to match the input
-            var res = try result.sharedView(
-                using: self, reshaped: result.shape.repeated(to: x.extents))
-            
-            queue(#function, { x.elements(using: self) }, &res) {
-                elements, resultElements in
-                zip(elements, resultElements.indices).forEach {
-                    resultElements[$1] = opNext(resultElements[$1], $0)
-                }
-            }
-            
-            if let finalOp = opFinal {
-                queue(#function, { }, &result) { _, results in
-                    results.indices.forEach {
-                        results[$0] = finalOp(results[$0])
-                    }
-                }
-            }
-        } catch {
-            device.report(error)
-        }
-    }
-}
-#endif
-
 //==============================================================================
-// >>>>>> User API <<<<<<
 /// all(x:alongAxes:)
 /// Returns `true` if all values are equal to `true` along the specified
 /// axes. Otherwise returns `false`. The result extent along the specified
@@ -170,7 +86,6 @@ public extension TensorView where Element == Bool {
 }
 
 //==============================================================================
-// >>>>>> User API <<<<<<
 /// any(x:alongAxes:)
 /// Returns `true` if any value is equal to `true` along the specified
 /// axes. Otherwise returns `false`. The result extent along the specified
@@ -213,7 +128,6 @@ public extension TensorView where Element == Bool {
 }
 
 //==============================================================================
-// >>>>>> User API <<<<<<
 /// sum(x:alongAxes:
 /// Sums `x` along the specified axes
 /// 
@@ -250,7 +164,6 @@ public extension TensorView where Element: Numeric {
 }
 
 //==============================================================================
-// >>>>>> User API <<<<<<
 /// mean(x:alongAxes:
 /// mean of `x` along the specified axes
 ///
@@ -289,7 +202,6 @@ public extension TensorView where Element: FloatingPoint {
 }
 
 //==============================================================================
-// >>>>>> User API <<<<<<
 /// prod(x:alongAxes:
 /// prod of `x` along the specified axes
 ///
@@ -326,7 +238,6 @@ public extension TensorView where Element: AnyNumeric {
 }
 
 //==============================================================================
-// >>>>>> User API <<<<<<
 /// prodNonZeros(x:alongAxes:
 /// product of non zero values of `x` along the specified axes
 ///
@@ -362,7 +273,6 @@ public extension TensorView where Element: Numeric {
 }
 
 //==============================================================================
-// >>>>>> User API <<<<<<
 /// min(x:alongAxes:
 /// returns the minimum element value of `x` along the specified axes
 /// TODO: add optional indices
@@ -401,7 +311,6 @@ public extension TensorView where
 }
 
 //==============================================================================
-// >>>>>> User API <<<<<<
 /// maxElement(x:alongAxes:
 /// returns the maximum element value of `x` along the specified axes
 ///
@@ -439,7 +348,6 @@ public extension TensorView where
 }
 
 //==============================================================================
-// >>>>>> User API <<<<<<
 /// absmax(x:alongAxes:
 /// absolute max of `x` along the specified axes
 ///
@@ -478,7 +386,6 @@ public extension TensorView where
 }
 
 //==============================================================================
-// >>>>>> User API <<<<<<
 /// abssum(x:alongAxes:
 /// Sums the absolute values of `x` along the specified axes
 ///
@@ -514,7 +421,6 @@ public extension TensorView where Element: FloatingPoint {
 }
 
 //==============================================================================
-// >>>>>> User API <<<<<<
 /// sqrtSumSquares(x:alongAxes:
 /// Square root of the sum `x` along the specified axes
 ///

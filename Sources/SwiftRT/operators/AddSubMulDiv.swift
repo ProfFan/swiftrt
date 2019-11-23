@@ -13,14 +13,6 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-infix operator **  : MultiplicationPrecedence
-infix operator .<  : ComparisonPrecedence
-infix operator .<= : ComparisonPrecedence
-infix operator .>= : ComparisonPrecedence
-infix operator .>  : ComparisonPrecedence
-infix operator .== : ComparisonPrecedence
-infix operator .!= : ComparisonPrecedence
-
 //==============================================================================
 /// Elementwise add tensors
 /// - Parameter lhs: left hand tensor
@@ -54,34 +46,6 @@ public extension TensorView where Element: AdditiveArithmetic {
     }
 }
 
-//------------------------------------------------------------------------------
-// >>>>>> INTENT <<<<<<
-// User device function
-public extension DeviceQueue {
-    func add<T>(lhs: T, rhs: T, result: inout T) where
-        T: TensorView, T.Element: AdditiveArithmetic
-    {
-        zip(lhs, rhs).map(into: &result, +)
-    }
-}
-
-//******************************************************************************
-// >>>>>> GENERATED <<<<<<
-#if canImport(CpuAsync)
-public extension CpuAsynchronousQueue {
-    func add<T>(lhs: T, rhs: T, result: inout T) where
-        T: TensorView, T.Element: AdditiveArithmetic
-    {
-        queue(#function, {
-            (lhs.elements(using: self),
-             rhs.elements(using: self))
-        }, &result) {
-            zip($0.0, $0.1).map(into: &$1, +)
-        }
-    }
-}
-#endif
-
 //==============================================================================
 /// Elementwise subtract tensors
 /// - Parameter lhs: left hand tensor
@@ -114,34 +78,6 @@ public extension TensorView where Element: AdditiveArithmetic {
         rhs.create(repeating: lhs) - rhs
     }
 }
-
-//------------------------------------------------------------------------------
-// >>>>>> INTENT <<<<<<
-// User device function
-public extension DeviceQueue {
-    func subtract<T>(lhs: T, rhs: T, result: inout T) where
-        T: TensorView, T.Element: AdditiveArithmetic
-    {
-        zip(lhs, rhs).map(into: &result, -)
-    }
-}
-
-//******************************************************************************
-// >>>>>> GENERATED <<<<<<
-#if canImport(CpuAsync)
-public extension CpuAsynchronousQueue {
-    func subtract<T>(lhs: T, rhs: T, result: inout T) where
-        T: TensorView, T.Element: AdditiveArithmetic
-    {
-        queue(#function, {
-            (lhs.elements(using: self),
-             rhs.elements(using: self))
-        }, &result) {
-            zip($0.0, $0.1).map(into: &$1, -)
-        }
-    }
-}
-#endif
 
 //==============================================================================
 /// Element wise multiply tensors with broadcasting
@@ -182,34 +118,6 @@ public extension TensorView where Element: Numeric {
     }
 }
 
-//------------------------------------------------------------------------------
-// >>>>>> INTENT <<<<<<
-// User device function
-public extension DeviceQueue {
-    func mul<T>(lhs: T, rhs: T, result: inout T) where
-        T: TensorView, T.Element: Numeric
-    {
-        zip(lhs, rhs).map(into: &result, *)
-    }
-}
-
-//******************************************************************************
-// >>>>>> GENERATED <<<<<<
-#if canImport(CpuAsync)
-public extension CpuAsynchronousQueue {
-    func mul<T>(lhs: T, rhs: T, result: inout T) where
-        T: TensorView, T.Element: Numeric
-    {
-        queue(#function, {
-            (lhs.elements(using: self),
-             rhs.elements(using: self))
-        }, &result) {
-            zip($0.0, $0.1).map(into: &$1, *)
-        }
-    }
-}
-#endif
-
 //==============================================================================
 /// Element wise divide
 /// - Parameter lhs: left hand tensor
@@ -245,34 +153,6 @@ public extension TensorView where Element: FloatingPoint {
         rhs.create(repeating: lhs) / rhs
     }
 }
-
-//------------------------------------------------------------------------------
-// >>>>>> INTENT <<<<<<
-// User device function
-public extension DeviceQueue {
-    func div<T>(lhs: T, rhs: T, result: inout T) where
-        T: TensorView, T.Element: FloatingPoint
-    {
-        zip(lhs, rhs).map(into: &result, /)
-    }
-}
-
-//******************************************************************************
-// >>>>>> GENERATED <<<<<<
-#if canImport(CpuAsync)
-public extension CpuAsynchronousQueue {
-    func div<T>(lhs: T, rhs: T, result: inout T) where
-        T: TensorView, T.Element: FloatingPoint
-    {
-        queue(#function, {
-            (lhs.elements(using: self),
-             rhs.elements(using: self))
-        }, &result) {
-            zip($0.0, $0.1).map(into: &$1, /)
-        }
-    }
-}
-#endif
 
 //==============================================================================
 /// Derivative registration

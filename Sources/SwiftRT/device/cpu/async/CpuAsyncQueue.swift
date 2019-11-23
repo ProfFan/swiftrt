@@ -16,7 +16,9 @@
 import Foundation
 
 // @Target(type:"cpu", appliedTo:"CpuAsynchronousQueue", protocol: DeviceFunctions)
-public final class CpuAsynchronousQueue: DeviceQueue, CpuQueueProtocol, LocalDeviceQueue {
+public final class CpuAsynchronousQueue:
+    DeviceQueue, CpuQueueProtocol, LocalDeviceQueue
+{
 	// protocol properties
 	public private(set) var trackingId = 0
     public var defaultQueueEventOptions = QueueEventOptions()
@@ -82,6 +84,59 @@ public final class CpuAsynchronousQueue: DeviceQueue, CpuQueueProtocol, LocalDev
         }
     }
     
+    //==========================================================================
+    // generic helpers
+    /// queues a generic binary tensor operation
+    public func binaryOp<LHS, RHS, R>(
+        _ lhs: LHS, _ rhs: RHS, _ result: inout R,
+        _ op: @escaping (LHS.Element, RHS.Element) -> R.Element) where
+        LHS: TensorView, RHS: TensorView, R: TensorView
+    {
+        queue(#function, { (lhs.elements(using: self),
+                            rhs.elements(using: self)) }, &result)
+        {
+            zip($0.0, $0.1).map(into: &$1, op)
+        }
+    }
+    
+    //--------------------------------------------------------------------------
+    // generic map
+    public func mapOp<T, R>(_ x: T, _ result: inout R,
+                            _ op: @escaping (T.Element) -> R.Element) where
+        T: TensorView, R: TensorView
+    {
+        queue(#function, { x.elements(using: self) }, &result) {
+            $0.map(into: &$1, op)
+        }
+    }
+    
+    //--------------------------------------------------------------------------
+    // does an in place op
+    public func inPlaceOp<T>(_ result: inout T,
+                             _ op: @escaping (T.Element) -> T.Element) where
+        T: MutableCollection
+    {
+        queue(#function, { }, { result }) { _, results in
+            results.indices.forEach {
+                results[$0] = op(results[$0])
+            }
+        }
+    }
+
+    //--------------------------------------------------------------------------
+    // does a reduction op
+    public func reductionOp<T, R>(
+        _ x: T, _ result: inout R,
+        _ op: @escaping (R.Element, T.Element) -> R.Element) where
+        T: Collection, R: MutableCollection
+    {
+        queue(#function, { x }, { result }) { elements, resultElements in
+            zip(elements, resultElements.indices).forEach {
+                resultElements[$1] = op(resultElements[$1], $0)
+            }
+        }
+    }
+
     //--------------------------------------------------------------------------
     /// queues a closure on the queue for execution
     /// This will catch and propagate the last asynchronous error thrown.
@@ -322,6 +377,59 @@ public final class CpuAsynchronousQueue: DeviceQueue, CpuQueueProtocol, LocalDev
         assert(Thread.current === creatorThread, _messageQueueThreadViolation)
         queue {
             throw DeviceError.queueError(idPath: [], message: "testError")
+        }
+    }
+}
+
+//==============================================================================
+// functions that don't operate on elements
+public extension CpuAsynchronousQueue {
+    func concat<T>(tensors: [T], alongAxis axis: Int, result: inout T) where
+        T: TensorView
+    {
+        let inputs: () throws -> ([TensorValueCollection<T>]) = {
+            tensors.map { $0.elements(using: self) }
+        }
+        
+        let outputs: () throws -> ([TensorMutableValueCollection<T>]) = {
+            var index = [Int](repeating: 0, count: tensors[0].rank)
+            let shared = try result.sharedView(using: self)
+            var outCollections = [TensorMutableValueCollection<T>]()
+            
+            for tensor in tensors {
+                var view = shared.view(at: index, extents: tensor.extents)
+                outCollections.append(view.mutableElements(using: self))
+                index[axis] += tensor.extents[axis]
+            }
+            return outCollections
+        }
+        
+        queue(#function, inputs, outputs) { inSeqs, outSeqs in
+            for i in 0..<inSeqs.count {
+                for (j, k) in zip(inSeqs[i].indices, outSeqs[i].indices) {
+                    outSeqs[i][k] = inSeqs[i][j]
+                }
+            }
+        }
+    }
+    
+    //--------------------------------------------------------------------------
+    /// fill(result:with:
+    func fill<T>(_ result: inout T, with value: T.Element) where T: TensorView {
+        queue(#function, {}, &result) { _, elements in
+            elements.indices.forEach { elements[$0] = value }
+        }
+    }
+    
+    //--------------------------------------------------------------------------
+    /// fillWithIndex(x:startAt:
+    func fillWithIndex<T>(_ result: inout T, startAt: Int) where
+        T: TensorView, T.Element: AnyNumeric
+    {
+        queue(#function, {}, &result) { _, elements in
+            zip(elements.indices, startAt..<startAt + elements.count).forEach {
+                elements[$0] = T.Element(any: $1)
+            }
         }
     }
 }
