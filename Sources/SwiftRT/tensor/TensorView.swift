@@ -309,14 +309,15 @@ public extension TensorView {
     /// The data will be copied before view creation if
     /// not uniquely held. Shared views will not perform
     /// copy-on-write when a write pointer is taken
-    mutating func sharedView(using queue: DeviceQueue) throws -> Self {
+    mutating func sharedView(using queue: DeviceQueue,
+                             reshaped: DataShape? = nil) throws -> Self {
         // get the queue, if we reference it as a tensorArray member it
         // it adds a ref count which messes things up
         let accessQueue = tensorArray.accessQueue
         
         return try accessQueue.sync {
             try copyIfMutates(using: queue)
-            return Self(shape: shape,
+            return Self(shape: reshaped ?? shape,
                         tensorArray: tensorArray,
                         viewOffset: viewOffset,
                         isShared: true)

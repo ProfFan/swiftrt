@@ -183,6 +183,9 @@ class test_BinaryFunctions: XCTestCase {
     //--------------------------------------------------------------------------
     // test_div
     func test_div() {
+//        Platform.local.servicePriority = [cpuAsynchronousServiceName]
+//        Platform.log.level = .diagnostic
+//        Platform.log.categories = [.dataCopy, .dataMutation, .scheduling]
         let m1 = Matrix<Float>(3, 2, with: [1, 4, 9, 16, 25, 36])
         let m2 = Matrix<Float>(3, 2, with: 1...6)
         let result = m1 / m2
