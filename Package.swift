@@ -35,14 +35,14 @@ let enableTestCpu = !disableTesting
 
 //---------------------------------------
 @available(macOS 10.13, *)
-func runMakefile(workingDir: String, outputDir: String) {
+func runMakefile(target: String, workingDir: String) {
     let fileManager = FileManager()
     let task = Process()
     let kernelsPath = "\(fileManager.currentDirectoryPath)/\(workingDir)"
     task.currentDirectoryPath = kernelsPath
     task.executableURL = URL(fileURLWithPath: "/usr/bin/make")
     
-    task.arguments = ["--version"]
+    task.arguments = ["TARGET=\"\(target)\""]
     do {
         let outputPipe = Pipe()
         task.standardOutput = outputPipe
@@ -103,8 +103,8 @@ if enableCuda {
     //---------------------------------------
     // build kernels library
     if #available(macOS 10.13, *) {
-        runMakefile(workingDir: "Sources/SwiftRT/device/cuda/kernels",
-                    outputDir: ".build/debug")
+//        runMakefile(target: ".build/debug/SwiftRTCudaKernels",
+//                    workingDir: "Sources/SwiftRT/device/cuda/kernels")
     } else {
         print("OS version error. blerg...")
     }
