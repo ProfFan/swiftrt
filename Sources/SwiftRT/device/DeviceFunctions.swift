@@ -112,7 +112,6 @@ public protocol DeviceFunctions {
     /// squared
     func squared<T>(x: T, result: inout T)
         where T: TensorView, T.Element: Numeric
-    
     /// reduce
     /// Reduces `x` along the specified axes
     /// - Parameter x: value tensor
@@ -162,9 +161,7 @@ public extension DeviceFunctions where Self: DeviceQueue {
         _ op: @escaping (R.Element, T.Element) -> R.Element) where
         T: Collection, R: MutableCollection
     {
-        zip(result.indices, x).forEach {
-            result[$0] = op(result[$0], $1)
-        }
+        zip(result.indices, x).forEach { result[$0] = op(result[$0], $1) }
     }
     
     //==========================================================================
