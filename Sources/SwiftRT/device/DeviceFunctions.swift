@@ -25,7 +25,7 @@ infix operator .!= : ComparisonPrecedence
 
 //==============================================================================
 // DeviceFunctions
-public protocol DeviceFunctions: DeviceQueueBase {
+public protocol DeviceFunctions {
     //--------------------------------------------------------------------------
     // generic helpers
     /// binaryOp
@@ -133,7 +133,7 @@ public protocol DeviceFunctions: DeviceQueueBase {
 
 //==============================================================================
 // DeviceQueue default implementations
-public extension DeviceQueue {
+public extension DeviceFunctions where Self: DeviceQueue {
     /// queues a generic binary tensor operation
     func binaryOp<LHS, RHS, R>(
         _ lhs: LHS, _ rhs: RHS, _ result: inout R,

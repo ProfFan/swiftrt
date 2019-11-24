@@ -20,37 +20,17 @@ import Foundation
 let _messageQueueThreadViolation =
 "a queue can only be accessed by the thread that created it"
 
-
 //==============================================================================
-// DeviceQueue
+/// DeviceQueue
 /// A device queue is an asynchronous sequential list of commands to be
 /// executed on the associated device. It is a class protocol treated
 /// as an abstract device interface
-public protocol DeviceQueue: DeviceFunctions {}
-
-public extension DeviceQueue {
-    func createEvent() throws -> QueueEvent {
-        return try createEvent(options: defaultQueueEventOptions)
-    }
-}
-
-//==============================================================================
-/// LocalDeviceQueue
-public protocol LocalDeviceQueue: DeviceQueue { }
-
-public extension LocalDeviceQueue {
-    //--------------------------------------------------------------------------
-    /// handleDevice(error:
-    func handleDevice(error: Error) {
-        if (deviceErrorHandler?(error) ?? .propagate) == .propagate {
-            device.handleDevice(error: error)
-        }
-    }
-}
-
-//==============================================================================
-// DeviceQueueBase
-public protocol DeviceQueueBase: ObjectTracking, Logger, DeviceErrorHandling {
+public protocol DeviceQueue:
+    DeviceFunctions,
+    ObjectTracking,
+    Logger,
+    DeviceErrorHandling
+{
     /// options to use when creating queue events
     var defaultQueueEventOptions: QueueEventOptions { get }
     /// the device the queue is associated with
@@ -108,3 +88,24 @@ public protocol DeviceQueueBase: ObjectTracking, Logger, DeviceErrorHandling {
     /// queues throw the error remotely.
     func throwTestError()
 }
+
+//==============================================================================
+/// LocalDeviceQueue
+public protocol LocalDeviceQueue: DeviceQueue { }
+
+public extension LocalDeviceQueue {
+    //--------------------------------------------------------------------------
+    /// handleDevice(error:
+    func handleDevice(error: Error) {
+        if (deviceErrorHandler?(error) ?? .propagate) == .propagate {
+            device.handleDevice(error: error)
+        }
+    }
+}
+
+public extension DeviceQueue {
+    func createEvent() throws -> QueueEvent {
+        return try createEvent(options: defaultQueueEventOptions)
+    }
+}
+
