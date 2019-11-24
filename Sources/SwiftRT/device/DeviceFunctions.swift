@@ -28,9 +28,9 @@ infix operator .!= : ComparisonPrecedence
 public protocol DeviceFunctions {
     //--------------------------------------------------------------------------
     // generic helpers
-    /// binaryOp
+    /// mapOp
     /// generically combines elements from two tensors
-    func binaryOp<LHS, RHS, R>(
+    func mapOp<LHS, RHS, R>(
         _ lhs: LHS, _ rhs: RHS, _ result: inout R,
         _ op: @escaping (LHS.Element, RHS.Element) -> R.Element) where
         LHS: TensorView, RHS: TensorView, R: TensorView
@@ -135,7 +135,7 @@ public protocol DeviceFunctions {
 // DeviceQueue default implementations
 public extension DeviceFunctions where Self: DeviceQueue {
     /// queues a generic binary tensor operation
-    func binaryOp<LHS, RHS, R>(
+    func mapOp<LHS, RHS, R>(
         _ lhs: LHS, _ rhs: RHS, _ result: inout R,
         _ op: @escaping (LHS.Element, RHS.Element) -> R.Element) where
         LHS: TensorView, RHS: TensorView, R: TensorView
@@ -172,7 +172,7 @@ public extension DeviceFunctions where Self: DeviceQueue {
     func add<T>(lhs: T, rhs: T, result: inout T) where
         T: TensorView, T.Element: AdditiveArithmetic
     {
-        binaryOp(lhs, rhs, &result, +)
+        mapOp(lhs, rhs, &result, +)
     }
     /// cast
     func cast<T, U>(from view: T, to result: inout U) where
@@ -203,20 +203,20 @@ public extension DeviceFunctions where Self: DeviceQueue {
     func div<T>(lhs: T, rhs: T, result: inout T) where
         T: TensorView, T.Element: FloatingPoint
     {
-        binaryOp(lhs, rhs, &result, /)
+        mapOp(lhs, rhs, &result, /)
     }
     /// elementsAlmostEqual
     func elementsAlmostEqual<T>(lhs: T, rhs: T, tolerance: T.Element,
                                 result: inout T.BoolView) where
         T: TensorView, T.Element: SignedNumeric & Comparable
     {
-        binaryOp(lhs, rhs, &result) { abs($0 - $1) <= tolerance }
+        mapOp(lhs, rhs, &result) { abs($0 - $1) <= tolerance }
     }
     /// equal
     func equal<T>(lhs: T, rhs: T, result: inout T.BoolView) where
         T: TensorView, T.Element: Equatable
     {
-        binaryOp(lhs, rhs, &result, ==)
+        mapOp(lhs, rhs, &result, ==)
     }
     /// exp
     func exp<T>(x: T, result: inout T) where
@@ -249,19 +249,19 @@ public extension DeviceFunctions where Self: DeviceQueue {
     func maximum<T>(lhs: T, rhs: T, result: inout T) where
         T: TensorView, T.Element: Comparable
     {
-        binaryOp(lhs, rhs, &result) { $0 >= $1 ? $0 : $1 }
+        mapOp(lhs, rhs, &result) { $0 >= $1 ? $0 : $1 }
     }
     /// Computes the element-wise minimum of two tensors.
     func minimum<T>(lhs: T, rhs: T, result: inout T) where
         T: TensorView, T.Element: Comparable
     {
-        binaryOp(lhs, rhs, &result) { $0 <= $1 ? $0 : $1 }
+        mapOp(lhs, rhs, &result) { $0 <= $1 ? $0 : $1 }
     }
     /// mul
     func mul<T>(lhs: T, rhs: T, result: inout T) where
         T: TensorView, T.Element: Numeric
     {
-        binaryOp(lhs, rhs, &result, *)
+        mapOp(lhs, rhs, &result, *)
     }
     /// neg
     func neg<T>(x: T, result: inout T) where
@@ -273,19 +273,19 @@ public extension DeviceFunctions where Self: DeviceQueue {
     func notEqual<T>(lhs: T, rhs: T, result: inout T.BoolView) where
         T: TensorView, T.Element: Equatable
     {
-        binaryOp(lhs, rhs, &result, !=)
+        mapOp(lhs, rhs, &result, !=)
     }
     /// pow
     func pow<T>(x: T, y: T, result: inout T) where
         T: TensorView, T.Element: Real
     {
-        binaryOp(x, y, &result) { .pow($0, $1) }
+        mapOp(x, y, &result) { .pow($0, $1) }
     }
     /// subtract
     func subtract<T>(lhs: T, rhs: T, result: inout T) where
         T: TensorView, T.Element: AdditiveArithmetic
     {
-        binaryOp(lhs, rhs, &result, -)
+        mapOp(lhs, rhs, &result, -)
     }
     /// sqrt
     func sqrt<T>(x: T, result: inout T) where

@@ -87,7 +87,7 @@ public final class CpuAsynchronousQueue:
     //==========================================================================
     // generic helpers
     /// queues a generic binary tensor operation
-    public func binaryOp<LHS, RHS, R>(
+    public func mapOp<LHS, RHS, R>(
         _ lhs: LHS, _ rhs: RHS, _ result: inout R,
         _ op: @escaping (LHS.Element, RHS.Element) -> R.Element) where
         LHS: TensorView, RHS: TensorView, R: TensorView
