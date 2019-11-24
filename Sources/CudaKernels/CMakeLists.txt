@@ -25,7 +25,7 @@ endif()
 
 # CudaKernels static library
 set(CUDA_KERNELS_NAME SwiftRTCudaKernels)
-file(GLOB_RECURSE CUDA_KERNELS_SOURCES *.cu *.c include/*.h)
+file(GLOB_RECURSE CUDA_KERNELS_SOURCES *.cu *.c *.h)
 cuda_add_library(${CUDA_KERNELS_NAME} ${CUDA_KERNELS_SOURCES})
 
 set_target_properties(${CUDA_KERNELS_NAME} PROPERTIES ARCHIVE_OUTPUT_DIRECTORY ${TARGET_DIR})
