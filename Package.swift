@@ -2,6 +2,7 @@
 // The swift-tools-version declares the minimum version
 // of Swift required to build this package.
 import PackageDescription
+import Foundation
 
 #if os(Linux)
 import Glibc
@@ -31,6 +32,31 @@ let enableCpuSync = true
 
 // discreet asynchronous CPU for unit testing
 let enableTestCpu = !disableTesting
+
+//---------------------------------------
+@available(macOS 10.13, *)
+func runMakefile(workingDir: String, outputDir: String) {
+    let fileManager = FileManager()
+    let task = Process()
+    let kernelsPath = "\(fileManager.currentDirectoryPath)/\(workingDir)"
+    task.currentDirectoryPath = kernelsPath
+    task.executableURL = URL(fileURLWithPath: "/usr/bin/make")
+    
+    task.arguments = ["--version"]
+    do {
+        let outputPipe = Pipe()
+        task.standardOutput = outputPipe
+        try task.run()
+        let outputData = outputPipe.fileHandleForReading.readDataToEndOfFile()
+        task.waitUntilExit()
+        if task.terminationStatus != 0 {
+            let output = String(decoding: outputData, as: UTF8.self)
+            print(output)
+        }
+    } catch {
+        print(error)
+    }
+}
 
 //---------------------------------------
 // the base products, dependencies, and targets
@@ -71,9 +97,20 @@ if !disableTesting {
                        path: "Modules/CpuTest"))
 }
 
-//---------------------------------------
+//==============================================================================
 // include the Cuda service module
 if enableCuda {
+    //---------------------------------------
+    // build kernels library
+    if #available(macOS 10.13, *) {
+        runMakefile(workingDir: "Sources/SwiftRT/device/cuda/kernels",
+                    outputDir: ".build/debug")
+    } else {
+        print("OS version error. blerg...")
+    }
+    
+    //---------------------------------------
+    // add cuda components
     products.append(.library(name: "CCuda", targets: ["CCuda"]))
     dependencies.append("CCuda")
     targets.append(
@@ -113,7 +150,7 @@ if !disableTesting {
                     dependencies: ["SwiftRT"]))
 }
 
-//---------------------------------------
+//==============================================================================
 // package specification
 let package = Package(
     name: "SwiftRT",
