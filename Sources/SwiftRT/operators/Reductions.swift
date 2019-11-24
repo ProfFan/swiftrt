@@ -171,25 +171,26 @@ public extension TensorView where Element: Numeric {
 /// - Parameter result: the scalar tensor where the result will be written
 /// - Precondition: Each value in `axes` must be in the range `-rank..<rank`.
 @inlinable
-public func mean<T>(_ x: T, result: inout T)
+public func mean<T>(_ x: T, alongAxes axes: [Int]? = nil, result: inout T)
     where T: TensorView, T.Element: FloatingPoint
 {
-    sum(x, result: &result)
-    let sExtents = result.shape.squeezed().extents
-    let dExtents = sExtents.map { T.Element(exactly: $0)! }
-    let shape = DataShape(extents: sExtents).repeated(to: result.extents)
-    let divisor = T.create(dExtents, shape, nil)
-    print(dExtents)
-    print(divisor)
-    result /= divisor
-    print(result)
+    let divisor: T.Element = (axes?.reduce(T.Element.one) {
+        $0 * T.Element(exactly: x.extents[$1])!
+    }) ?? T.Element(exactly: x.elementCount)!
+    
+    DeviceContext.currentQueue.reduce(x: x,
+                                      into: &result,
+                                      initialResult: T.Element.zero,
+                                      opId: .add,
+                                      opNext: +,
+                                      opFinal: { $0 / divisor })
 }
 
 public extension TensorView where Element: FloatingPoint {
     @inlinable
     func mean(alongAxes axes: Int...) -> Self {
         var result = createReductionResult(alongAxes: axes)
-        SwiftRT.mean(self, result: &result)
+        SwiftRT.mean(self, alongAxes: axes, result: &result)
         return result
     }
     
