@@ -93,7 +93,7 @@ public extension TensorView {
     /// createReductionResult
     /// creates a tensor of suitable form to recieve a reduction result.
     func createReductionResult(alongAxes axes: Set<Int>) -> Self {
-        assert(axes.isSubset(of: 0..<rank))
+        assert(axes.isSubset(of: 0..<rank), "axis is out of bounds")
         var resultExtents = extents
         axes.forEach { resultExtents[$0] = 1 }
         return Self.create(DataShape(extents: resultExtents), nil)
