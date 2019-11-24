@@ -13,7 +13,6 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 //
-import Foundation
 import Real
 
 //==============================================================================
@@ -72,7 +71,7 @@ public func all<T>(_ x: T, result: inout T) where
 public extension TensorView where Element == Bool {
     @inlinable
     func all(alongAxes axes: Int...) -> Self {
-        var result = createReductionResult(alongAxes: axes)
+        var result = createReductionResult(alongAxes: Set(axes))
         SwiftRT.all(self, result: &result)
         return result
     }
@@ -114,7 +113,7 @@ public func any<T>(_ x: T, result: inout T) where
 public extension TensorView where Element == Bool {
     @inlinable
     func any(alongAxes axes: Int...) -> Self {
-        var result = createReductionResult(alongAxes: axes)
+        var result = createReductionResult(alongAxes: Set(axes))
         SwiftRT.any(self, result: &result)
         return result
     }
@@ -150,7 +149,7 @@ public func sum<T>(_ x: T, result: inout T)
 public extension TensorView where Element: Numeric {
     @inlinable
     func sum(alongAxes axes: Int...) -> Self {
-        var result = createReductionResult(alongAxes: axes)
+        var result = createReductionResult(alongAxes: Set(axes))
         SwiftRT.sum(self, result: &result)
         return result
     }
@@ -171,7 +170,7 @@ public extension TensorView where Element: Numeric {
 /// - Parameter result: the scalar tensor where the result will be written
 /// - Precondition: Each value in `axes` must be in the range `-rank..<rank`.
 @inlinable
-public func mean<T>(_ x: T, alongAxes axes: [Int]? = nil, result: inout T)
+public func mean<T>(_ x: T, alongAxes axes: Set<Int>? = nil, result: inout T)
     where T: TensorView, T.Element: FloatingPoint
 {
     let divisor: T.Element = (axes?.reduce(T.Element.one) {
@@ -189,6 +188,7 @@ public func mean<T>(_ x: T, alongAxes axes: [Int]? = nil, result: inout T)
 public extension TensorView where Element: FloatingPoint {
     @inlinable
     func mean(alongAxes axes: Int...) -> Self {
+        let axes = Set(axes)
         var result = createReductionResult(alongAxes: axes)
         SwiftRT.mean(self, alongAxes: axes, result: &result)
         return result
@@ -225,7 +225,7 @@ public func prod<T>(_ x: T, result: inout T)
 public extension TensorView where Element: AnyNumeric {
     @inlinable
     func prod(alongAxes axes: Int...) -> Self {
-        var result = createReductionResult(alongAxes: axes)
+        var result = createReductionResult(alongAxes: Set(axes))
         SwiftRT.prod(self, result: &result)
         return result
     }
@@ -260,7 +260,7 @@ public func prodNonZeros<T>(_ x: T, result: inout T)
 public extension TensorView where Element: Numeric {
     @inlinable
     func prodNonZeros(alongAxes axes: Int...) -> Self {
-        var result = createReductionResult(alongAxes: axes)
+        var result = createReductionResult(alongAxes: Set(axes))
         SwiftRT.prodNonZeros(self, result: &result)
         return result
     }
@@ -298,7 +298,7 @@ public extension TensorView where
 {
     @inlinable
     func min(alongAxes axes: Int...) -> Self {
-        var result = createReductionResult(alongAxes: axes)
+        var result = createReductionResult(alongAxes: Set(axes))
         SwiftRT.min(self, result: &result)
         return result
     }
@@ -335,7 +335,7 @@ public extension TensorView where
 {
     @inlinable
     func max(alongAxes axes: Int...) -> Self {
-        var result = createReductionResult(alongAxes: axes)
+        var result = createReductionResult(alongAxes: Set(axes))
         SwiftRT.max(self, result: &result)
         return result
     }
@@ -373,7 +373,7 @@ public extension TensorView where
 {
     @inlinable
     func absmax(alongAxes axes: Int...) -> Self {
-        var result = createReductionResult(alongAxes: axes)
+        var result = createReductionResult(alongAxes: Set(axes))
         SwiftRT.absmax(self, result: &result)
         return result
     }
@@ -408,7 +408,7 @@ public func abssum<T>(_ x: T, result: inout T)
 public extension TensorView where Element: FloatingPoint {
     @inlinable
     func abssum(alongAxes axes: Int...) -> Self {
-        var result = createReductionResult(alongAxes: axes)
+        var result = createReductionResult(alongAxes: Set(axes))
         SwiftRT.abssum(self, result: &result)
         return result
     }
@@ -443,7 +443,7 @@ public func sqrtSumSquares<T>(_ x: T, result: inout T)
 public extension TensorView where Element: Real {
     @inlinable
     func sqrtSumSquares(alongAxes axes: Int...) -> Self {
-        var result = createReductionResult(alongAxes: axes)
+        var result = createReductionResult(alongAxes: Set(axes))
         SwiftRT.sqrtSumSquares(self, result: &result)
         return result
     }
