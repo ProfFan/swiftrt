@@ -16,64 +16,139 @@
 import Real
 
 //==============================================================================
-/// maximum
+/// max
 /// Computes the element-wise maximum of two tensors
 /// - Parameter lhs: left hand tensor
 /// - Parameter rhs: right hand tensor
 /// - Returns: result
 @inlinable @inline(__always)
-public func maximum<T>(_ lhs: T, _ rhs: T) -> T where
+public func max<T>(_ lhs: T, _ rhs: T) -> T where
     T: TensorView, T.Element: Comparable
 {
     assert(lhs.extents == rhs.extents, _messageTensorExtentsMismatch)
     var result = lhs.createDense()
-    DeviceContext.currentQueue.maximum(lhs: lhs, rhs: rhs, result: &result)
+    DeviceContext.currentQueue.max(lhs: lhs, rhs: rhs, result: &result)
     return result
 }
 
 @inlinable @inline(__always)
-public func maximum<T>(_ lhs: T, _ rhs: T.Element) -> T where
+public func max<T>(_ lhs: T, _ rhs: T.Element) -> T where
     T: TensorView, T.Element: Comparable
 {
-    maximum(lhs, lhs.create(repeating: rhs))
+    max(lhs, lhs.create(repeating: rhs))
 }
 
 @inlinable @inline(__always)
-public func maximum<T>(_ lhs: T.Element, _ rhs: T) -> T where
+public func max<T>(_ lhs: T.Element, _ rhs: T) -> T where
     T: TensorView, T.Element: Comparable
 {
-    maximum(rhs.create(repeating: lhs), rhs)
+    max(rhs.create(repeating: lhs), rhs)
 }
 
+////--------------------------------------
+//// derivative functions
+//@differentiating(max)
+//@inlinable @inline(__always)
+//func _vjpMax<T>(_ lhs: T, _ rhs: T)
+//    -> (value: T, pullback: (T) -> (T, T)) where
+//    T: DifferentiableTensorView & Comparable
+//{
+//    let value = SwiftRT.max(lhs, rhs)
+//    // FIXME: Implement pullback.
+//    return (value, { v in fatalError() })
+//}
+
+//@differentiating(max)
+//@inlinable @inline(__always)
+//func vjpMax<T>(_ lhs: T, _ rhs: T.Element) -> (
+//    value: T, pullback: (T) -> (T, T.Element)
+//    ) where
+//    T: DifferentiableTensorView & Comparable
+//{
+//    let value = max(lhs, rhs)
+//    // FIXME: Implement pullback.
+//    return (value, { v in fatalError() })
+//}
+//
+//@differentiating(max)
+//@inlinable @inline(__always)
+//func _vjpMax<T>(_ lhs: T.Element, _ rhs: T) -> (
+//    value: T, pullback: (T) -> (T.Element, T)) where
+//    T: DifferentiableTensorView & Comparable
+//{
+//    let value = max(lhs, rhs)
+//    // FIXME: Implement pullback.
+//    return (value, { v in fatalError() })
+//}
+//
+
 //==============================================================================
-/// minimum
+/// min
 /// Computes the element-wise minimum of two tensors
 /// - Parameter lhs: left hand tensor
 /// - Parameter rhs: right hand tensor
 /// - Returns: result
 @inlinable @inline(__always)
-public func minimum<T>(_ lhs: T, _ rhs: T) -> T where
+public func min<T>(_ lhs: T, _ rhs: T) -> T where
     T: TensorView, T.Element: Comparable
 {
     assert(lhs.extents == rhs.extents, _messageTensorExtentsMismatch)
     var result = lhs.createDense()
-    DeviceContext.currentQueue.minimum(lhs: lhs, rhs: rhs, result: &result)
+    DeviceContext.currentQueue.min(lhs: lhs, rhs: rhs, result: &result)
     return result
 }
 
 @inlinable @inline(__always)
-public func minimum<T>(_ lhs: T, _ rhs: T.Element) -> T
+public func min<T>(_ lhs: T, _ rhs: T.Element) -> T
     where T: TensorView, T.Element: Comparable
 {
-    minimum(lhs, lhs.create(repeating: rhs))
+    min(lhs, lhs.create(repeating: rhs))
 }
 
 @inlinable @inline(__always)
-public func minimum<T>(_ lhs: T.Element, _ rhs: T) -> T
+public func min<T>(_ lhs: T.Element, _ rhs: T) -> T
     where T: TensorView, T.Element: Comparable
 {
-    minimum(rhs.create(repeating: lhs), rhs)
+    min(rhs.create(repeating: lhs), rhs)
 }
+
+////--------------------------------------
+//// derivative functions
+//@differentiating(min)
+//@inlinable @inline(__always)
+//func vjpMinimum<T>(_ lhs: T, _ rhs: T) -> (
+//    value: T, pullback: (T) -> (T, T)
+//    ) where
+//    T: DifferentiableTensorView
+//{
+//    let value = min(lhs, rhs)
+//    // FIXME: Implement pullback.
+//    return (value, { v in fatalError() })
+//}
+//
+//@differentiating(min)
+//@inlinable @inline(__always)
+//func vjpMinimum<T>(_ lhs: T, _ rhs: T.Element) -> (
+//    value: T, pullback: (T) -> (T, T.Element)
+//    ) where
+//    T: DifferentiableTensorView
+//{
+//    let value = min(lhs, rhs)
+//    // FIXME: Implement pullback.
+//    return (value, { v in fatalError() })
+//}
+//
+//@differentiating(min)
+//@inlinable @inline(__always)
+//func vjpMinimum<T>(_ lhs: T.Element, _ rhs: T) -> (
+//    value: T, pullback: (T) -> (T.Element, T)
+//    ) where
+//    T: DifferentiableTensorView
+//{
+//    let value = min(lhs, rhs)
+//    // FIXME: Implement pullback.
+//    return (value, { v in fatalError() })
+//}
 
 //==============================================================================
 /// equal
@@ -161,77 +236,4 @@ public extension TensorView where Element: Equatable {
 //        // compare elements
 //        return (lhs .!= rhs).any().element
 //    }
-}
-
-//==============================================================================
-/// Derivative registration
-
-@differentiating(maximum)
-@inlinable @inline(__always)
-func vjpMaximum<T>(_ lhs: T, _ rhs: T)
-    -> (value: T, pullback: (T) -> (T, T)) where
-    T: DifferentiableTensorView
-{
-    let value = maximum(lhs, rhs)
-    // FIXME: Implement pullback.
-    return (value, { v in fatalError() })
-}
-
-@differentiating(maximum)
-@inlinable @inline(__always)
-func vjpMaximum<T>(_ lhs: T, _ rhs: T.Element) -> (
-    value: T, pullback: (T) -> (T, T.Element)
-) where
-    T: DifferentiableTensorView
-{
-    let value = maximum(lhs, rhs)
-    // FIXME: Implement pullback.
-    return (value, { v in fatalError() })
-}
-
-@differentiating(maximum)
-@inlinable @inline(__always)
-func vjpMaximum<T>(_ lhs: T.Element, _ rhs: T) -> (
-    value: T, pullback: (T) -> (T.Element, T)) where
-    T: DifferentiableTensorView
-{
-    let value = maximum(lhs, rhs)
-    // FIXME: Implement pullback.
-    return (value, { v in fatalError() })
-}
-
-@differentiating(minimum)
-@inlinable @inline(__always)
-func vjpMinimum<T>(_ lhs: T, _ rhs: T) -> (
-    value: T, pullback: (T) -> (T, T)
-) where
-    T: DifferentiableTensorView
-{
-    let value = minimum(lhs, rhs)
-    // FIXME: Implement pullback.
-    return (value, { v in fatalError() })
-}
-
-@differentiating(minimum)
-@inlinable @inline(__always)
-func vjpMinimum<T>(_ lhs: T, _ rhs: T.Element) -> (
-    value: T, pullback: (T) -> (T, T.Element)
-) where
-    T: DifferentiableTensorView
-{
-    let value = minimum(lhs, rhs)
-    // FIXME: Implement pullback.
-    return (value, { v in fatalError() })
-}
-
-@differentiating(minimum)
-@inlinable @inline(__always)
-func vjpMinimum<T>(_ lhs: T.Element, _ rhs: T) -> (
-    value: T, pullback: (T) -> (T.Element, T)
-) where
-    T: DifferentiableTensorView
-{
-    let value = minimum(lhs, rhs)
-    // FIXME: Implement pullback.
-    return (value, { v in fatalError() })
 }

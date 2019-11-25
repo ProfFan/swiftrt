@@ -312,7 +312,7 @@ public extension TensorView where
 }
 
 //==============================================================================
-/// maxElement(x:alongAxes:
+/// max(x:alongAxes:
 /// returns the maximum element value of `x` along the specified axes
 ///
 /// - Parameter x: value tensor

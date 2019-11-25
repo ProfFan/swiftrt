@@ -85,10 +85,10 @@ public protocol DeviceFunctions {
     func log<T>(x: T, result: inout T) where
         T: TensorView, T.Element: Real
     /// Computes the element-wise maximum of two tensors.
-    func maximum<T>(lhs: T, rhs: T, result: inout T) where
+    func max<T>(lhs: T, rhs: T, result: inout T) where
         T: TensorView, T.Element: Comparable
     /// Computes the element-wise minimum of two tensors.
-    func minimum<T>(lhs: T, rhs: T, result: inout T) where
+    func min<T>(lhs: T, rhs: T, result: inout T) where
         T: TensorView, T.Element: Comparable
     /// mul
     func mul<T>(lhs: T, rhs: T, result: inout T) where
@@ -243,13 +243,13 @@ public extension DeviceFunctions where Self: DeviceQueue {
         mapOp(x, &result) { .log($0) }
     }
     /// Computes the element-wise maximum of two tensors.
-    func maximum<T>(lhs: T, rhs: T, result: inout T) where
+    func max<T>(lhs: T, rhs: T, result: inout T) where
         T: TensorView, T.Element: Comparable
     {
         mapOp(lhs, rhs, &result) { $0 >= $1 ? $0 : $1 }
     }
     /// Computes the element-wise minimum of two tensors.
-    func minimum<T>(lhs: T, rhs: T, result: inout T) where
+    func min<T>(lhs: T, rhs: T, result: inout T) where
         T: TensorView, T.Element: Comparable
     {
         mapOp(lhs, rhs, &result) { $0 <= $1 ? $0 : $1 }
