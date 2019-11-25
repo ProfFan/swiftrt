@@ -259,18 +259,6 @@ public extension LogWriter {
 }
 
 //==============================================================================
-// StandardErrorOutputStream
-public struct StandardErrorOutputStream: TextOutputStream {
-    let stderr = FileHandle.standardError
-
-    public func write(_ string: String) {
-        // check for encoding failure
-        guard let data = string.data(using: .utf8) else { return }
-        stderr.write(data)
-    }
-}
-
-//==============================================================================
 // Log
 final public class Log: LogWriter {
     // properties
@@ -280,12 +268,12 @@ final public class Log: LogWriter {
     public var _tabSize: Int
     public private(set) var trackingId: Int = 0
 	public let queue = DispatchQueue(label: "Log.queue")
-    private let outputFile: FileHandle
+    private let logFile: FileHandle
 
     //--------------------------------------------------------------------------
     /// init(url:isStatic:
     /// - Parameter url: the file to write to. If `nil`,
-    ///   output will be written to stderr.
+    ///   output will be written to stdout
     /// - Parameter isStatic: if `true`, indicates that the object
     /// will be held statically so it won't be reported as a memory leak
     public init(url: URL? = nil, isStatic: Bool = true) {
@@ -309,18 +297,18 @@ final public class Log: LogWriter {
                 print(String(describing: error))
             }
         }
-        outputFile = file ?? FileHandle.standardError
+        logFile = file ?? FileHandle.standardOutput
         trackingId = ObjectTracker.global.register(self, isStatic: isStatic)
     }
     
     deinit {
-        outputFile.closeFile()
+        logFile.closeFile()
         ObjectTracker.global.remove(trackingId: trackingId)
     }
     
     public func output(message: String) {
         let message = message + "\n"
-        outputFile.write(message.data(using: .utf8)!)
+        logFile.write(message.data(using: .utf8)!)
     }
 }
 
