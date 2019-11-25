@@ -46,6 +46,34 @@ public extension TensorView where Element: AdditiveArithmetic {
     }
 }
 
+//--------------------------------------
+// derivative functions
+public extension TensorView where Self: DifferentiableTensorView {
+    @differentiating(+)
+    @inlinable @inline(__always)
+    static func vjpAdd(lhs: Self, rhs: Self) ->
+        (value: Self, pullback: (Self) -> (Self, Self))
+    {
+        return (lhs + rhs, { v in (v, v) })
+    }
+    
+    @differentiating(+)
+    @inlinable @inline(__always)
+    static func vjpAdd(lhs: Self, rhs: Element) ->
+        (value: Self, pullback: (Self) -> (Self, Element))
+    {
+        return (lhs + rhs, { v in (v, v.sum().element) })
+    }
+    
+    @differentiating(+)
+    @inlinable @inline(__always)
+    static func vjpAdd(lhs: Element, rhs: Self) ->
+        (value: Self, pullback: (Self) -> (Element, Self))
+    {
+        return (lhs + rhs, { v in (v.sum().element, v) })
+    }
+}
+
 //==============================================================================
 /// Elementwise subtract tensors
 /// - Parameter lhs: left hand tensor
@@ -76,6 +104,26 @@ public extension TensorView where Element: AdditiveArithmetic {
     @inlinable @inline(__always)
     static func - (lhs: Element, rhs: Self) -> Self {
         rhs.create(repeating: lhs) - rhs
+    }
+}
+
+//--------------------------------------
+// derivative functions
+public extension TensorView where Self: DifferentiableTensorView {
+    @differentiating(-)
+    @inlinable @inline(__always)
+    static func vjpSubtract(lhs: Self, rhs: Self) ->
+        (value: Self, pullback: (Self) -> (Self, Self))
+    {
+        return (lhs - rhs, { v in (v, -v) })
+    }
+    
+    @differentiating(-)
+    @inlinable @inline(__always)
+    static func vjpSubtract(lhs: Self, rhs: Element) ->
+        (value: Self, pullback: (Self) -> (Self, Element))
+    {
+        return (lhs - rhs, { v in (v, -v.sum().element) })
     }
 }
 
@@ -118,6 +166,34 @@ public extension TensorView where Element: Numeric {
     }
 }
 
+//--------------------------------------
+// derivative functions
+public extension TensorView where Self: DifferentiableTensorView {
+    @differentiating(*)
+    @inlinable @inline(__always)
+    static func vjpMultiply(lhs: Self, rhs: Self) ->
+        (value: Self, pullback: (Self) -> (Self, Self))
+    {
+        return (lhs * rhs, { v in (v * lhs, v * rhs) })
+    }
+    
+    @differentiating(*)
+    @inlinable @inline(__always)
+    static func vjpMultiply(lhs: Self, rhs: Element) ->
+        (value: Self, pullback: (Self) -> (Self, Element))
+    {
+        return (lhs * rhs, { v in (v * lhs, (v * rhs).sum().element) })
+    }
+    
+    @differentiating(*)
+    @inlinable @inline(__always)
+    static func vjpMultiply(lhs: Element, rhs: Self) ->
+        (value: Self, pullback: (Self) -> (Element, Self))
+    {
+        return (lhs * rhs, { v in ((v * lhs).sum().element, v * rhs) })
+    }
+}
+
 //==============================================================================
 /// Element wise divide
 /// - Parameter lhs: left hand tensor
@@ -154,71 +230,30 @@ public extension TensorView where Element: FloatingPoint {
     }
 }
 
-//==============================================================================
-/// Derivative registration
-
+//--------------------------------------
+// derivative functions
 public extension TensorView where Self: DifferentiableTensorView {
-    @differentiating(+)
+    @differentiating(/)
     @inlinable @inline(__always)
-    static func vjpAdd(lhs: Self, rhs: Self) -> (
-        value: Self, pullback: (Self) -> (Self, Self)
-    ) {
-        return (lhs + rhs, { v in (v, v) })
+    static func vjpDivide(lhs: Self, rhs: Self) ->
+        (value: Self, pullback: (Self) -> (Self, Self))
+    {
+        return (lhs / rhs, { v in (v / lhs, v / rhs) })
     }
-
-    @differentiating(+)
+    
+    @differentiating(/)
     @inlinable @inline(__always)
-    static func vjpAdd(lhs: Self, rhs: Element) -> (
-        value: Self, pullback: (Self) -> (Self, Element)
-    ) {
-        return (lhs + rhs, { v in (v, v.sum().element) })
+    static func vjpDivide(lhs: Self, rhs: Element) ->
+        (value: Self, pullback: (Self) -> (Self, Element))
+    {
+        return (lhs / rhs, { v in (v / lhs, (v / rhs).sum().element) })
     }
-
-    @differentiating(+)
+    
+    @differentiating(/)
     @inlinable @inline(__always)
-    static func vjpAdd(lhs: Element, rhs: Self) -> (
-        value: Self, pullback: (Self) -> (Element, Self)
-    ) {
-        return (lhs + rhs, { v in (v.sum().element, v) })
-    }
-
-    @differentiating(-)
-    @inlinable @inline(__always)
-    static func vjpSubtract(lhs: Self, rhs: Self) -> (
-        value: Self, pullback: (Self) -> (Self, Self)
-    ) {
-        return (lhs - rhs, { v in (v, -v) })
-    }
-
-    @differentiating(-)
-    @inlinable @inline(__always)
-    static func vjpSubtract(lhs: Self, rhs: Element) -> (
-        value: Self, pullback: (Self) -> (Self, Element)
-    ) {
-        return (lhs - rhs, { v in (v, -v.sum().element) })
-    }
-
-    @differentiating(*)
-    @inlinable @inline(__always)
-    static func vjpMultiply(lhs: Self, rhs: Self) -> (
-        value: Self, pullback: (Self) -> (Self, Self)
-    ) {
-        return (lhs * rhs, { v in (v * lhs, v * rhs) })
-    }
-
-    @differentiating(*)
-    @inlinable @inline(__always)
-    static func vjpMultiply(lhs: Self, rhs: Element) -> (
-        value: Self, pullback: (Self) -> (Self, Element)
-    ) {
-        return (lhs * rhs, { v in (v * lhs, (v * rhs).sum().element) })
-    }
-
-    @differentiating(*)
-    @inlinable @inline(__always)
-    static func vjpMultiply(lhs: Element, rhs: Self) -> (
-        value: Self, pullback: (Self) -> (Element, Self)
-    ) {
-        return (lhs * rhs, { v in ((v * lhs).sum().element, v * rhs) })
+    static func vjpDivide(lhs: Element, rhs: Self) ->
+        (value: Self, pullback: (Self) -> (Element, Self))
+    {
+        return (lhs / rhs, { v in ((v / lhs).sum().element, v / rhs) })
     }
 }
