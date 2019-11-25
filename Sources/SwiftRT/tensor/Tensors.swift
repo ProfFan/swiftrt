@@ -184,7 +184,7 @@ public struct Vector<Element>: VectorView {
 }
 
 extension Vector: Differentiable & DifferentiableTensorView where
-    Element: AnyDifferentiableScalar
+    Element: DifferentiableElement
 {
     public typealias TangentVector = Vector
 }

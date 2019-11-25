@@ -81,6 +81,18 @@ public protocol DeviceFunctions {
     /// fillWithIndex(x:startAt:
     func fillWithIndex<T>(_ result: inout T, startAt: Int) where
         T: TensorView, T.Element: AnyNumeric
+    /// greater
+    func greater<T>(lhs: T, rhs: T, result: inout T.BoolView)
+        where T: TensorView, T.Element: Comparable
+    /// greaterOrEqual
+    func greaterOrEqual<T>(lhs: T, rhs: T, result: inout T.BoolView)
+        where T: TensorView, T.Element: Comparable
+    /// less
+    func less<T>(lhs: T, rhs: T, result: inout T.BoolView)
+        where T: TensorView, T.Element: Comparable
+    /// lessOrEqual
+    func lessOrEqual<T>(lhs: T, rhs: T, result: inout T.BoolView)
+        where T: TensorView, T.Element: Comparable
     /// log
     func log<T>(x: T, result: inout T) where
         T: TensorView, T.Element: Real
@@ -235,6 +247,30 @@ public extension DeviceFunctions where Self: DeviceQueue {
         zip(elements.indices, startAt..<startAt + elements.count).forEach {
             elements[$0] = T.Element(any: $1)
         }
+    }
+    /// less
+    func less<T>(lhs: T, rhs: T, result: inout T.BoolView)
+        where T: TensorView, T.Element: Comparable
+    {
+        mapOp(lhs, rhs, &result, <)
+    }
+    /// lessOrEqual
+    func lessOrEqual<T>(lhs: T, rhs: T, result: inout T.BoolView)
+        where T: TensorView, T.Element: Comparable
+    {
+        mapOp(lhs, rhs, &result, <=)
+    }
+    /// greater
+    func greater<T>(lhs: T, rhs: T, result: inout T.BoolView)
+        where T: TensorView, T.Element: Comparable
+    {
+        mapOp(lhs, rhs, &result, >)
+    }
+    /// greaterOrEqual
+    func greaterOrEqual<T>(lhs: T, rhs: T, result: inout T.BoolView)
+        where T: TensorView, T.Element: Comparable
+    {
+        mapOp(lhs, rhs, &result, >=)
     }
     /// log
     func log<T>(x: T, result: inout T) where

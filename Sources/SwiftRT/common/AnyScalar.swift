@@ -613,13 +613,14 @@ extension Double : AnyFloatingPoint {
 }
 
 //==============================================================================
-/// AnyDifferentiableScalar
+/// DifferentiableElement
 ///
 /// Marker protocol for `Differentiable`-conforming scalar types.
 ///
 // NOTE: This is similar to `TensorFlowFloatingPoint`:
 // https://github.com/tensorflow/swift-apis/blob/d056376170211a45249f82dfac8e1bc57dce1b74/Sources/TensorFlow/Core/DataTypes.swift#L84
 
-public protocol AnyDifferentiableScalar: Differentiable & FloatingPoint & AnyElement where
-    Self == TangentVector {}
-extension Float: AnyDifferentiableScalar {}
+public protocol DifferentiableElement:
+    Differentiable & AnyFloatingPoint where Self == TangentVector {}
+
+extension Float: DifferentiableElement {}
