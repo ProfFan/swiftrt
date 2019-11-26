@@ -122,17 +122,19 @@ extension TensorView where Self: DifferentiableTensorView, Element: Real {
 /// - Returns: result
 @inlinable @inline(__always)
 public func neg<T>(_ x: T) -> T
-    where T: TensorView, T.Element: FloatingPoint
+    where T: TensorView, T.Element: SignedNumeric
 {
     var result = x.createDense()
     DeviceContext.currentQueue.neg(x: x, result: &result)
     return result
 }
 
-public extension TensorView where Element: FloatingPoint {
+public extension TensorView where Element: SignedNumeric {
+    @differentiable(where Self: DifferentiableTensorView)
     @inlinable @inline(__always)
     func neg() -> Self { SwiftRT.neg(self) }
-
+    
+    @differentiable(where Self: DifferentiableTensorView)
     @inlinable @inline(__always)
     static prefix func - (x: Self) -> Self { x.neg() }
 }
@@ -145,21 +147,6 @@ internal func _vjpNeg<T>(_ x: T) -> (value: T, pullback: (T) -> T)
     where T: DifferentiableTensorView
 {
     (-x, { v in -v })
-}
-
-extension TensorView where Self: DifferentiableTensorView {
-    @differentiating(neg)
-    @inlinable @inline(__always)
-    func _vjpNeg() -> (value: Self, pullback: (Self) -> (Self)) {
-        SwiftRT._vjpNeg(self)
-    }
-    
-    @differentiating(-)
-    @inlinable @inline(__always)
-    static func _vjpNeg(x: Self) -> (value: Self, pullback: (Self) -> (Self))
-    {
-        SwiftRT._vjpNeg(x)
-    }
 }
 
 //==============================================================================
