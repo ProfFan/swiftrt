@@ -100,11 +100,21 @@ public func neg<T>(_ x: T) -> T where
 }
 
 public extension TensorView where Element: FloatingPoint {
+    @differentiable(where Self: DifferentiableTensorView)
     @inlinable @inline(__always)
     func neg() -> Self { SwiftRT.neg(self) }
 
+    @differentiable(where Self: DifferentiableTensorView)
     @inlinable @inline(__always)
     static prefix func - (x: Self) -> Self { x.neg() }
+}
+
+@inlinable @inline(__always)
+@differentiating(neg)
+internal func _vjpNeg<T>(_ x: T) -> (value: T, pullback: (T) -> T) where
+    T: DifferentiableTensorView
+{
+  (-x, { v in -v })
 }
 
 //==============================================================================
