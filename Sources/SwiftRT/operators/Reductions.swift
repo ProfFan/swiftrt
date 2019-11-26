@@ -173,7 +173,8 @@ public extension TensorView where Element: Numeric {
 public func mean<T>(_ x: T, alongAxes axes: Set<Int>? = nil, result: inout T)
     where T: TensorView, T.Element: FloatingPoint
 {
-    let divisor: T.Element = (axes?.reduce(T.Element.one) {
+    // the divisor is the product of the `axes` that are summed
+    let divisor = (axes?.reduce(T.Element.one) {
         $0 * T.Element(exactly: x.extents[$1])!
     }) ?? T.Element(exactly: x.elementCount)!
     
@@ -187,11 +188,15 @@ public func mean<T>(_ x: T, alongAxes axes: Set<Int>? = nil, result: inout T)
 
 public extension TensorView where Element: FloatingPoint {
     @inlinable
-    func mean(alongAxes axes: Int...) -> Self {
-        let axes = Set(axes)
+    func mean(alongAxes axes: Set<Int>? = nil) -> Self {
         var result = createReductionResult(alongAxes: axes)
         SwiftRT.mean(self, alongAxes: axes, result: &result)
         return result
+    }
+    
+    @inlinable
+    func mean(alongAxes axes: Int...) -> Self {
+        mean(alongAxes: Set(axes))
     }
     
     @inlinable
@@ -200,6 +205,17 @@ public extension TensorView where Element: FloatingPoint {
         SwiftRT.mean(self, result: &result)
         return result
     }
+}
+
+//--------------------------------------
+// derivative functions
+@inlinable
+internal func _vjpMean<T>(_ x: T, alongAxes axes: Set<Int>?, result: inout T)
+    -> (value: T, pullback: (T) -> T) where T: DifferentiableTensorView
+{
+    let value = x.mean(alongAxes: axes)
+    let count = T.Element(exactly: x.elementCount)!
+    return (value, { [xext = x.extents] in $0.repeated(to: xext) / count })
 }
 
 //==============================================================================

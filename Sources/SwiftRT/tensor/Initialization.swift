@@ -72,14 +72,20 @@ public extension TensorView {
     
     //--------------------------------------------------------------------------
     /// repeating element
-    init<U>(repeating value: Element, like other: U, name: String? = nil)
-        where U: TensorView
-    {
-        let strides = [Int](repeating: 0, count: other.rank)
-        let shape = DataShape(extents: other.extents, strides: strides)
+    init(repeating value: Element, to extents: [Int], name: String? = nil) {
+        let strides = [Int](repeating: 0, count: extents.count)
+        let shape = DataShape(extents: extents, strides: strides)
         self = Self.create([value], shape, name)
     }
 
+    //--------------------------------------------------------------------------
+    /// repeating element
+    init<U>(repeating value: Element, like other: U, name: String? = nil)
+        where U: TensorView
+    {
+        self = Self(repeating: value, to: other.extents)
+    }
+    
     //--------------------------------------------------------------------------
     /// createDense(shape:
     func createDense(with shape: DataShape, name: String? = nil) -> Self {
@@ -102,7 +108,8 @@ public extension TensorView {
     //--------------------------------------------------------------------------
     /// createReductionResult
     /// creates a tensor of suitable form to recieve a reduction result.
-    func createReductionResult(alongAxes axes: Set<Int>) -> Self {
+    func createReductionResult(alongAxes axes: Set<Int>?) -> Self {
+        guard let axes = axes else { return createSingleElement() }
         assert(axes.isSubset(of: 0..<rank), "axis is out of bounds")
         var resultExtents = extents
         axes.forEach { resultExtents[$0] = 1 }
