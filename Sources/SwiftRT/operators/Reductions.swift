@@ -470,8 +470,7 @@ public extension TensorView where Element: FloatingPoint {
 /// Square root of the sum `x` along the specified axes
 ///
 /// - Parameter x: value tensor
-/// - Parameter result: the scalar tensor where the result will be written
-/// - Precondition: Each value in `axes` must be in the range `-rank..<rank`.
+/// - Parameter alongAxes: the axes to operate on
 @inlinable
 public func sqrtSumSquares<T>(_ x: T, alongAxes axes: Set<Int>? = nil) -> T
     where T: TensorView, T.Element: Real
