@@ -28,17 +28,23 @@ infix operator .!= : ComparisonPrecedence
 public protocol DeviceFunctions {
     //--------------------------------------------------------------------------
     // generic helpers
-    /// mapOp
-    /// generically combines elements from two tensors
-    func mapOp<LHS, RHS, R>(
-        _ lhs: LHS, _ rhs: RHS, _ result: inout R,
-        _ op: @escaping (LHS.Element, RHS.Element) -> R.Element) where
-        LHS: TensorView, RHS: TensorView, R: TensorView
-    /// mapOp
+    /// mapOp 1
     /// generically maps tensor elements
     func mapOp<T, R>(_ x: T, _ result: inout R,
                      _ op: @escaping (T.Element) -> R.Element) where
         T: TensorView, R: TensorView
+    /// mapOp 2
+    /// generically combines two tensors
+    func mapOp<LHS, RHS, R>(
+        _ lhs: LHS, _ rhs: RHS, _ result: inout R,
+        _ op: @escaping (LHS.Element, RHS.Element) -> R.Element) where
+        LHS: TensorView, RHS: TensorView, R: TensorView
+    /// mapOp 3
+    /// generically combines three tensors
+    func mapOp<T1, T2, T3, R>(
+        _ a: T1, _ b: T2, _ c: T3, _ result: inout R,
+        _ op: @escaping (T1.Element, T2.Element, T3.Element) -> R.Element) where
+        T1: TensorView, T2: TensorView, T3: TensorView, R: TensorView
     /// inPlaceOp
     /// does in place op on a mutable collection
     func inPlaceOp<T>(_ result: inout T,
@@ -77,9 +83,9 @@ public protocol DeviceFunctions {
     func exp<T>(x: T, result: inout T) where
         T: TensorView, T.Element: Real
     /// fill(result:with:
-    func fill<T>(_ result: inout T, with value: T.Element) where T: TensorView
+    func fill<T>(result: inout T, with value: T.Element) where T: TensorView
     /// fillWithIndex(x:startAt:
-    func fillWithIndex<T>(_ result: inout T, startAt: Int) where
+    func fillWithIndex<T>(result: inout T, startAt: Int) where
         T: TensorView, T.Element: AnyNumeric
     /// greater
     func greater<T>(lhs: T, rhs: T, result: inout T.BoolView)
@@ -115,6 +121,9 @@ public protocol DeviceFunctions {
     /// pow
     func pow<T>(x: T, y: T, result: inout T) where
         T: TensorView, T.Element: Real
+    /// replace
+    func replace<T>(x: T, with y: T, where condition: T.BoolView,
+                    result: inout T) where T: TensorView
     /// subtract
     func subtract<T>(lhs: T, rhs: T, result: inout T) where
         T: TensorView, T.Element: AdditiveArithmetic
@@ -145,7 +154,16 @@ public protocol DeviceFunctions {
 //==============================================================================
 // DeviceQueue default implementations
 public extension DeviceFunctions where Self: DeviceQueue {
-    /// queues a generic binary tensor operation
+    // mapOp 1
+    /// generically maps a tensor
+    func mapOp<T, R>(_ x: T, _ result: inout R,
+                     _ op: @escaping (T.Element) -> R.Element) where
+        T: TensorView, R: TensorView
+    {
+        x.map(into: &result, op)
+    }
+    // mapOp 2
+    /// generically combines two tensors
     func mapOp<LHS, RHS, R>(
         _ lhs: LHS, _ rhs: RHS, _ result: inout R,
         _ op: @escaping (LHS.Element, RHS.Element) -> R.Element) where
@@ -153,12 +171,14 @@ public extension DeviceFunctions where Self: DeviceQueue {
     {
         zip(lhs, rhs).map(into: &result, op)
     }
-    // mapOp
-    func mapOp<T, R>(_ x: T, _ result: inout R,
-                     _ op: @escaping (T.Element) -> R.Element) where
-        T: TensorView, R: TensorView
+    // mapOp 3
+    /// generically combines three tensors
+    func mapOp<T1, T2, T3, R>(
+        _ a: T1, _ b: T2, _ c: T3, _ result: inout R,
+        _ op: @escaping (T1.Element, T2.Element, T3.Element) -> R.Element) where
+        T1: TensorView, T2: TensorView, T3: TensorView, R: TensorView
     {
-        x.map(into: &result, op)
+        zip(a, b, c).map(into: &result, op)
     }
     // inPlaceOp
     func inPlaceOp<T>(_ result: inout T,
@@ -234,13 +254,13 @@ public extension DeviceFunctions where Self: DeviceQueue {
         mapOp(x, &result) { .exp($0) }
     }
     /// fill(result:with:
-    func fill<T>(_ result: inout T, with value: T.Element) where T: TensorView
+    func fill<T>(result: inout T, with value: T.Element) where T: TensorView
     {
         var elements = result.mutableElements()
         elements.indices.forEach { elements[$0] = value }
     }
     /// fillWithIndex(x:startAt:
-    func fillWithIndex<T>(_ result: inout T, startAt: Int) where
+    func fillWithIndex<T>(result: inout T, startAt: Int) where
         T: TensorView, T.Element: AnyNumeric
     {
         var elements = result.mutableElements()
@@ -314,6 +334,13 @@ public extension DeviceFunctions where Self: DeviceQueue {
     {
         mapOp(x, y, &result) { .pow($0, $1) }
     }
+    /// replace
+    func replace<T>(x: T, with y: T, where condition: T.BoolView,
+                    result: inout T)
+        where T: TensorView
+    {
+        mapOp(condition, y, x, &result) { $0 ? $1 : $2 }
+    }
     /// subtract
     func subtract<T>(lhs: T, rhs: T, result: inout T) where
         T: TensorView, T.Element: AdditiveArithmetic
@@ -350,7 +377,7 @@ public extension DeviceFunctions where Self: DeviceQueue {
         where T: TensorView
     {
         // fill with the initial result
-        fill(&result, with: initialResult)
+        fill(result: &result, with: initialResult)
         
         do {
             // create a temporary view that is repeated to match the input

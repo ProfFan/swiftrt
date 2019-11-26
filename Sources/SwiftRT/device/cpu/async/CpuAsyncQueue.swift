@@ -86,7 +86,17 @@ public final class CpuAsynchronousQueue:
     
     //==========================================================================
     // generic helpers
-    /// queues a generic binary tensor operation
+    // generic map 1
+    public func mapOp<T, R>(_ x: T, _ result: inout R,
+                            _ op: @escaping (T.Element) -> R.Element) where
+        T: TensorView, R: TensorView
+    {
+        queue(#function, { x.elements(using: self) }, &result) {
+            $0.map(into: &$1, op)
+        }
+    }
+    
+    // generic map 2
     public func mapOp<LHS, RHS, R>(
         _ lhs: LHS, _ rhs: RHS, _ result: inout R,
         _ op: @escaping (LHS.Element, RHS.Element) -> R.Element) where
@@ -99,17 +109,20 @@ public final class CpuAsynchronousQueue:
         }
     }
     
-    //--------------------------------------------------------------------------
-    // generic map
-    public func mapOp<T, R>(_ x: T, _ result: inout R,
-                            _ op: @escaping (T.Element) -> R.Element) where
-        T: TensorView, R: TensorView
+    // generic map 3
+    public func mapOp<T1, T2, T3, R>(
+        _ a: T1, _ b: T2, _ c: T3, _ result: inout R,
+        _ op: @escaping (T1.Element, T2.Element, T3.Element) -> R.Element) where
+        T1: TensorView, T2: TensorView, T3: TensorView, R: TensorView
     {
-        queue(#function, { x.elements(using: self) }, &result) {
-            $0.map(into: &$1, op)
+        queue(#function, { (a.elements(using: self),
+                            b.elements(using: self),
+                            c.elements(using: self)) }, &result)
+        {
+            zip($0.0, $0.1, $0.2).map(into: &$1, op)
         }
     }
-    
+
     //--------------------------------------------------------------------------
     // does an in place op
     public func inPlaceOp<T>(_ result: inout T,

@@ -24,8 +24,8 @@ func _vjpMinMaxHelper<T>(_ x: T, _ y: T, seed: T, op: (T, T) -> T.BoolView)
     let mask = T(op(x, y))
     let lhsGrad = seed * mask
     let rhsGrad = seed * (1 - mask)
-    return (lhsGrad.sum().repeated(to: x.extents),
-            rhsGrad.sum().repeated(to: y.extents))
+    return (T(repeating: lhsGrad.sum().element, like: x),
+            T(repeating: rhsGrad.sum().element, like: y))
 }
 
 //==============================================================================
@@ -50,7 +50,7 @@ public func max<T>(_ lhs: T, _ rhs: T) -> T where
 public func max<T>(_ lhs: T, _ rhs: T.Element) -> T where
     T: TensorView, T.Element: Comparable
 {
-    max(lhs, lhs.create(repeating: rhs))
+    max(lhs, T(repeating: rhs, like: lhs))
 }
 
 @inlinable @inline(__always)
@@ -58,7 +58,7 @@ public func max<T>(_ lhs: T, _ rhs: T.Element) -> T where
 public func max<T>(_ lhs: T.Element, _ rhs: T) -> T where
     T: TensorView, T.Element: Comparable
 {
-    max(rhs.create(repeating: lhs), rhs)
+    max(T(repeating: lhs, like: rhs), rhs)
 }
 
 //--------------------------------------
@@ -78,7 +78,7 @@ func _vjpMax<T>(_ lhs: T, _ rhs: T.Element) ->
     (value: T, pullback: (T) -> (T, T.Element)) where
     T: DifferentiableTensorView
 {
-    let rhs = lhs.create(repeating: rhs)
+    let rhs = T(repeating: rhs, like: lhs)
     return (value: max(lhs, rhs), {
         let result = _vjpMinMaxHelper(lhs, rhs, seed: $0, op: .>=)
         return (result.0, result.1.element)
@@ -90,7 +90,7 @@ func _vjpMax<T>(_ lhs: T.Element, _ rhs: T) ->
     (value: T, pullback: (T) -> (T.Element, T)) where
     T: DifferentiableTensorView
 {
-    let lhs = rhs.create(repeating: lhs)
+    let lhs = T(repeating: lhs, like: rhs)
     return (value: max(lhs, rhs), {
         let result = _vjpMinMaxHelper(lhs, rhs, seed: $0, op: .>=)
         return (result.0.element, result.1)
@@ -119,7 +119,7 @@ public func min<T>(_ lhs: T, _ rhs: T) -> T where
 public func min<T>(_ lhs: T, _ rhs: T.Element) -> T
     where T: TensorView, T.Element: Comparable
 {
-    min(lhs, lhs.create(repeating: rhs))
+    min(lhs, T(repeating: rhs, like: lhs))
 }
 
 @inlinable @inline(__always)
@@ -127,7 +127,7 @@ public func min<T>(_ lhs: T, _ rhs: T.Element) -> T
 public func min<T>(_ lhs: T.Element, _ rhs: T) -> T
     where T: TensorView, T.Element: Comparable
 {
-    min(rhs.create(repeating: lhs), rhs)
+    min(T(repeating: lhs, like: rhs), rhs)
 }
 
 //--------------------------------------
@@ -147,7 +147,7 @@ func _vjpMin<T>(_ lhs: T, _ rhs: T.Element) ->
     (value: T, pullback: (T) -> (T, T.Element)) where
     T: DifferentiableTensorView
 {
-    let rhs = lhs.create(repeating: rhs)
+    let rhs = T(repeating: rhs, like: lhs)
     return (value: min(lhs, rhs), {
         let result = _vjpMinMaxHelper(lhs, rhs, seed: $0, op: .<=)
         return (result.0, result.1.element)
@@ -159,7 +159,7 @@ func _vjpMin<T>(_ lhs: T.Element, _ rhs: T) ->
     (value: T, pullback: (T) -> (T.Element, T)) where
     T: DifferentiableTensorView
 {
-    let lhs = rhs.create(repeating: lhs)
+    let lhs = T(repeating: lhs, like: rhs)
     return (value: min(lhs, rhs), {
         let result = _vjpMinMaxHelper(lhs, rhs, seed: $0, op: .<=)
         return (result.0.element, result.1)
@@ -306,9 +306,31 @@ public func lessOrEqual<T>(_ lhs: T, _ rhs: T) -> T.BoolView where
     return result
 }
 
+public func lessOrEqual<T>(_ lhs: T, _ rhs: T.Element) -> T.BoolView
+    where T: TensorView, T.Element: Comparable
+{
+    lessOrEqual(lhs, T(repeating: rhs, like: lhs))
+}
+
+public func lessOrEqual<T>(_ lhs: T.Element, _ rhs: T) -> T.BoolView
+    where T: TensorView, T.Element: Comparable
+{
+    lessOrEqual(T(repeating: lhs, like: rhs), rhs)
+}
+
 public extension TensorView where Element: Comparable {
     @inlinable
     static func .<=(_ lhs: Self, _ rhs: Self) -> BoolView {
+        lessOrEqual(lhs, rhs)
+    }
+
+    @inlinable
+    static func .<=(_ lhs: Self, _ rhs: Element) -> BoolView {
+        lessOrEqual(lhs, rhs)
+    }
+
+    @inlinable
+    static func .<=(_ lhs: Element, _ rhs: Self) -> BoolView {
         lessOrEqual(lhs, rhs)
     }
 }

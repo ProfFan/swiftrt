@@ -58,8 +58,8 @@ public extension TensorView where Element: Real {
 
 //--------------------------------------
 // derivative functions
-@inlinable
 @differentiating(exp)
+@inlinable @inline(__always)
 internal func _vjpExp<T>(_ x: T) -> (value: T, pullback: (T) -> T)
     where T: DifferentiableTensorView, T.Element: Real
 {
@@ -71,8 +71,7 @@ extension TensorView where Self: DifferentiableTensorView, Element: Real {
     @differentiating(exp)
     @inlinable @inline(__always)
     func _vjpExp() -> (value: Self, pullback: (Self) -> (Self)) {
-        let value = exp()
-        return (value, { v in value * v } )
+        SwiftRT._vjpExp(self)
     }
 }
 
@@ -80,7 +79,6 @@ extension TensorView where Self: DifferentiableTensorView, Element: Real {
 /// log(x)
 /// computes the log of `x`
 ///
-/// with placement
 /// - Parameter x: value tensor
 /// - Returns: result
 @inlinable @inline(__always)
@@ -99,8 +97,8 @@ public extension TensorView where Element: Real {
 
 //--------------------------------------
 // derivative functions
-@inlinable
 @differentiating(log)
+@inlinable @inline(__always)
 internal func _vjpLog<T>(_ x: T) -> (value: T, pullback: (T) -> T)
     where T: DifferentiableTensorView, T.Element: Real
 {
@@ -111,7 +109,7 @@ extension TensorView where Self: DifferentiableTensorView, Element: Real {
     @differentiating(log)
     @inlinable @inline(__always)
     func _vjpLog() -> (value: Self, pullback: (Self) -> (Self)) {
-        (log(), { v in v / self })
+        SwiftRT._vjpLog(self)
     }
 }
 
@@ -153,14 +151,14 @@ extension TensorView where Self: DifferentiableTensorView {
     @differentiating(neg)
     @inlinable @inline(__always)
     func _vjpNeg() -> (value: Self, pullback: (Self) -> (Self)) {
-        return (-self, { v in -v })
+        SwiftRT._vjpNeg(self)
     }
     
     @differentiating(-)
     @inlinable @inline(__always)
     static func _vjpNeg(x: Self) -> (value: Self, pullback: (Self) -> (Self))
     {
-        return (-x, { v in -v })
+        SwiftRT._vjpNeg(x)
     }
 }
 
@@ -171,7 +169,6 @@ extension TensorView where Self: DifferentiableTensorView {
 /// - Parameter x: value tensor
 /// - Returns: result
 @inlinable @inline(__always)
-@differentiable(vjp: _vjpSquared where T: DifferentiableTensorView)
 public func squared<T>(_ x: T) -> T
     where T: TensorView, T.Element: Numeric
 {
@@ -188,7 +185,8 @@ public extension TensorView where Element: Numeric {
 //--------------------------------------
 // derivative functions
 @inlinable
-internal func _vjpSquared<T>(_ x: T) -> (T, (T) -> T)
+@differentiating(squared)
+internal func _vjpSquared<T>(_ x: T) -> (value: T, pullback: (T) -> (T))
     where T: DifferentiableTensorView
 {
     (squared(x), { v in v * (x + x) })
@@ -198,7 +196,7 @@ extension TensorView where Self: DifferentiableTensorView {
     @differentiating(squared)
     @inlinable @inline(__always)
     func _vjpSquared() -> (value: Self, pullback: (Self) -> (Self)) {
-        return (squared(), { v in v * (self + self) })
+        SwiftRT._vjpSquared(self)
     }
 }
 
@@ -225,13 +223,30 @@ public extension TensorView where Element: Real {
 
     @inlinable
     static func **(_ x: Self, _ y: Element) -> Self {
-        y == 2 ? x.squared() : x ** x.create(repeating: y)
+        y == 2 ? x.squared() : x ** Self(repeating: y, like: x)
     }
 
     @inlinable
     static func **(_ x: Element, _ y: Self) -> Self {
-        y.create(repeating: x) ** y
+        Self(repeating: x, like: y) ** y
     }
+}
+
+//--------------------------------------
+// derivative functions
+@inlinable
+@differentiating(pow)
+internal func _vjpPow<T>(_ x: T, _ y: T) -> (value: T, pullback: (T) -> (T, T))
+    where T: DifferentiableTensorView, T.Element: Real
+{
+    let value = pow(x, y)
+    return (value, { v in
+        let safeX = x.replacing(with: 1, where: x .<= 0)
+        let lhsGrad = v * y * pow(x, y - 1)
+        let rhsGrad = value * v * log(safeX)
+        return (T(repeating: lhsGrad.sum().element, like: x),
+                T(repeating: rhsGrad.sum().element, like: y))
+    })
 }
 
 //==============================================================================

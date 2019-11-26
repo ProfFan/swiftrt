@@ -71,6 +71,16 @@ public extension TensorView {
     }
     
     //--------------------------------------------------------------------------
+    /// repeating element
+    init<U>(repeating value: Element, like other: U, name: String? = nil)
+        where U: TensorView
+    {
+        let strides = [Int](repeating: 0, count: other.rank)
+        let shape = DataShape(extents: other.extents, strides: strides)
+        self = Self.create([value], shape, name)
+    }
+
+    //--------------------------------------------------------------------------
     /// createDense(shape:
     func createDense(with shape: DataShape, name: String? = nil) -> Self {
         Self.create(shape.dense, name)
@@ -108,14 +118,6 @@ public extension TensorView {
         return Self.create(shape, name)
     }
     
-    //--------------------------------------------------------------------------
-    /// create(repeating:
-    func create(repeating value: Element, name: String? = nil) -> Self {
-        let strides = [Int](repeating: 0, count: rank)
-        let shape = DataShape(extents: extents, strides: strides)
-        return Self.create([value], shape, name)
-    }
-
     //==========================================================================
     // utility functions for creating shaped types
     static func create(_ shape: DataShape, _ name: String?) -> Self {

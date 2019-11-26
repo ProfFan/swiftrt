@@ -42,7 +42,7 @@ public extension TensorView {
 public func fill<T>(_ result: inout T, with value: T.Element) where
     T: TensorView
 {
-    DeviceContext.currentQueue.fill(&result, with: value)
+    DeviceContext.currentQueue.fill(result: &result, with: value)
 }
 
 //==============================================================================
@@ -51,7 +51,7 @@ public func fill<T>(_ result: inout T, with value: T.Element) where
 public func fillWithIndex<T>(_ result: inout T, startAt index: Int = 0) where
     T: TensorView, T.Element: AnyNumeric
 {
-    DeviceContext.currentQueue.fillWithIndex(&result, startAt: index)
+    DeviceContext.currentQueue.fillWithIndex(result: &result, startAt: index)
 }
 
 public extension TensorView where Element: AnyNumeric {
@@ -59,5 +59,28 @@ public extension TensorView where Element: AnyNumeric {
         var result = createDense()
         SwiftRT.fillWithIndex(&result, startAt: index)
         return result
+    }
+}
+
+//==============================================================================
+/// replace<T>(x:with:result:
+/// fills the view with the specified value
+public func replace<T>(x: T, with y: T, where condition: T.BoolView,
+                       result: inout T) where T: TensorView
+{
+    DeviceContext.currentQueue.replace(x: x, with: y, where: condition,
+                                       result: &result)
+}
+
+public extension TensorView where Element: Comparable {
+    func replacing(with y: Self, where condition: BoolView) -> Self
+    {
+        var result = createDense()
+        SwiftRT.replace(x: self, with: y, where: condition, result: &result)
+        return result
+    }
+
+    func replacing(with value: Element, where condition: BoolView) -> Self {
+        replacing(with: Self(repeating: value, like: self), where: condition)
     }
 }

@@ -37,12 +37,12 @@ public extension TensorView where Element: AdditiveArithmetic {
     
     @inlinable @inline(__always)
     static func +(lhs: Self, rhs: Element) -> Self {
-        lhs + lhs.create(repeating: rhs)
+        lhs + Self(repeating: rhs, like: lhs)
     }
 
     @inlinable @inline(__always)
     static func +(lhs: Element, rhs: Self) -> Self {
-        rhs.create(repeating: lhs) + rhs
+        Self(repeating: lhs, like: rhs) + rhs
     }
 }
 
@@ -98,12 +98,12 @@ public extension TensorView where Element: AdditiveArithmetic {
     
     @inlinable @inline(__always)
     static func - (lhs: Self, rhs: Element) -> Self {
-        lhs - lhs.create(repeating: rhs)
+        lhs - Self(repeating: rhs, like: lhs)
     }
 
     @inlinable @inline(__always)
     static func - (lhs: Element, rhs: Self) -> Self {
-        rhs.create(repeating: lhs) - rhs
+        Self(repeating: lhs, like: rhs) - rhs
     }
 }
 
@@ -157,12 +157,12 @@ public extension TensorView where Element: Numeric {
     
     @inlinable @inline(__always)
     static func * (lhs: Self, rhs: Element) -> Self {
-        lhs * lhs.create(repeating: rhs)
+        lhs * Self(repeating: rhs, like: lhs)
     }
 
     @inlinable @inline(__always)
     static func * (lhs: Element, rhs: Self) -> Self {
-        rhs.create(repeating: lhs) * rhs
+        Self(repeating: lhs, like: rhs) * rhs
     }
 }
 
@@ -221,12 +221,12 @@ public extension TensorView where Element: FloatingPoint {
 
     @inlinable @inline(__always)
     static func / (lhs: Self, rhs: Element) -> Self {
-        lhs / lhs.create(repeating: rhs)
+        lhs / Self(repeating: rhs, like: lhs)
     }
 
     @inlinable @inline(__always)
     static func / (lhs: Element, rhs: Self) -> Self {
-        rhs.create(repeating: lhs) / rhs
+        Self(repeating: lhs, like: rhs) / rhs
     }
 }
 

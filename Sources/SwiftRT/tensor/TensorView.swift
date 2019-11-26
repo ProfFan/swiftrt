@@ -88,8 +88,6 @@ public protocol TensorView: Logging {
     //--------------------------------------------------------------------------
     /// creates a new dense tensor of the same type with the specified extents
     func createDense(with extents: [Int], name: String?) -> Self
-    /// creates a new dense tensor of the same extent with the specified value
-    func create(repeating: Element, name: String?) -> Self
     /// creates a new dense tensor where `Element` equals `Bool`
     /// with the specified extents
     func createBoolTensor(with extents: [Int]) -> BoolView
