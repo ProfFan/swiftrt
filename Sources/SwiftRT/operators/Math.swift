@@ -52,6 +52,7 @@ public func exp<T>(_ x: T) -> T
 }
 
 public extension TensorView where Element: Real {
+    @differentiable(where Self: DifferentiableTensorView)
     @inlinable @inline(__always)
     func exp() -> Self { SwiftRT.exp(self) }
 }
@@ -65,14 +66,6 @@ internal func _vjpExp<T>(_ x: T) -> (value: T, pullback: (T) -> T)
 {
     let value = exp(x)
     return (value, { v in value * v } )
-}
-
-extension TensorView where Self: DifferentiableTensorView, Element: Real {
-    @differentiating(exp)
-    @inlinable @inline(__always)
-    func _vjpExp() -> (value: Self, pullback: (Self) -> (Self)) {
-        SwiftRT._vjpExp(self)
-    }
 }
 
 //==============================================================================
@@ -91,6 +84,7 @@ public func log<T>(_ x: T) -> T
 }
 
 public extension TensorView where Element: Real {
+    @differentiable(where Self: DifferentiableTensorView)
     @inlinable @inline(__always)
     func log() -> Self { SwiftRT.log(self) }
 }
@@ -103,14 +97,6 @@ internal func _vjpLog<T>(_ x: T) -> (value: T, pullback: (T) -> T)
     where T: DifferentiableTensorView, T.Element: Real
 {
     (log(x), { v in v / x })
-}
-
-extension TensorView where Self: DifferentiableTensorView, Element: Real {
-    @differentiating(log)
-    @inlinable @inline(__always)
-    func _vjpLog() -> (value: Self, pullback: (Self) -> (Self)) {
-        SwiftRT._vjpLog(self)
-    }
 }
 
 //==============================================================================
@@ -165,6 +151,7 @@ public func squared<T>(_ x: T) -> T
 }
 
 public extension TensorView where Element: Numeric {
+    @differentiable(where Self: DifferentiableTensorView)
     @inlinable @inline(__always)
     func squared() -> Self { SwiftRT.squared(self) }
 }
@@ -177,14 +164,6 @@ internal func _vjpSquared<T>(_ x: T) -> (value: T, pullback: (T) -> (T))
     where T: DifferentiableTensorView
 {
     (squared(x), { v in v * (x + x) })
-}
-
-extension TensorView where Self: DifferentiableTensorView {
-    @differentiating(squared)
-    @inlinable @inline(__always)
-    func _vjpSquared() -> (value: Self, pullback: (Self) -> (Self)) {
-        SwiftRT._vjpSquared(self)
-    }
 }
 
 //==============================================================================
@@ -205,15 +184,20 @@ public func pow<T>(_ x: T, _ y: T) -> T
 }
 
 public extension TensorView where Element: Real {
-    @inlinable
+    @differentiable(where Self: DifferentiableTensorView)
+    @inlinable @inline(__always)
     static func **(_ x: Self, _ y: Self) -> Self { SwiftRT.pow(x, y) }
 
-    @inlinable
+    // TODO
+//    @differentiable(where Self: DifferentiableTensorView)
+    @inlinable @inline(__always)
     static func **(_ x: Self, _ y: Element) -> Self {
         y == 2 ? x.squared() : x ** Self(repeating: y, like: x)
     }
 
-    @inlinable
+    // TODO
+    //    @differentiable(where Self: DifferentiableTensorView)
+    @inlinable @inline(__always)
     static func **(_ x: Element, _ y: Self) -> Self {
         Self(repeating: x, like: y) ** y
     }
@@ -253,6 +237,19 @@ public func sqrt<T>(_ x: T) -> T
 }
 
 public extension TensorView where Element: Real {
+    @differentiable(where Self: DifferentiableTensorView)
     @inlinable @inline(__always)
     func sqrt() -> Self { SwiftRT.sqrt(self) }
 }
+
+//--------------------------------------
+// derivative functions
+@differentiating(sqrt)
+@inlinable @inline(__always)
+internal func _vjpSqrt<T>(_ x: T) -> (value: T, pullback: (T) -> T)
+    where T: DifferentiableTensorView, T.Element: Real
+{
+    let value = sqrt(x)
+    return (value, { v in v / (2 * value) })
+}
+
