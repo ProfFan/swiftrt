@@ -53,35 +53,29 @@ public typealias ReduceOpFinal<T: TensorView> = (T.Element) -> T.Element
 /// - Parameter result: the scalar tensor where the result will be written
 /// - Precondition: Each value in `axes` must be in the range `-rank..<rank`.
 @inlinable
-public func all<T>(_ x: T, result: inout T) where
-    T: TensorView, T.Element == Bool
+public func all<T>(_ x: T, alongAxes axes: Set<Int>? = nil) -> T
+    where T: TensorView, T.Element == Bool
 {
+    var result = x.createReductionResult(alongAxes: axes)
     DeviceContext.currentQueue.reduce(x: x,
                                       into: &result,
                                       initialResult: x.first,
                                       opId: .compare,
                                       opNext: { $0 && $1 },
                                       opFinal: nil)
+    return result
 }
 
-/// returns new view
 /// - Parameter alongAxes: the axes to operate on
 /// - Returns: a new tensor containing the result
-/// - Precondition: Each value in `axes` must be in the range `-rank..<rank`.
 public extension TensorView where Element == Bool {
-    @inlinable
-    func all(alongAxes axes: Int...) -> Self {
-        var result = createReductionResult(alongAxes: Set(axes))
-        SwiftRT.all(self, result: &result)
-        return result
+    @inlinable @inline(__always)
+    func all(alongAxes axes: Set<Int>? = nil) -> Self {
+        SwiftRT.all(self, alongAxes: axes)
     }
     
-    @inlinable
-    func all() -> Self {
-        var result = createSingleElement()
-        SwiftRT.all(self, result: &result)
-        return result
-    }
+    @inlinable @inline(__always)
+    func all(alongAxes axes: Int...) -> Self { all(alongAxes: Set(axes)) }
 }
 
 //==============================================================================
@@ -90,40 +84,33 @@ public extension TensorView where Element == Bool {
 /// axes. Otherwise returns `false`. The result extent along the specified
 /// axes will be 1. Rank is not reduced.
 
-/// in place
 /// - Parameter x: value tensor
-/// - Parameter result: the scalar tensor where the result will be written
-/// - Precondition: Each value in `axes` must be in the range `-rank..<rank`.
+/// - Parameter alongAxes: the axes to operate on
+/// - Returns: a new tensor containing the result
 @inlinable
-public func any<T>(_ x: T, result: inout T) where
-    T: TensorView, T.Element == Bool
+public func any<T>(_ x: T, alongAxes axes: Set<Int>? = nil) -> T
+    where T: TensorView, T.Element == Bool
 {
+    var result = x.createReductionResult(alongAxes: axes)
     DeviceContext.currentQueue.reduce(x: x,
                                       into: &result,
                                       initialResult: x.first,
                                       opId: .compare,
                                       opNext: { $0 || $1 },
                                       opFinal: nil)
+    return result
 }
 
-/// returns new view
 /// - Parameter alongAxes: the axes to operate on
 /// - Returns: a new tensor containing the result
-/// - Precondition: Each value in `axes` must be in the range `-rank..<rank`.
 public extension TensorView where Element == Bool {
-    @inlinable
-    func any(alongAxes axes: Int...) -> Self {
-        var result = createReductionResult(alongAxes: Set(axes))
-        SwiftRT.any(self, result: &result)
-        return result
+    @inlinable @inline(__always)
+    func any(alongAxes axes: Set<Int>? = nil) -> Self {
+        SwiftRT.any(self, alongAxes: axes)
     }
-    
-    @inlinable
-    func any() -> Self {
-        var result = createSingleElement()
-        SwiftRT.any(self, result: &result)
-        return result
-    }
+
+    @inlinable @inline(__always)
+    func any(alongAxes axes: Int...) -> Self { any(alongAxes: Set(axes)) }
 }
 
 //==============================================================================
@@ -132,34 +119,41 @@ public extension TensorView where Element == Bool {
 /// 
 /// - Parameter x: value tensor
 /// - Parameter alongAxes: the axes to operate on
-/// - Parameter result: the scalar tensor where the result will be written
-/// - Precondition: Each value in `axes` must be in the range `-rank..<rank`.
 @inlinable
-public func sum<T>(_ x: T, result: inout T)
+public func sum<T>(_ x: T, alongAxes axes: Set<Int>? = nil) -> T
     where T: TensorView, T.Element: Numeric
 {
+    var result = x.createReductionResult(alongAxes: axes)
     DeviceContext.currentQueue.reduce(x: x,
                                       into: &result,
                                       initialResult: T.Element.zero,
                                       opId: .add,
                                       opNext: +,
                                       opFinal: nil)
+    return result
 }
 
 public extension TensorView where Element: Numeric {
-    @inlinable
-    func sum(alongAxes axes: Int...) -> Self {
-        var result = createReductionResult(alongAxes: Set(axes))
-        SwiftRT.sum(self, result: &result)
-        return result
+    @differentiable(where Self: DifferentiableTensorView)
+    @inlinable @inline(__always)
+    func sum(alongAxes axes: Set<Int>? = nil) -> Self {
+        SwiftRT.sum(self, alongAxes: axes)
     }
     
-    @inlinable
-    func sum() -> Self {
-        var result = createSingleElement()
-        SwiftRT.sum(self, result: &result)
-        return result
-    }
+    @differentiable(where Self: DifferentiableTensorView)
+    @inlinable @inline(__always)
+    func sum(alongAxes axes: Int...) -> Self { sum(alongAxes: Set(axes)) }
+}
+
+//--------------------------------------
+// derivative functions
+@differentiating(sum)
+@inlinable @inline(__always)
+internal func _vjpSum<T>(_ x: T, alongAxes axes: Set<Int>? = nil)
+    -> (value: T, pullback: (T) -> T) where T: DifferentiableTensorView
+{
+    let value = x.sum(alongAxes: axes)
+    return (value, { [xext = x.extents] in $0.repeated(to: xext) })
 }
 
 //==============================================================================
@@ -167,10 +161,9 @@ public extension TensorView where Element: Numeric {
 /// mean of `x` along the specified axes
 ///
 /// - Parameter x: value tensor
-/// - Parameter result: the scalar tensor where the result will be written
-/// - Precondition: Each value in `axes` must be in the range `-rank..<rank`.
+/// - Parameter alongAxes: the axes to operate on
 @inlinable
-public func mean<T>(_ x: T, alongAxes axes: Set<Int>? = nil, result: inout T)
+public func mean<T>(_ x: T, alongAxes axes: Set<Int>? = nil) -> T
     where T: TensorView, T.Element: FloatingPoint
 {
     // the divisor is the product of the `axes` that are summed
@@ -178,39 +171,33 @@ public func mean<T>(_ x: T, alongAxes axes: Set<Int>? = nil, result: inout T)
         $0 * T.Element(exactly: x.extents[$1])!
     }) ?? T.Element(exactly: x.elementCount)!
     
+    var result = x.createReductionResult(alongAxes: axes)
     DeviceContext.currentQueue.reduce(x: x,
                                       into: &result,
                                       initialResult: T.Element.zero,
                                       opId: .add,
                                       opNext: +,
                                       opFinal: { $0 / divisor })
+    return result
 }
 
 public extension TensorView where Element: FloatingPoint {
-    @inlinable
+    @differentiable(where Self: DifferentiableTensorView)
+    @inlinable @inline(__always)
     func mean(alongAxes axes: Set<Int>? = nil) -> Self {
-        var result = createReductionResult(alongAxes: axes)
-        SwiftRT.mean(self, alongAxes: axes, result: &result)
-        return result
+        SwiftRT.mean(self, alongAxes: axes)
     }
     
-    @inlinable
-    func mean(alongAxes axes: Int...) -> Self {
-        mean(alongAxes: Set(axes))
-    }
-    
-    @inlinable
-    func mean() -> Self {
-        var result = createSingleElement()
-        SwiftRT.mean(self, result: &result)
-        return result
-    }
+    @differentiable(where Self: DifferentiableTensorView)
+    @inlinable @inline(__always)
+    func mean(alongAxes axes: Int...) -> Self { mean(alongAxes: Set(axes)) }
 }
 
 //--------------------------------------
 // derivative functions
-@inlinable
-internal func _vjpMean<T>(_ x: T, alongAxes axes: Set<Int>?, result: inout T)
+@differentiating(mean)
+@inlinable @inline(__always)
+internal func _vjpMean<T>(_ x: T, alongAxes axes: Set<Int>? = nil)
     -> (value: T, pullback: (T) -> T) where T: DifferentiableTensorView
 {
     let value = x.mean(alongAxes: axes)
@@ -224,34 +211,41 @@ internal func _vjpMean<T>(_ x: T, alongAxes axes: Set<Int>?, result: inout T)
 ///
 /// - Parameter x: value tensor
 /// - Parameter alongAxes: the axes to operate on
-/// - Parameter result: the scalar tensor where the result will be written
-/// - Precondition: Each value in `axes` must be in the range `-rank..<rank`.
 @inlinable
-public func prod<T>(_ x: T, result: inout T)
+public func prod<T>(_ x: T, alongAxes axes: Set<Int>? = nil) -> T
     where T: TensorView, T.Element: Numeric
 {
+    var result = x.createReductionResult(alongAxes: axes)
     DeviceContext.currentQueue.reduce(x: x,
                                       into: &result,
                                       initialResult: T.Element.one,
                                       opId: .mul,
                                       opNext: { $0 * $1 },
                                       opFinal: nil)
+    return result
 }
 
-public extension TensorView where Element: AnyNumeric {
-    @inlinable
-    func prod(alongAxes axes: Int...) -> Self {
-        var result = createReductionResult(alongAxes: Set(axes))
-        SwiftRT.prod(self, result: &result)
-        return result
+public extension TensorView where Element: Numeric {
+    @differentiable(where Self: DifferentiableTensorView)
+    @inlinable @inline(__always)
+    func prod(alongAxes axes: Set<Int>? = nil) -> Self {
+        SwiftRT.prod(self, alongAxes: axes)
     }
-    
-    @inlinable
-    func prod() -> Self {
-        var result = createSingleElement()
-        SwiftRT.prod(self, result: &result)
-        return result
-    }
+
+    @differentiable(where Self: DifferentiableTensorView)
+    @inlinable @inline(__always)
+    func prod(alongAxes axes: Int...) -> Self { prod(alongAxes: Set(axes)) }
+}
+
+//--------------------------------------
+// derivative functions
+@differentiating(prod)
+@inlinable @inline(__always)
+internal func _vjpProd<T>(_ x: T, alongAxes axes: Set<Int>? = nil)
+    -> (value: T, pullback: (T) -> T) where T: DifferentiableTensorView
+{
+    let value = x.prod(alongAxes: axes)
+    return (value, { [xext = x.extents] in $0.repeated(to: xext) })
 }
 
 //==============================================================================
@@ -259,34 +253,45 @@ public extension TensorView where Element: AnyNumeric {
 /// product of non zero values of `x` along the specified axes
 ///
 /// - Parameter x: value tensor
-/// - Parameter result: the scalar tensor where the result will be written
-/// - Precondition: Each value in `axes` must be in the range `-rank..<rank`.
+/// - Parameter alongAxes: the axes to operate on
 @inlinable
-public func prodNonZeros<T>(_ x: T, result: inout T)
+public func prodNonZeros<T>(_ x: T, alongAxes axes: Set<Int>? = nil) -> T
     where T: TensorView, T.Element: Numeric
 {
+    var result = x.createReductionResult(alongAxes: axes)
     DeviceContext.currentQueue.reduce(x: x,
                                       into: &result,
                                       initialResult: T.Element.one,
                                       opId: .mulNonZeros,
                                       opNext: { $1 == 0 ? $0 : $0 * $1 },
                                       opFinal: nil)
+    return result
 }
 
 public extension TensorView where Element: Numeric {
-    @inlinable
-    func prodNonZeros(alongAxes axes: Int...) -> Self {
-        var result = createReductionResult(alongAxes: Set(axes))
-        SwiftRT.prodNonZeros(self, result: &result)
-        return result
+    @differentiable(where Self: DifferentiableTensorView)
+    @inlinable @inline(__always)
+    func prodNonZeros(alongAxes axes: Set<Int>? = nil) -> Self {
+        SwiftRT.prodNonZeros(self, alongAxes: axes)
     }
     
-    @inlinable
-    func prodNonZeros() -> Self {
-        var result = createSingleElement()
-        SwiftRT.prodNonZeros(self, result: &result)
-        return result
+    @differentiable(where Self: DifferentiableTensorView)
+    @inlinable @inline(__always)
+    func prodNonZeros(alongAxes axes: Int...) -> Self {
+        prodNonZeros(alongAxes: Set(axes))
     }
+}
+
+//--------------------------------------
+// derivative functions
+@differentiating(prodNonZeros)
+@inlinable @inline(__always)
+internal func _vjpProdNonZeros<T>(_ x: T, alongAxes axes: Set<Int>? = nil)
+    -> (value: T, pullback: (T) -> T) where T: DifferentiableTensorView
+{
+    // REVIEW: this is probably wrong
+    let value = x.prodNonZeros(alongAxes: axes)
+    return (value, { [xext = x.extents] in $0.repeated(to: xext) })
 }
 
 //==============================================================================
@@ -295,36 +300,44 @@ public extension TensorView where Element: Numeric {
 /// TODO: add optional indices
 ///
 /// - Parameter x: value tensor
-/// - Parameter result: the scalar tensor where the result will be written
-/// - Precondition: Each value in `axes` must be in the range `-rank..<rank`.
+/// - Parameter alongAxes: the axes to operate on
 @inlinable
-public func min<T>(_ x: T, result: inout T)
+@differentiable(vjp: _vjpMinValue where T: DifferentiableTensorView)
+public func min<T>(_ x: T, alongAxes axes: Set<Int>? = nil) -> T
     where T: TensorView, T.Element: Numeric & Comparable & AnyElement
 {
+    var result = x.createReductionResult(alongAxes: axes)
     DeviceContext.currentQueue.reduce(x: x,
                                       into: &result,
                                       initialResult: x.first,
                                       opId: .min,
                                       opNext: { $0 <= $1 ? $0 : $1 },
                                       opFinal: nil)
+    return result
 }
 
 public extension TensorView where
     Element: Numeric & Comparable & AnyElement
 {
-    @inlinable
-    func min(alongAxes axes: Int...) -> Self {
-        var result = createReductionResult(alongAxes: Set(axes))
-        SwiftRT.min(self, result: &result)
-        return result
+    @differentiable(where Self: DifferentiableTensorView)
+    @inlinable @inline(__always)
+    func min(alongAxes axes: Set<Int>? = nil) -> Self {
+        SwiftRT.min(self, alongAxes: axes)
     }
     
-    @inlinable
-    func min() -> Self {
-        var result = createSingleElement()
-        SwiftRT.min(self, result: &result)
-        return result
-    }
+    @differentiable(where Self: DifferentiableTensorView)
+    @inlinable @inline(__always)
+    func min(alongAxes axes: Int...) -> Self { min(alongAxes: Set(axes)) }
+}
+
+//--------------------------------------
+// derivative functions
+@inlinable @inline(__always)
+internal func _vjpMinValue<T>(_ x: T, alongAxes axes: Set<Int>? = nil)
+    -> (value: T, pullback: (T) -> T) where
+    T: DifferentiableTensorView
+{
+    fatalError()
 }
 
 //==============================================================================
@@ -332,36 +345,44 @@ public extension TensorView where
 /// returns the maximum element value of `x` along the specified axes
 ///
 /// - Parameter x: value tensor
-/// - Parameter result: the scalar tensor where the result will be written
-/// - Precondition: Each value in `axes` must be in the range `-rank..<rank`.
+/// - Parameter alongAxes: the axes to operate on
 @inlinable
-public func max<T>(_ x: T, result: inout T)
+@differentiable(vjp: _vjpMaxValue where T: DifferentiableTensorView)
+public func max<T>(_ x: T, alongAxes axes: Set<Int>? = nil) -> T
     where T: TensorView, T.Element: Numeric & Comparable & AnyElement
 {
+    var result = x.createReductionResult(alongAxes: axes)
     DeviceContext.currentQueue.reduce(x: x,
                                       into: &result,
                                       initialResult: x.first,
                                       opId: .max,
                                       opNext: { $0 > $1 ? $0 : $1 },
                                       opFinal: nil)
+    return result
 }
 
 public extension TensorView where
     Element: Numeric & Comparable & AnyElement
 {
-    @inlinable
-    func max(alongAxes axes: Int...) -> Self {
-        var result = createReductionResult(alongAxes: Set(axes))
-        SwiftRT.max(self, result: &result)
-        return result
+    @differentiable(where Self: DifferentiableTensorView)
+    @inlinable @inline(__always)
+    func max(alongAxes axes: Set<Int>? = nil) -> Self {
+        SwiftRT.max(self, alongAxes: axes)
     }
     
-    @inlinable
-    func max() -> Self {
-        var result = createSingleElement()
-        SwiftRT.max(self, result: &result)
-        return result
-    }
+    @differentiable(where Self: DifferentiableTensorView)
+    @inlinable @inline(__always)
+    func max(alongAxes axes: Int...) -> Self { max(alongAxes: Set(axes)) }
+}
+
+//--------------------------------------
+// derivative functions
+@inlinable @inline(__always)
+internal func _vjpMaxValue<T>(_ x: T, alongAxes axes: Set<Int>? = nil)
+    -> (value: T, pullback: (T) -> T) where
+    T: DifferentiableTensorView
+{
+    fatalError()
 }
 
 //==============================================================================
@@ -369,37 +390,45 @@ public extension TensorView where
 /// absolute max of `x` along the specified axes
 ///
 /// - Parameter x: value tensor
-/// - Parameter result: the scalar tensor where the result will be written
-/// - Precondition: Each value in `axes` must be in the range `-rank..<rank`.
+/// - Parameter alongAxes: the axes to operate on
 @inlinable
-public func absmax<T>(_ x: T, result: inout T)
+public func absmax<T>(_ x: T, alongAxes axes: Set<Int>? = nil) -> T
     where T: TensorView, T.Element: SignedNumeric & Comparable & AnyElement
 {
-    DeviceContext.currentQueue.reduce(
-        x: x,
-        into: &result,
-        initialResult: x.first,
-        opId: .amax,
-        opNext: { max(abs($0), abs($1)) },
-        opFinal: nil)
+    var result = x.createReductionResult(alongAxes: axes)
+    DeviceContext.currentQueue.reduce(x: x,
+                                      into: &result,
+                                      initialResult: x.first,
+                                      opId: .amax,
+                                      opNext: { max(abs($0), abs($1)) },
+                                      opFinal: nil)
+    return result
 }
 
 public extension TensorView where
     Element: SignedNumeric & Comparable & AnyElement
 {
-    @inlinable
-    func absmax(alongAxes axes: Int...) -> Self {
-        var result = createReductionResult(alongAxes: Set(axes))
-        SwiftRT.absmax(self, result: &result)
-        return result
+    @differentiable(where Self: DifferentiableTensorView)
+    @inlinable @inline(__always)
+    func absmax(alongAxes axes: Set<Int>? = nil) -> Self {
+        SwiftRT.absmax(self, alongAxes: axes)
     }
     
-    @inlinable
-    func absmax() -> Self {
-        var result = createSingleElement()
-        SwiftRT.absmax(self, result: &result)
-        return result
+    @differentiable(where Self: DifferentiableTensorView)
+    @inlinable @inline(__always)
+    func absmax(alongAxes axes: Int...) -> Self {
+        absmax(alongAxes: Set(axes))
     }
+}
+
+//--------------------------------------
+// derivative functions
+@differentiating(absmax)
+@inlinable @inline(__always)
+internal func _vjpAbsmax<T>(_ x: T, alongAxes axes: Set<Int>? = nil)
+    -> (value: T, pullback: (T) -> T) where T: DifferentiableTensorView
+{
+    fatalError()
 }
 
 //==============================================================================
@@ -407,35 +436,34 @@ public extension TensorView where
 /// Sums the absolute values of `x` along the specified axes
 ///
 /// - Parameter x: value tensor
-/// - Parameter result: the scalar tensor where the result will be written
-/// - Precondition: Each value in `axes` must be in the range `-rank..<rank`.
+/// - Parameter alongAxes: the axes to operate on
 @inlinable
-public func abssum<T>(_ x: T, result: inout T)
+@differentiable(vjp: _vjpSum where T: DifferentiableTensorView)
+public func abssum<T>(_ x: T, alongAxes axes: Set<Int>? = nil) -> T
     where T: TensorView, T.Element: FloatingPoint
 {
+    var result = x.createReductionResult(alongAxes: axes)
     DeviceContext.currentQueue.reduce(x: x,
                                       into: &result,
                                       initialResult: T.Element.zero,
                                       opId: .asum,
                                       opNext: { $0 + $1.magnitude },
                                       opFinal: nil)
+    return result
 }
 
 public extension TensorView where Element: FloatingPoint {
-    @inlinable
-    func abssum(alongAxes axes: Int...) -> Self {
-        var result = createReductionResult(alongAxes: Set(axes))
-        SwiftRT.abssum(self, result: &result)
-        return result
+    @differentiable(where Self: DifferentiableTensorView)
+    @inlinable @inline(__always)
+    func abssum(alongAxes axes: Set<Int>? = nil) -> Self {
+        SwiftRT.abssum(self, alongAxes: axes)
     }
     
-    @inlinable
-    func abssum() -> Self {
-        var result = createSingleElement()
-        SwiftRT.abssum(self, result: &result)
-        return result
-    }
+    @differentiable(where Self: DifferentiableTensorView)
+    @inlinable @inline(__always)
+    func abssum(alongAxes axes: Int...) -> Self { abssum(alongAxes: Set(axes)) }
 }
+
 
 //==============================================================================
 /// sqrtSumSquares(x:alongAxes:
@@ -445,41 +473,40 @@ public extension TensorView where Element: FloatingPoint {
 /// - Parameter result: the scalar tensor where the result will be written
 /// - Precondition: Each value in `axes` must be in the range `-rank..<rank`.
 @inlinable
-public func sqrtSumSquares<T>(_ x: T, result: inout T)
+public func sqrtSumSquares<T>(_ x: T, alongAxes axes: Set<Int>? = nil) -> T
     where T: TensorView, T.Element: Real
 {
+    var result = x.createReductionResult(alongAxes: axes)
     DeviceContext.currentQueue.reduce(x: x,
                                       into: &result,
                                       initialResult: T.Element.zero,
                                       opId: .sqrtSumSquares,
                                       opNext: { $0 + $1 * $1 },
                                       opFinal: { .sqrt($0) })
+    return result
 }
 
 public extension TensorView where Element: Real {
-    @inlinable
-    func sqrtSumSquares(alongAxes axes: Int...) -> Self {
-        var result = createReductionResult(alongAxes: Set(axes))
-        SwiftRT.sqrtSumSquares(self, result: &result)
-        return result
+    @differentiable(where Self: DifferentiableTensorView)
+    @inlinable @inline(__always)
+    func sqrtSumSquares(alongAxes axes: Set<Int>? = nil) -> Self {
+        SwiftRT.sqrtSumSquares(self, alongAxes: axes)
     }
     
-    @inlinable
-    func sqrtSumSquares() -> Self {
-        var result = createSingleElement()
-        SwiftRT.sqrtSumSquares(self, result: &result)
-        return result
+    @differentiable(where Self: DifferentiableTensorView)
+    @inlinable @inline(__always)
+    func sqrtSumSquares(alongAxes axes: Int...) -> Self {
+        sqrtSumSquares(alongAxes: Set(axes))
     }
 }
 
-//==============================================================================
-/// Derivative registration
-
-public extension TensorView where Self: DifferentiableTensorView {
-    @differentiating(mean)
-    @inlinable @inline(__always)
-    func vjpMean() -> (value: Self, pullback: (Self) -> (Self)) {
-        // FIXME: Implement pullback.
-        return (mean(), { v in fatalError() })
-    }
+//--------------------------------------
+// derivative functions
+@differentiating(sqrtSumSquares)
+@inlinable @inline(__always)
+internal func _vjpSqrtSumSquares<T>(_ x: T, alongAxes axes: Set<Int>? = nil)
+    -> (value: T, pullback: (T) -> T)
+    where T: DifferentiableTensorView, T.Element: Real
+{
+    fatalError()
 }
