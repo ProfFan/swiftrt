@@ -43,8 +43,8 @@ public func cast<T, U>(_ other: U) -> T where
 /// - Parameter x: value tensor
 /// - Returns: result
 @inlinable @inline(__always)
-public func exp<T>(_ x: T) -> T where
-    T: TensorView, T.Element: Real
+public func exp<T>(_ x: T) -> T
+    where T: TensorView, T.Element: Real
 {
     var result = x.createDense()
     DeviceContext.currentQueue.exp(x: x, result: &result)
@@ -53,10 +53,27 @@ public func exp<T>(_ x: T) -> T where
 
 public extension TensorView where Element: Real {
     @inlinable @inline(__always)
-    func exp(_ x: Self) -> Self { SwiftRT.exp(x) }
+    func exp() -> Self { SwiftRT.exp(self) }
+}
 
+//--------------------------------------
+// derivative functions
+@inlinable
+@differentiating(exp)
+internal func _vjpExp<T>(_ x: T) -> (value: T, pullback: (T) -> T)
+    where T: DifferentiableTensorView, T.Element: Real
+{
+    let value = exp(x)
+    return (value, { v in value * v } )
+}
+
+extension TensorView where Self: DifferentiableTensorView, Element: Real {
+    @differentiating(exp)
     @inlinable @inline(__always)
-    func exp() -> Self { exp(self) }
+    func _vjpExp() -> (value: Self, pullback: (Self) -> (Self)) {
+        let value = exp()
+        return (value, { v in value * v } )
+    }
 }
 
 //==============================================================================
@@ -67,8 +84,8 @@ public extension TensorView where Element: Real {
 /// - Parameter x: value tensor
 /// - Returns: result
 @inlinable @inline(__always)
-public func log<T>(_ x: T) -> T where
-    T: TensorView, T.Element: Real
+public func log<T>(_ x: T) -> T
+    where T: TensorView, T.Element: Real
 {
     var result = x.createDense()
     DeviceContext.currentQueue.log(x: x, result: &result)
@@ -77,10 +94,25 @@ public func log<T>(_ x: T) -> T where
 
 public extension TensorView where Element: Real {
     @inlinable @inline(__always)
-    func log(_ x: Self) -> Self { SwiftRT.log(x) }
+    func log() -> Self { SwiftRT.log(self) }
+}
 
+//--------------------------------------
+// derivative functions
+@inlinable
+@differentiating(log)
+internal func _vjpLog<T>(_ x: T) -> (value: T, pullback: (T) -> T)
+    where T: DifferentiableTensorView, T.Element: Real
+{
+    (log(x), { v in v / x })
+}
+
+extension TensorView where Self: DifferentiableTensorView, Element: Real {
+    @differentiating(log)
     @inlinable @inline(__always)
-    func log() -> Self { log(self) }
+    func _vjpLog() -> (value: Self, pullback: (Self) -> (Self)) {
+        (log(), { v in v / self })
+    }
 }
 
 //==============================================================================
@@ -91,8 +123,8 @@ public extension TensorView where Element: Real {
 /// - Parameter x: value tensor
 /// - Returns: result
 @inlinable @inline(__always)
-public func neg<T>(_ x: T) -> T where
-    T: TensorView, T.Element: FloatingPoint
+public func neg<T>(_ x: T) -> T
+    where T: TensorView, T.Element: FloatingPoint
 {
     var result = x.createDense()
     DeviceContext.currentQueue.neg(x: x, result: &result)
@@ -107,6 +139,31 @@ public extension TensorView where Element: FloatingPoint {
     static prefix func - (x: Self) -> Self { x.neg() }
 }
 
+//--------------------------------------
+// derivative functions
+@inlinable
+@differentiating(neg)
+internal func _vjpNeg<T>(_ x: T) -> (value: T, pullback: (T) -> T)
+    where T: DifferentiableTensorView
+{
+    (-x, { v in -v })
+}
+
+extension TensorView where Self: DifferentiableTensorView {
+    @differentiating(neg)
+    @inlinable @inline(__always)
+    func _vjpNeg() -> (value: Self, pullback: (Self) -> (Self)) {
+        return (-self, { v in -v })
+    }
+    
+    @differentiating(-)
+    @inlinable @inline(__always)
+    static func _vjpNeg(x: Self) -> (value: Self, pullback: (Self) -> (Self))
+    {
+        return (-x, { v in -v })
+    }
+}
+
 //==============================================================================
 /// squared(x)
 /// computes the elementwise squares of `x`
@@ -114,8 +171,9 @@ public extension TensorView where Element: FloatingPoint {
 /// - Parameter x: value tensor
 /// - Returns: result
 @inlinable @inline(__always)
-public func squared<T>(_ x: T) -> T where
-    T: TensorView, T.Element: Numeric
+@differentiable(vjp: _vjpSquared where T: DifferentiableTensorView)
+public func squared<T>(_ x: T) -> T
+    where T: TensorView, T.Element: Numeric
 {
     var result = x.createDense()
     DeviceContext.currentQueue.squared(x: x, result: &result)
@@ -127,6 +185,23 @@ public extension TensorView where Element: Numeric {
     func squared() -> Self { SwiftRT.squared(self) }
 }
 
+//--------------------------------------
+// derivative functions
+@inlinable
+internal func _vjpSquared<T>(_ x: T) -> (T, (T) -> T)
+    where T: DifferentiableTensorView
+{
+    (squared(x), { v in v * (x + x) })
+}
+
+extension TensorView where Self: DifferentiableTensorView {
+    @differentiating(squared)
+    @inlinable @inline(__always)
+    func _vjpSquared() -> (value: Self, pullback: (Self) -> (Self)) {
+        return (squared(), { v in v * (self + self) })
+    }
+}
+
 //==============================================================================
 /// pow(x)
 /// computes elementwise `x` to the power of `y`
@@ -135,8 +210,8 @@ public extension TensorView where Element: Numeric {
 /// - Parameter y: power tensor
 /// - Returns: result
 @inlinable @inline(__always)
-public func pow<T>(_ x: T, _ y: T) -> T where
-    T: TensorView, T.Element: Real
+public func pow<T>(_ x: T, _ y: T) -> T
+    where T: TensorView, T.Element: Real
 {
     assert(x.extents == y.extents, _messageTensorExtentsMismatch)
     var result = x.createDense()
@@ -167,8 +242,8 @@ public extension TensorView where Element: Real {
 /// - Parameter x: value tensor
 /// - Returns: result
 @inlinable @inline(__always)
-public func sqrt<T>(_ x: T) -> T where
-    T: TensorView, T.Element: Real
+public func sqrt<T>(_ x: T) -> T
+    where T: TensorView, T.Element: Real
 {
     var result = x.createDense()
     DeviceContext.currentQueue.sqrt(x: x, result: &result)
@@ -178,14 +253,4 @@ public func sqrt<T>(_ x: T) -> T where
 public extension TensorView where Element: Real {
     @inlinable @inline(__always)
     func sqrt() -> Self { SwiftRT.sqrt(self) }
-}
-
-//==============================================================================
-/// Derivative registration
-extension TensorView where Self: DifferentiableTensorView {
-    @differentiating(squared)
-    @inlinable @inline(__always)
-    func vjpSquared() -> (value: Self, pullback: (Self) -> (Self)) {
-        return (squared(), { v in v * (self + self) })
-    }
 }
