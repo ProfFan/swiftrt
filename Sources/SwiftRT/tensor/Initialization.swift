@@ -174,10 +174,10 @@ public extension TensorView {
 
 //==============================================================================
 //
+
 public extension TensorView where Self: DifferentiableTensorView {
-    //
-    func _vjpInit(repeating value: Element, to extents: [Int], name: String?) ->
-        (value: Self, pullback: (Self) -> (Element, [Int], String?))
+    static func _vjpInit(repeating value: Element, to extents: [Int], name: String?) ->
+        (value: Self, pullback: (Self) -> (Element))
     {
         fatalError()
     }
