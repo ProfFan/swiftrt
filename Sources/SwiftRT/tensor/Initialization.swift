@@ -72,7 +72,7 @@ public extension TensorView {
     
     //--------------------------------------------------------------------------
     /// repeating element
-//    @differentiable(vjp: _vjpInit where Self: DifferentiableTensorView)
+    @differentiable(vjp: _vjpInit where Self: DifferentiableTensorView)
     init(repeating value: Element, to extents: [Int], name: String? = nil) {
         let strides = [Int](repeating: 0, count: extents.count)
         let shape = DataShape(extents: extents, strides: strides)
@@ -81,7 +81,7 @@ public extension TensorView {
     
     //--------------------------------------------------------------------------
     /// repeating element
-//    @differentiable(where Self: DifferentiableTensorView)
+    @differentiable(where Self: DifferentiableTensorView)
     init<U>(repeating value: Element, like other: U, name: String? = nil)
         where U: TensorView
     {

@@ -188,14 +188,13 @@ public extension TensorView where Element: Real {
     @inlinable @inline(__always)
     static func **(_ x: Self, _ y: Self) -> Self { SwiftRT.pow(x, y) }
 
-    // TODO
-//    @differentiable(where Self: DifferentiableTensorView)
+    @differentiable(where Self: DifferentiableTensorView)
     @inlinable @inline(__always)
     static func **(_ x: Self, _ y: Element) -> Self {
         y == 2 ? x.squared() : x ** Self(repeating: y, like: x)
     }
 
-//    @differentiable(where Self: DifferentiableTensorView)
+    @differentiable(where Self: DifferentiableTensorView)
     @inlinable @inline(__always)
     static func **(_ x: Element, _ y: Self) -> Self {
         Self(repeating: x, like: y) ** y
