@@ -18,7 +18,7 @@ import Foundation
 
 @testable import SwiftRT
 
-class test_ElementWise: XCTestCase {
+class test_Math: XCTestCase {
     //==========================================================================
     // support terminal test run
     static var allTests = [
@@ -55,11 +55,15 @@ class test_ElementWise: XCTestCase {
     //--------------------------------------------------------------------------
     // test_log
     func test_log() {
+        Platform.local.servicePriority = [cpuSynchronousServiceName]
         let range = 0..<6
         let matrix = Matrix<Float>(3, 2, with: range)
         let values = log(matrix).flatArray
         let expected: [Float] = range.map { Foundation.log(Float($0)) }
         XCTAssert(values == expected)
+        
+        let m2 = Matrix<Float>(3, 2, with: 1...6)
+        XCTAssert(gradientIsValid(at: m2, in: { log($0) }))
     }
     
     //--------------------------------------------------------------------------

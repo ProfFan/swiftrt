@@ -398,7 +398,6 @@ public extension MatrixView {
 
 //==============================================================================
 // Matrix
-
 public struct Matrix<Element>: MatrixView {
     // properties
     public let isShared: Bool
@@ -418,6 +417,12 @@ public struct Matrix<Element>: MatrixView {
         self.viewOffset = viewOffset
         self.isShared = isShared
     }
+}
+
+extension Matrix: Differentiable & DifferentiableTensorView where
+    Element: DifferentiableElement
+{
+    public typealias TangentVector = Matrix
 }
 
 //******************************************************************************
@@ -610,4 +615,10 @@ public struct Volume<Element>: VolumeView {
         self.viewOffset = viewOffset
         self.isShared = isShared
     }
+}
+
+extension Volume: Differentiable & DifferentiableTensorView where
+    Element: DifferentiableElement
+{
+    public typealias TangentVector = Volume
 }
