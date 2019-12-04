@@ -50,6 +50,10 @@ class test_BinaryFunctions: XCTestCase {
         let result = m1 + m2
         let expected: [Float] = [0, 2, 4, 6, 8, 10]
         XCTAssert(result.flatArray == expected)
+
+        XCTAssert(gradientIsValid(at: m1, m2, tolerance: 0.002, in: {
+            SwiftRT.add($0, $1)
+        }))
     }
 
     //--------------------------------------------------------------------------

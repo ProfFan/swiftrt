@@ -49,18 +49,26 @@ public extension TensorView where Element: AdditiveArithmetic {
 
 //--------------------------------------
 // derivative functions
+@differentiating(add)
+@inlinable @inline(__always)
+public func _vjpAdd<T>(lhs: T, rhs: T) -> (value: T, pullback: (T) -> (T, T))
+    where T: DifferentiableTensorView
+{
+    return (lhs + rhs, { v in (v, v) })
+}
+
 public extension TensorView where Self: DifferentiableTensorView {
     @differentiating(+)
     @inlinable @inline(__always)
-    static func vjpAdd(lhs: Self, rhs: Self) ->
+    static func _vjpAdd(lhs: Self, rhs: Self) ->
         (value: Self, pullback: (Self) -> (Self, Self))
     {
-        return (lhs + rhs, { v in (v, v) })
+        SwiftRT._vjpAdd(lhs: lhs, rhs: rhs)
     }
     
     @differentiating(+)
     @inlinable @inline(__always)
-    static func vjpAdd(lhs: Self, rhs: Element) ->
+    static func _vjpAdd(lhs: Self, rhs: Element) ->
         (value: Self, pullback: (Self) -> (Self, Element))
     {
         return (lhs + rhs, { v in (v, v.sum().element) })
@@ -68,7 +76,7 @@ public extension TensorView where Self: DifferentiableTensorView {
     
     @differentiating(+)
     @inlinable @inline(__always)
-    static func vjpAdd(lhs: Element, rhs: Self) ->
+    static func _vjpAdd(lhs: Element, rhs: Self) ->
         (value: Self, pullback: (Self) -> (Element, Self))
     {
         return (lhs + rhs, { v in (v.sum().element, v) })

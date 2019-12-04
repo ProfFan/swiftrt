@@ -25,20 +25,35 @@ public func gradient<T, R>(
     return pullback(at: x, in: fn)(R(repeating: 1, like: x))
 }
 
+public func gradient<T, U, R>(
+    at x: T, _ y: U,
+    in fn: @differentiable (T, U) -> R) -> (T.TangentVector, U.TangentVector)
+    where
+    T: DifferentiableTensorView,
+    U: DifferentiableTensorView,
+    R: DifferentiableTensorView
+{
+    return pullback(at: x, y, in: fn)(R(repeating: 1, like: x))
+}
+
+public func gradient<T, U, V, R>(
+    at x: T, _ y: U, _ z: V,
+    in fn: @differentiable (T, U, V) -> R) ->
+    (T.TangentVector, U.TangentVector, V.TangentVector)
+    where
+    T: DifferentiableTensorView, U: DifferentiableTensorView,
+    V: DifferentiableTensorView, R: DifferentiableTensorView
+{
+    return pullback(at: x, y, z, in: fn)(R(repeating: 1, like: x))
+}
+
 //==============================================================================
 /// gradientIsValid
-/// - Parameter at:
-public func gradientIsValid<T>(
-    at input: T,
-    delta: Float = 1e-4,
-    tolerance: Float = 5e-4,
-    in body: @differentiable (T) -> T) -> Bool
+public func compareGradients<T>(_ grad: T, _ expected: T,
+                                _ tolerance: Float) -> Bool
     where T: DifferentiableTensorView
 {
-    let delta = T.Element(any: delta)
     let tolerance = T.Element(any: tolerance)
-    let grad = gradient(at: input, in: body)
-    let expected = numericalGradient(at: input, delta: delta, in: body)
     let almostEqual = elementsAlmostEqual(grad, expected, tolerance: tolerance)
         .all().element
     if !almostEqual {
@@ -53,17 +68,63 @@ public func gradientIsValid<T>(
 }
 
 //==============================================================================
-/// numericalGradient
+/// gradientIsValid
+/// - Parameter at:
+public func gradientIsValid<T>(
+    at x: T,
+    delta: Float = 1e-4,
+    tolerance: Float = 5e-4,
+    in body: @differentiable (T) -> T) -> Bool
+    where T: DifferentiableTensorView
+{
+    return compareGradients(
+        gradient(at: x, in: body),
+        numericalGradient(at: x, delta: delta, in: body),
+        tolerance)
+}
+
 public func numericalGradient<T>(
-    at input: T,
-    delta: T.Element,
+    at x: T,
+    delta: Float,
     in body: @differentiable (T) -> T) -> T
     where T: DifferentiableTensorView
 {
-    let valuePlus = body(input + delta)
-    let valueMinus = body(input - delta)
+    let delta = T.Element(any: delta)
+    let valuePlus = body(x + delta)
+    let valueMinus = body(x - delta)
     let scale = T.Element(any: 0.5) / delta
     let diff = valuePlus - valueMinus
     let result = diff * scale
     return result
 }
+
+//==============================================================================
+/// gradientIsValid
+/// - Parameter at:
+public func gradientIsValid<T>(
+    at x: T, _ y: T,
+    delta: Float = 1e-4,
+    tolerance: Float = 5e-4,
+    in body: @differentiable (T, T) -> T) -> Bool
+    where T: DifferentiableTensorView
+{
+    let (gx, gy) = gradient(at: x, y, in: body)
+    let (ngX, ngY) = numericalGradient(at: x, y, delta: delta, in: body)
+    let xEqual = compareGradients(gx, ngX, tolerance)
+    let yEqual = compareGradients(gy, ngY, tolerance)
+    return xEqual && yEqual
+}
+
+public func numericalGradient<T>(
+    at x: T, _ y: T,
+    delta: Float,
+    in body: @differentiable (T, T) -> T) -> (T, T)
+    where T: DifferentiableTensorView
+{
+    let delta = T.Element(any: delta)
+    let scale = T.Element(any: 0.5) / delta
+    let ngX = (body(x + delta, y) - body(x - delta, y)) * scale
+    let ngY = (body(x, y + delta) - body(x, y - delta)) * scale
+    return (ngX, ngY)
+}
+
