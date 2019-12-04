@@ -22,11 +22,9 @@
 public func add<T>(_ lhs: T, _ rhs: T) -> T
     where T: TensorView, T.Element: AdditiveArithmetic
 {
-    // hack
-    // TODO: remove this. THIS IS NO GOOD. Fix definition of AdditiveArithmetic
-    let lhs = lhs.repeated(to: rhs.extents)
-    var result = lhs.createDense()
+    let (lhs, rhs) = implicitlyMatchExtents(lhs, rhs)
     assert(lhs.extents == rhs.extents, _messageTensorExtentsMismatch)
+    var result = lhs.createDense()
     DeviceContext.currentQueue.add(lhs: lhs, rhs: rhs, result: &result)
     return result
 }
@@ -86,6 +84,7 @@ public extension TensorView where Self: DifferentiableTensorView {
 public func subtract<T>(_ lhs: T, _ rhs: T) -> T
     where T: TensorView, T.Element: AdditiveArithmetic
 {
+    let (lhs, rhs) = implicitlyMatchExtents(lhs, rhs)
     assert(lhs.extents == rhs.extents, _messageTensorExtentsMismatch)
     var result = lhs.createDense()
     DeviceContext.currentQueue.subtract(lhs: lhs, rhs: rhs, result: &result)
@@ -142,6 +141,7 @@ public extension TensorView where Self: DifferentiableTensorView {
 public func mul<T>(_ lhs: T, _ rhs: T) -> T
     where T: TensorView, T.Element: Numeric
 {
+    let (lhs, rhs) = implicitlyMatchExtents(lhs, rhs)
     assert(lhs.extents == rhs.extents, _messageTensorExtentsMismatch)
     var result = lhs.createDense()
     DeviceContext.currentQueue.mul(lhs: lhs, rhs: rhs, result: &result)
@@ -206,6 +206,7 @@ public extension TensorView where Self: DifferentiableTensorView {
 public func div<T>(_ lhs: T, _ rhs: T) -> T
     where T: TensorView, T.Element: FloatingPoint
 {
+    let (lhs, rhs) = implicitlyMatchExtents(lhs, rhs)
     assert(lhs.extents == rhs.extents, _messageTensorExtentsMismatch)
     var result = lhs.createDense()
     DeviceContext.currentQueue.div(lhs: lhs, rhs: rhs, result: &result)

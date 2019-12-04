@@ -30,13 +30,15 @@ public func gradient<T, R>(
 /// - Parameter at:
 public func gradientIsValid<T>(
     at input: T,
-    in body: @differentiable (T) -> T,
-    epsilon: T.Element = T.Element(any: 1e-4),
-    tolerance: T.Element = T.Element(any: 5e-4)) -> Bool
+    delta: Float = 1e-4,
+    tolerance: Float = 5e-4,
+    in body: @differentiable (T) -> T) -> Bool
     where T: DifferentiableTensorView
 {
+    let delta = T.Element(any: delta)
+    let tolerance = T.Element(any: tolerance)
     let grad = gradient(at: input, in: body)
-    let expected = finiteDifferenceJVP(at: input, in: body, epsilon: epsilon)
+    let expected = numericalGradient(at: input, delta: delta, in: body)
     let almostEqual = elementsAlmostEqual(grad, expected, tolerance: tolerance)
         .all().element
     if !almostEqual {
@@ -44,22 +46,24 @@ public func gradientIsValid<T>(
             "gradient values do not match numerical jvp values")
         DeviceContext.current[0].writeLog("gradient: \(grad.array)")
         DeviceContext.current[0].writeLog("expected: \(expected.array)")
-        let maxDiff = (grad - expected).max().element
+        let maxDiff = (grad - expected).absmax().element
         DeviceContext.current[0].writeLog("maxDiff: \(maxDiff)")
     }
     return almostEqual
 }
 
 //==============================================================================
-/// finiteDifferenceJVP
-public func finiteDifferenceJVP<T>(
+/// numericalGradient
+public func numericalGradient<T>(
     at input: T,
-    in body: @differentiable (T) -> T,
-    epsilon: T.Element = T.Element(any: 1e-4)) -> T
+    delta: T.Element,
+    in body: @differentiable (T) -> T) -> T
     where T: DifferentiableTensorView
 {
-    let valuePlus = body(input + epsilon)
-    let valueMinus = body(input - epsilon)
-    let scale = T.Element(any: 0.5) / epsilon
-    return (valuePlus - valueMinus) * scale
+    let valuePlus = body(input + delta)
+    let valueMinus = body(input - delta)
+    let scale = T.Element(any: 0.5) / delta
+    let diff = valuePlus - valueMinus
+    let result = diff * scale
+    return result
 }
