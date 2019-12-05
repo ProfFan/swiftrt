@@ -201,7 +201,7 @@ public extension TensorView where Self: DifferentiableTensorView {
     static func _vjpMultiply(lhs: Self, rhs: Element) ->
         (value: Self, pullback: (Self) -> (Self, Element))
     {
-        return (lhs * rhs, { v in (v * lhs, (v * rhs).sum().element) })
+        return (lhs * rhs, { v in (v * rhs, (v * lhs).sum().element) })
     }
     
     @differentiating(*)
@@ -209,7 +209,7 @@ public extension TensorView where Self: DifferentiableTensorView {
     static func _vjpMultiply(lhs: Element, rhs: Self) ->
         (value: Self, pullback: (Self) -> (Element, Self))
     {
-        return (lhs * rhs, { v in ((v * lhs).sum().element, v * rhs) })
+        return (lhs * rhs, { v in ((v * rhs).sum().element, v * lhs) })
     }
 }
 
@@ -257,11 +257,7 @@ public extension TensorView where Element: FloatingPoint {
 internal func _vjpDivide<T>(_ lhs: T, _ rhs: T) ->
     (value: T, pullback: (T) -> (T, T)) where T: DifferentiableTensorView
 {
-    (lhs / rhs, { v in
-        let lhsGrad = v / rhs
-        let rhsGrad = -lhs / rhs.squared() * v
-        return (lhsGrad, rhsGrad)
-    })
+    (lhs / rhs, { v in (v / rhs, -lhs / rhs.squared() * v) })
 }
 
 public extension TensorView where Self: DifferentiableTensorView {
