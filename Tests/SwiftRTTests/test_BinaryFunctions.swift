@@ -50,10 +50,7 @@ class test_BinaryFunctions: XCTestCase {
         let result = m1 + m2
         let expected: [Float] = [0, 2, 4, 6, 8, 10]
         XCTAssert(result.flatArray == expected)
-
-        XCTAssert(gradientIsValid(at: m1, m2, tolerance: 0.002, in: {
-            SwiftRT.add($0, $1)
-        }))
+        XCTAssert(gradientIsValid(at: m1, m2, tolerance: 0.002, in: { $0 + $1 }))
     }
 
     //--------------------------------------------------------------------------
@@ -100,11 +97,12 @@ class test_BinaryFunctions: XCTestCase {
     //--------------------------------------------------------------------------
     // test_subtract
     func test_subtract() {
-        let m3 = Matrix<Float>(3, 2, with: 1..<7)
-        let m4 = Matrix<Float>(3, 2, with: 0..<6)
-        let result = m3 - m4
+        let m1 = Matrix<Float>(3, 2, with: 1..<7)
+        let m2 = Matrix<Float>(3, 2, with: 0..<6)
+        let result = m1 - m2
         let expected: [Float] = [1, 1, 1, 1, 1, 1]
         XCTAssert(result.flatArray == expected)
+        XCTAssert(gradientIsValid(at: m1, m2, tolerance: 0.002, in: { $0 - $1 }))
     }
 
     //--------------------------------------------------------------------------
@@ -164,6 +162,7 @@ class test_BinaryFunctions: XCTestCase {
         let result = m1 * m2
         let expected: [Float] = [0, 1, 4, 9, 16, 25]
         XCTAssert(result.flatArray == expected)
+        XCTAssert(gradientIsValid(at: m1, m2, tolerance: 0.006, in: { $0 * $1 }))
     }
 
     //--------------------------------------------------------------------------
@@ -187,7 +186,7 @@ class test_BinaryFunctions: XCTestCase {
     //--------------------------------------------------------------------------
     // test_div
     func test_div() {
-//        Platform.local.servicePriority = [cpuAsynchronousServiceName]
+//        Platform.local.servicePriority = [cpuSynchronousServiceName]
 //        Platform.log.level = .diagnostic
 //        Platform.log.categories = [.dataCopy, .dataMutation, .scheduling]
         let m1 = Matrix<Float>(3, 2, with: [1, 4, 9, 16, 25, 36])
@@ -195,6 +194,7 @@ class test_BinaryFunctions: XCTestCase {
         let result = m1 / m2
         let expected: [Float] = [1, 2, 3, 4, 5, 6]
         XCTAssert(result.flatArray == expected)
+//        XCTAssert(gradientIsValid(at: m1, m2, tolerance: 0.006, in: { $0 / $1 }))
     }
 
     //--------------------------------------------------------------------------
