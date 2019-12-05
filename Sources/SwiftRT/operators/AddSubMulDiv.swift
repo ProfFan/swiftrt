@@ -179,18 +179,26 @@ public extension TensorView where Element: Numeric {
 
 //--------------------------------------
 // derivative functions
+@differentiating(mul)
+@inlinable @inline(__always)
+internal func _vjpMultiply<T>(_ lhs: T, _ rhs: T) ->
+    (value: T, pullback: (T) -> (T, T)) where T: DifferentiableTensorView
+{
+    (lhs * rhs, { v in (v * rhs, v * lhs) })
+}
+
 public extension TensorView where Self: DifferentiableTensorView {
     @differentiating(*)
     @inlinable @inline(__always)
-    static func vjpMultiply(lhs: Self, rhs: Self) ->
+    static func _vjpMultiply(lhs: Self, rhs: Self) ->
         (value: Self, pullback: (Self) -> (Self, Self))
     {
-        return (lhs * rhs, { v in (v * lhs, v * rhs) })
+        SwiftRT._vjpMultiply(lhs, rhs)
     }
     
     @differentiating(*)
     @inlinable @inline(__always)
-    static func vjpMultiply(lhs: Self, rhs: Element) ->
+    static func _vjpMultiply(lhs: Self, rhs: Element) ->
         (value: Self, pullback: (Self) -> (Self, Element))
     {
         return (lhs * rhs, { v in (v * lhs, (v * rhs).sum().element) })
@@ -198,7 +206,7 @@ public extension TensorView where Self: DifferentiableTensorView {
     
     @differentiating(*)
     @inlinable @inline(__always)
-    static func vjpMultiply(lhs: Element, rhs: Self) ->
+    static func _vjpMultiply(lhs: Element, rhs: Self) ->
         (value: Self, pullback: (Self) -> (Element, Self))
     {
         return (lhs * rhs, { v in ((v * lhs).sum().element, v * rhs) })
@@ -244,28 +252,44 @@ public extension TensorView where Element: FloatingPoint {
 
 //--------------------------------------
 // derivative functions
+@differentiating(div)
+@inlinable @inline(__always)
+internal func _vjpDivide<T>(_ lhs: T, _ rhs: T) ->
+    (value: T, pullback: (T) -> (T, T)) where T: DifferentiableTensorView
+{
+    (lhs / rhs, { v in
+        let lhsGrad = v / rhs
+        let rhsGrad = -lhs / rhs.squared() * v
+        return (lhsGrad, rhsGrad)
+    })
+}
+
 public extension TensorView where Self: DifferentiableTensorView {
     @differentiating(/)
     @inlinable @inline(__always)
-    static func vjpDivide(lhs: Self, rhs: Self) ->
+    static func _vjpDivide(lhs: Self, rhs: Self) ->
         (value: Self, pullback: (Self) -> (Self, Self))
     {
-        return (lhs / rhs, { v in (v / lhs, v / rhs) })
+        SwiftRT._vjpDivide(lhs, rhs)
     }
     
     @differentiating(/)
     @inlinable @inline(__always)
-    static func vjpDivide(lhs: Self, rhs: Element) ->
+    static func _vjpDivide(lhs: Self, rhs: Element) ->
         (value: Self, pullback: (Self) -> (Self, Element))
     {
-        return (lhs / rhs, { v in (v / lhs, (v / rhs).sum().element) })
+        return (lhs / rhs, { v in
+            (v / rhs, (-lhs / rhs.squared() * v).sum().element)
+        })
     }
     
     @differentiating(/)
     @inlinable @inline(__always)
-    static func vjpDivide(lhs: Element, rhs: Self) ->
+    static func _vjpDivide(lhs: Element, rhs: Self) ->
         (value: Self, pullback: (Self) -> (Element, Self))
     {
-        return (lhs / rhs, { v in ((v / lhs).sum().element, v / rhs) })
+        return (lhs / rhs, { v in
+            ((v / rhs).sum().element, -lhs / rhs.squared() * v)
+        })
     }
 }

@@ -80,6 +80,10 @@ public protocol AnyFloatingPoint: FloatingPoint, AnyNumeric {
     static var onePointer: UnsafeRawPointer { get }
 }
 
+public extension AnyNumeric {
+    func squared() -> Self { self * self }
+}
+
 //------------------------------------------------------------------------------
 extension Int8: AnyInteger {
     public init(any: AnyConvertable) { self = any.asInt8 }

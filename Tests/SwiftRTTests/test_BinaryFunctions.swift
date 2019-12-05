@@ -186,15 +186,12 @@ class test_BinaryFunctions: XCTestCase {
     //--------------------------------------------------------------------------
     // test_div
     func test_div() {
-//        Platform.local.servicePriority = [cpuSynchronousServiceName]
-//        Platform.log.level = .diagnostic
-//        Platform.log.categories = [.dataCopy, .dataMutation, .scheduling]
         let m1 = Matrix<Float>(3, 2, with: [1, 4, 9, 16, 25, 36])
         let m2 = Matrix<Float>(3, 2, with: 1...6)
         let result = m1 / m2
         let expected: [Float] = [1, 2, 3, 4, 5, 6]
         XCTAssert(result.flatArray == expected)
-//        XCTAssert(gradientIsValid(at: m1, m2, tolerance: 0.006, in: { $0 / $1 }))
+        XCTAssert(gradientIsValid(at: m1, m2, tolerance: 0.002, in: { $0 / $1 }))
     }
 
     //--------------------------------------------------------------------------
