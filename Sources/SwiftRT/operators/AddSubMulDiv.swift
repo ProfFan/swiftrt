@@ -22,8 +22,9 @@
 public func add<T>(_ lhs: T, _ rhs: T) -> T
     where T: TensorView, T.Element: AdditiveArithmetic
 {
-    var result = lhs.createDense()
+    let (lhs, rhs) = implicitlyMatchExtents(lhs, rhs)
     assert(lhs.extents == rhs.extents, _messageTensorExtentsMismatch)
+    var result = lhs.createDense()
     DeviceContext.currentQueue.add(lhs: lhs, rhs: rhs, result: &result)
     return result
 }
@@ -37,29 +38,37 @@ public extension TensorView where Element: AdditiveArithmetic {
     
     @inlinable @inline(__always)
     static func +(lhs: Self, rhs: Element) -> Self {
-        lhs + lhs.create(repeating: rhs)
+        lhs + Self(repeating: rhs, like: lhs)
     }
 
     @inlinable @inline(__always)
     static func +(lhs: Element, rhs: Self) -> Self {
-        rhs.create(repeating: lhs) + rhs
+        Self(repeating: lhs, like: rhs) + rhs
     }
 }
 
 //--------------------------------------
 // derivative functions
+@differentiating(add)
+@inlinable @inline(__always)
+public func _vjpAdd<T>(lhs: T, rhs: T) -> (value: T, pullback: (T) -> (T, T))
+    where T: DifferentiableTensorView
+{
+    return (lhs + rhs, { v in (v, v) })
+}
+
 public extension TensorView where Self: DifferentiableTensorView {
     @differentiating(+)
     @inlinable @inline(__always)
-    static func vjpAdd(lhs: Self, rhs: Self) ->
+    static func _vjpAdd(lhs: Self, rhs: Self) ->
         (value: Self, pullback: (Self) -> (Self, Self))
     {
-        return (lhs + rhs, { v in (v, v) })
+        SwiftRT._vjpAdd(lhs: lhs, rhs: rhs)
     }
     
     @differentiating(+)
     @inlinable @inline(__always)
-    static func vjpAdd(lhs: Self, rhs: Element) ->
+    static func _vjpAdd(lhs: Self, rhs: Element) ->
         (value: Self, pullback: (Self) -> (Self, Element))
     {
         return (lhs + rhs, { v in (v, v.sum().element) })
@@ -67,7 +76,7 @@ public extension TensorView where Self: DifferentiableTensorView {
     
     @differentiating(+)
     @inlinable @inline(__always)
-    static func vjpAdd(lhs: Element, rhs: Self) ->
+    static func _vjpAdd(lhs: Element, rhs: Self) ->
         (value: Self, pullback: (Self) -> (Element, Self))
     {
         return (lhs + rhs, { v in (v.sum().element, v) })
@@ -83,6 +92,7 @@ public extension TensorView where Self: DifferentiableTensorView {
 public func subtract<T>(_ lhs: T, _ rhs: T) -> T
     where T: TensorView, T.Element: AdditiveArithmetic
 {
+    let (lhs, rhs) = implicitlyMatchExtents(lhs, rhs)
     assert(lhs.extents == rhs.extents, _messageTensorExtentsMismatch)
     var result = lhs.createDense()
     DeviceContext.currentQueue.subtract(lhs: lhs, rhs: rhs, result: &result)
@@ -98,12 +108,12 @@ public extension TensorView where Element: AdditiveArithmetic {
     
     @inlinable @inline(__always)
     static func - (lhs: Self, rhs: Element) -> Self {
-        lhs - lhs.create(repeating: rhs)
+        lhs - Self(repeating: rhs, like: lhs)
     }
 
     @inlinable @inline(__always)
     static func - (lhs: Element, rhs: Self) -> Self {
-        rhs.create(repeating: lhs) - rhs
+        Self(repeating: lhs, like: rhs) - rhs
     }
 }
 
@@ -139,6 +149,7 @@ public extension TensorView where Self: DifferentiableTensorView {
 public func mul<T>(_ lhs: T, _ rhs: T) -> T
     where T: TensorView, T.Element: Numeric
 {
+    let (lhs, rhs) = implicitlyMatchExtents(lhs, rhs)
     assert(lhs.extents == rhs.extents, _messageTensorExtentsMismatch)
     var result = lhs.createDense()
     DeviceContext.currentQueue.mul(lhs: lhs, rhs: rhs, result: &result)
@@ -157,40 +168,48 @@ public extension TensorView where Element: Numeric {
     
     @inlinable @inline(__always)
     static func * (lhs: Self, rhs: Element) -> Self {
-        lhs * lhs.create(repeating: rhs)
+        lhs * Self(repeating: rhs, like: lhs)
     }
 
     @inlinable @inline(__always)
     static func * (lhs: Element, rhs: Self) -> Self {
-        rhs.create(repeating: lhs) * rhs
+        Self(repeating: lhs, like: rhs) * rhs
     }
 }
 
 //--------------------------------------
 // derivative functions
+@differentiating(mul)
+@inlinable @inline(__always)
+internal func _vjpMultiply<T>(_ lhs: T, _ rhs: T) ->
+    (value: T, pullback: (T) -> (T, T)) where T: DifferentiableTensorView
+{
+    (lhs * rhs, { v in (v * rhs, v * lhs) })
+}
+
 public extension TensorView where Self: DifferentiableTensorView {
     @differentiating(*)
     @inlinable @inline(__always)
-    static func vjpMultiply(lhs: Self, rhs: Self) ->
+    static func _vjpMultiply(lhs: Self, rhs: Self) ->
         (value: Self, pullback: (Self) -> (Self, Self))
     {
-        return (lhs * rhs, { v in (v * lhs, v * rhs) })
+        SwiftRT._vjpMultiply(lhs, rhs)
     }
     
     @differentiating(*)
     @inlinable @inline(__always)
-    static func vjpMultiply(lhs: Self, rhs: Element) ->
+    static func _vjpMultiply(lhs: Self, rhs: Element) ->
         (value: Self, pullback: (Self) -> (Self, Element))
     {
-        return (lhs * rhs, { v in (v * lhs, (v * rhs).sum().element) })
+        return (lhs * rhs, { v in (v * rhs, (v * lhs).sum().element) })
     }
     
     @differentiating(*)
     @inlinable @inline(__always)
-    static func vjpMultiply(lhs: Element, rhs: Self) ->
+    static func _vjpMultiply(lhs: Element, rhs: Self) ->
         (value: Self, pullback: (Self) -> (Element, Self))
     {
-        return (lhs * rhs, { v in ((v * lhs).sum().element, v * rhs) })
+        return (lhs * rhs, { v in ((v * rhs).sum().element, v * lhs) })
     }
 }
 
@@ -203,6 +222,7 @@ public extension TensorView where Self: DifferentiableTensorView {
 public func div<T>(_ lhs: T, _ rhs: T) -> T
     where T: TensorView, T.Element: FloatingPoint
 {
+    let (lhs, rhs) = implicitlyMatchExtents(lhs, rhs)
     assert(lhs.extents == rhs.extents, _messageTensorExtentsMismatch)
     var result = lhs.createDense()
     DeviceContext.currentQueue.div(lhs: lhs, rhs: rhs, result: &result)
@@ -221,39 +241,51 @@ public extension TensorView where Element: FloatingPoint {
 
     @inlinable @inline(__always)
     static func / (lhs: Self, rhs: Element) -> Self {
-        lhs / lhs.create(repeating: rhs)
+        lhs / Self(repeating: rhs, like: lhs)
     }
 
     @inlinable @inline(__always)
     static func / (lhs: Element, rhs: Self) -> Self {
-        rhs.create(repeating: lhs) / rhs
+        Self(repeating: lhs, like: rhs) / rhs
     }
 }
 
 //--------------------------------------
 // derivative functions
+@differentiating(div)
+@inlinable @inline(__always)
+internal func _vjpDivide<T>(_ lhs: T, _ rhs: T) ->
+    (value: T, pullback: (T) -> (T, T)) where T: DifferentiableTensorView
+{
+    (lhs / rhs, { v in (v / rhs, -lhs / rhs.squared() * v) })
+}
+
 public extension TensorView where Self: DifferentiableTensorView {
     @differentiating(/)
     @inlinable @inline(__always)
-    static func vjpDivide(lhs: Self, rhs: Self) ->
+    static func _vjpDivide(lhs: Self, rhs: Self) ->
         (value: Self, pullback: (Self) -> (Self, Self))
     {
-        return (lhs / rhs, { v in (v / lhs, v / rhs) })
+        SwiftRT._vjpDivide(lhs, rhs)
     }
     
     @differentiating(/)
     @inlinable @inline(__always)
-    static func vjpDivide(lhs: Self, rhs: Element) ->
+    static func _vjpDivide(lhs: Self, rhs: Element) ->
         (value: Self, pullback: (Self) -> (Self, Element))
     {
-        return (lhs / rhs, { v in (v / lhs, (v / rhs).sum().element) })
+        return (lhs / rhs, { v in
+            (v / rhs, (-lhs / rhs.squared() * v).sum().element)
+        })
     }
     
     @differentiating(/)
     @inlinable @inline(__always)
-    static func vjpDivide(lhs: Element, rhs: Self) ->
+    static func _vjpDivide(lhs: Element, rhs: Self) ->
         (value: Self, pullback: (Self) -> (Element, Self))
     {
-        return (lhs / rhs, { v in ((v / lhs).sum().element, v / rhs) })
+        return (lhs / rhs, { v in
+            ((v / rhs).sum().element, -lhs / rhs.squared() * v)
+        })
     }
 }

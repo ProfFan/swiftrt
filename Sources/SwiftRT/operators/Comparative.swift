@@ -16,12 +16,26 @@
 import Real
 
 //==============================================================================
+// utilities
+@inlinable
+func _vjpMinMaxHelper<T>(_ x: T, _ y: T, seed: T, op: (T, T) -> T.BoolView)
+    -> (T, T) where T: DifferentiableTensorView
+{
+    let mask = T(op(x, y))
+    let lhsGrad = seed * mask
+    let rhsGrad = seed * (1 - mask)
+    return (T(repeating: lhsGrad.sum().element, like: x),
+            T(repeating: rhsGrad.sum().element, like: y))
+}
+
+//==============================================================================
 /// max
 /// Computes the element-wise maximum of two tensors
 /// - Parameter lhs: left hand tensor
 /// - Parameter rhs: right hand tensor
 /// - Returns: result
 @inlinable @inline(__always)
+@differentiable(vjp: _vjpMax where T: DifferentiableTensorView)
 public func max<T>(_ lhs: T, _ rhs: T) -> T where
     T: TensorView, T.Element: Comparable
 {
@@ -32,55 +46,56 @@ public func max<T>(_ lhs: T, _ rhs: T) -> T where
 }
 
 @inlinable @inline(__always)
+@differentiable(vjp: _vjpMax where T: DifferentiableTensorView)
 public func max<T>(_ lhs: T, _ rhs: T.Element) -> T where
     T: TensorView, T.Element: Comparable
 {
-    max(lhs, lhs.create(repeating: rhs))
+    max(lhs, T(repeating: rhs, like: lhs))
 }
 
 @inlinable @inline(__always)
+@differentiable(vjp: _vjpMax where T: DifferentiableTensorView)
 public func max<T>(_ lhs: T.Element, _ rhs: T) -> T where
     T: TensorView, T.Element: Comparable
 {
-    max(rhs.create(repeating: lhs), rhs)
+    max(T(repeating: lhs, like: rhs), rhs)
 }
 
-////--------------------------------------
-//// derivative functions
-//@differentiating(max)
-//@inlinable @inline(__always)
-//func _vjpMax<T>(_ lhs: T, _ rhs: T)
-//    -> (value: T, pullback: (T) -> (T, T)) where
-//    T: DifferentiableTensorView & Comparable
-//{
-//    let value = SwiftRT.max(lhs, rhs)
-//    // FIXME: Implement pullback.
-//    return (value, { v in fatalError() })
-//}
+//--------------------------------------
+// derivative functions
+@inlinable @inline(__always)
+func _vjpMax<T>(_ lhs: T, _ rhs: T)
+    -> (value: T, pullback: (T) -> (T, T)) where
+    T: DifferentiableTensorView
+{
+    return (value: max(lhs, rhs), {
+        _vjpMinMaxHelper(lhs, rhs, seed: $0, op: .>=)
+    })
+}
 
-//@differentiating(max)
-//@inlinable @inline(__always)
-//func vjpMax<T>(_ lhs: T, _ rhs: T.Element) -> (
-//    value: T, pullback: (T) -> (T, T.Element)
-//    ) where
-//    T: DifferentiableTensorView & Comparable
-//{
-//    let value = max(lhs, rhs)
-//    // FIXME: Implement pullback.
-//    return (value, { v in fatalError() })
-//}
-//
-//@differentiating(max)
-//@inlinable @inline(__always)
-//func _vjpMax<T>(_ lhs: T.Element, _ rhs: T) -> (
-//    value: T, pullback: (T) -> (T.Element, T)) where
-//    T: DifferentiableTensorView & Comparable
-//{
-//    let value = max(lhs, rhs)
-//    // FIXME: Implement pullback.
-//    return (value, { v in fatalError() })
-//}
-//
+@inlinable @inline(__always)
+func _vjpMax<T>(_ lhs: T, _ rhs: T.Element) ->
+    (value: T, pullback: (T) -> (T, T.Element)) where
+    T: DifferentiableTensorView
+{
+    let rhs = T(repeating: rhs, like: lhs)
+    return (value: max(lhs, rhs), {
+        let result = _vjpMinMaxHelper(lhs, rhs, seed: $0, op: .>=)
+        return (result.0, result.1.element)
+    })
+}
+
+@inlinable @inline(__always)
+func _vjpMax<T>(_ lhs: T.Element, _ rhs: T) ->
+    (value: T, pullback: (T) -> (T.Element, T)) where
+    T: DifferentiableTensorView
+{
+    let lhs = T(repeating: lhs, like: rhs)
+    return (value: max(lhs, rhs), {
+        let result = _vjpMinMaxHelper(lhs, rhs, seed: $0, op: .>=)
+        return (result.0.element, result.1)
+    })
+}
 
 //==============================================================================
 /// min
@@ -89,6 +104,7 @@ public func max<T>(_ lhs: T.Element, _ rhs: T) -> T where
 /// - Parameter rhs: right hand tensor
 /// - Returns: result
 @inlinable @inline(__always)
+@differentiable(vjp: _vjpMin where T: DifferentiableTensorView)
 public func min<T>(_ lhs: T, _ rhs: T) -> T where
     T: TensorView, T.Element: Comparable
 {
@@ -99,56 +115,56 @@ public func min<T>(_ lhs: T, _ rhs: T) -> T where
 }
 
 @inlinable @inline(__always)
+@differentiable(vjp: _vjpMin where T: DifferentiableTensorView)
 public func min<T>(_ lhs: T, _ rhs: T.Element) -> T
     where T: TensorView, T.Element: Comparable
 {
-    min(lhs, lhs.create(repeating: rhs))
+    min(lhs, T(repeating: rhs, like: lhs))
 }
 
 @inlinable @inline(__always)
+@differentiable(vjp: _vjpMin where T: DifferentiableTensorView)
 public func min<T>(_ lhs: T.Element, _ rhs: T) -> T
     where T: TensorView, T.Element: Comparable
 {
-    min(rhs.create(repeating: lhs), rhs)
+    min(T(repeating: lhs, like: rhs), rhs)
 }
 
-////--------------------------------------
-//// derivative functions
-//@differentiating(min)
-//@inlinable @inline(__always)
-//func vjpMinimum<T>(_ lhs: T, _ rhs: T) -> (
-//    value: T, pullback: (T) -> (T, T)
-//    ) where
-//    T: DifferentiableTensorView
-//{
-//    let value = min(lhs, rhs)
-//    // FIXME: Implement pullback.
-//    return (value, { v in fatalError() })
-//}
-//
-//@differentiating(min)
-//@inlinable @inline(__always)
-//func vjpMinimum<T>(_ lhs: T, _ rhs: T.Element) -> (
-//    value: T, pullback: (T) -> (T, T.Element)
-//    ) where
-//    T: DifferentiableTensorView
-//{
-//    let value = min(lhs, rhs)
-//    // FIXME: Implement pullback.
-//    return (value, { v in fatalError() })
-//}
-//
-//@differentiating(min)
-//@inlinable @inline(__always)
-//func vjpMinimum<T>(_ lhs: T.Element, _ rhs: T) -> (
-//    value: T, pullback: (T) -> (T.Element, T)
-//    ) where
-//    T: DifferentiableTensorView
-//{
-//    let value = min(lhs, rhs)
-//    // FIXME: Implement pullback.
-//    return (value, { v in fatalError() })
-//}
+//--------------------------------------
+// derivative functions
+@inlinable @inline(__always)
+func _vjpMin<T>(_ lhs: T, _ rhs: T)
+    -> (value: T, pullback: (T) -> (T, T)) where
+    T: DifferentiableTensorView
+{
+    return (value: min(lhs, rhs), {
+        _vjpMinMaxHelper(lhs, rhs, seed: $0, op: .<=)
+    })
+}
+
+@inlinable @inline(__always)
+func _vjpMin<T>(_ lhs: T, _ rhs: T.Element) ->
+    (value: T, pullback: (T) -> (T, T.Element)) where
+    T: DifferentiableTensorView
+{
+    let rhs = T(repeating: rhs, like: lhs)
+    return (value: min(lhs, rhs), {
+        let result = _vjpMinMaxHelper(lhs, rhs, seed: $0, op: .<=)
+        return (result.0, result.1.element)
+    })
+}
+
+@inlinable @inline(__always)
+func _vjpMin<T>(_ lhs: T.Element, _ rhs: T) ->
+    (value: T, pullback: (T) -> (T.Element, T)) where
+    T: DifferentiableTensorView
+{
+    let lhs = T(repeating: lhs, like: rhs)
+    return (value: min(lhs, rhs), {
+        let result = _vjpMinMaxHelper(lhs, rhs, seed: $0, op: .<=)
+        return (result.0.element, result.1)
+    })
+}
 
 //==============================================================================
 /// equal
@@ -222,18 +238,99 @@ public func notEqual<T>(_ lhs: T, _ rhs: T) -> T.BoolView where
 public extension TensorView where Element: Equatable {
     @inlinable
     static func .!=(_ lhs: Self, _ rhs: Self) -> BoolView { notEqual(lhs, rhs) }
+}
 
-    // ambiguous with AdditiveArithmetic
-//    @inlinable
-//    static func != (lhs: Self, rhs: Self) -> Bool {
-//        // the extents must not match or they are not equal
-//        guard lhs.extents != rhs.extents else { return true }
-//
-//        // if lhs is an alias for rhs, then they match
-//        if (lhs.tensorArray === rhs.tensorArray &&
-//            lhs.viewOffset == rhs.viewOffset) { return false }
-//
-//        // compare elements
-//        return (lhs .!= rhs).any().element
-//    }
+//==============================================================================
+/// greater
+/// Computes `lhs .> rhs` element-wise and returns a tensor of Bool values
+public func greater<T>(_ lhs: T, _ rhs: T) -> T.BoolView where
+    T: TensorView, T.Element: Comparable
+{
+    assert(lhs.extents == rhs.extents, _messageTensorExtentsMismatch)
+    var result = lhs.createBoolTensor()
+    DeviceContext.currentQueue.greater(lhs: lhs, rhs: rhs, result: &result)
+    return result
+}
+
+public extension TensorView where Element: Comparable {
+    @inlinable
+    static func .>(_ lhs: Self, _ rhs: Self) -> BoolView { greater(lhs, rhs) }
+}
+
+//==============================================================================
+/// greaterOrEqual
+/// Computes `lhs .>= rhs` element-wise and returns a tensor of Bool values
+public func greaterOrEqual<T>(_ lhs: T, _ rhs: T) -> T.BoolView where
+    T: TensorView, T.Element: Comparable
+{
+    assert(lhs.extents == rhs.extents, _messageTensorExtentsMismatch)
+    var result = lhs.createBoolTensor()
+    DeviceContext.currentQueue.greaterOrEqual(lhs: lhs, rhs: rhs,
+                                              result: &result)
+    return result
+}
+
+public extension TensorView where Element: Comparable {
+    @inlinable
+    static func .>=(_ lhs: Self, _ rhs: Self) -> BoolView {
+        greaterOrEqual(lhs, rhs)
+    }
+}
+
+//==============================================================================
+/// less
+/// Computes `lhs .< rhs` element-wise and returns a tensor of Bool values
+public func less<T>(_ lhs: T, _ rhs: T) -> T.BoolView where
+    T: TensorView, T.Element: Comparable
+{
+    assert(lhs.extents == rhs.extents, _messageTensorExtentsMismatch)
+    var result = lhs.createBoolTensor()
+    DeviceContext.currentQueue.less(lhs: lhs, rhs: rhs, result: &result)
+    return result
+}
+
+public extension TensorView where Element: Comparable {
+    @inlinable
+    static func .<(_ lhs: Self, _ rhs: Self) -> BoolView { less(lhs, rhs) }
+}
+
+//==============================================================================
+/// lessOrEqual
+/// Computes `lhs .<= rhs` element-wise and returns a tensor of Bool values
+public func lessOrEqual<T>(_ lhs: T, _ rhs: T) -> T.BoolView where
+    T: TensorView, T.Element: Comparable
+{
+    assert(lhs.extents == rhs.extents, _messageTensorExtentsMismatch)
+    var result = lhs.createBoolTensor()
+    DeviceContext.currentQueue.lessOrEqual(lhs: lhs, rhs: rhs, result: &result)
+    return result
+}
+
+public func lessOrEqual<T>(_ lhs: T, _ rhs: T.Element) -> T.BoolView
+    where T: TensorView, T.Element: Comparable
+{
+    lessOrEqual(lhs, T(repeating: rhs, like: lhs))
+}
+
+public func lessOrEqual<T>(_ lhs: T.Element, _ rhs: T) -> T.BoolView
+    where T: TensorView, T.Element: Comparable
+{
+    lessOrEqual(T(repeating: lhs, like: rhs), rhs)
+}
+
+public extension TensorView where Element: Comparable {
+    @inlinable
+    static func .<=(_ lhs: Self, _ rhs: Self) -> BoolView {
+        lessOrEqual(lhs, rhs)
+    }
+
+    @inlinable
+    static func .<=(_ lhs: Self, _ rhs: Element) -> BoolView {
+        lessOrEqual(lhs, rhs)
+    }
+
+    @inlinable
+    static func .<=(_ lhs: Element, _ rhs: Self) -> BoolView {
+        lessOrEqual(lhs, rhs)
+    }
 }

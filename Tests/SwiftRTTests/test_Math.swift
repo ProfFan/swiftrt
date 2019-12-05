@@ -18,11 +18,12 @@ import Foundation
 
 @testable import SwiftRT
 
-class test_ElementWise: XCTestCase {
+class test_Math: XCTestCase {
     //==========================================================================
     // support terminal test run
     static var allTests = [
         ("test_concat", test_concat),
+        ("test_exp", test_exp),
         ("test_log", test_log),
         ("test_neg", test_neg),
         ("test_squared", test_squared),
@@ -53,13 +54,31 @@ class test_ElementWise: XCTestCase {
     }
 
     //--------------------------------------------------------------------------
+    // test_exp
+    func test_exp() {
+        Platform.local.servicePriority = [cpuSynchronousServiceName]
+        let range = 0..<6
+        let matrix = Matrix<Float>(3, 2, with: range)
+        let values = exp(matrix).flatArray
+        let expected: [Float] = range.map { Foundation.exp(Float($0)) }
+        XCTAssert(values == expected)
+        
+        let m2 = Matrix<Float>(3, 2, with: 1...6)
+        XCTAssert(gradientIsValid(at: m2, tolerance: 0.7, in: { exp($0) }))
+    }
+
+    //--------------------------------------------------------------------------
     // test_log
     func test_log() {
+        Platform.local.servicePriority = [cpuSynchronousServiceName]
         let range = 0..<6
         let matrix = Matrix<Float>(3, 2, with: range)
         let values = log(matrix).flatArray
         let expected: [Float] = range.map { Foundation.log(Float($0)) }
         XCTAssert(values == expected)
+        
+        let m2 = Matrix<Float>(3, 2, with: 1...6)
+        XCTAssert(gradientIsValid(at: m2, in: { log($0) }))
     }
     
     //--------------------------------------------------------------------------
@@ -74,6 +93,9 @@ class test_ElementWise: XCTestCase {
         
         let values2 = -matrix
         XCTAssert(values2.flatArray == expected)
+
+        let m2 = Matrix<Float>(3, 2, with: 1...6)
+        XCTAssert(gradientIsValid(at: m2, tolerance: 0.002, in: { neg($0) }))
     }
     
     //--------------------------------------------------------------------------
@@ -83,5 +105,8 @@ class test_ElementWise: XCTestCase {
         let values = matrix.squared().flatArray
         let expected: [Float] = (0...5).map { Float($0 * $0) }
         XCTAssert(values == expected)
+
+        let m2 = Matrix<Float>(3, 2, with: 1...6)
+        XCTAssert(gradientIsValid(at: m2, tolerance: 0.02, in: { squared($0) }))
     }
 }

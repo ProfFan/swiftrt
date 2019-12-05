@@ -15,11 +15,6 @@
 //
 import Foundation
 
-// hack for now to bridge getting to Swift auto differentiation
-#if !canImport(TensorFlow)
-public protocol Differentiable {}
-#endif
-
 //==============================================================================
 /// TensorView protocol
 /// A TensorView object is the primary interface for working with data in
@@ -93,8 +88,6 @@ public protocol TensorView: Logging {
     //--------------------------------------------------------------------------
     /// creates a new dense tensor of the same type with the specified extents
     func createDense(with extents: [Int], name: String?) -> Self
-    /// creates a new dense tensor of the same extent with the specified value
-    func create(repeating: Element, name: String?) -> Self
     /// creates a new dense tensor where `Element` equals `Bool`
     /// with the specified extents
     func createBoolTensor(with extents: [Int]) -> BoolView
@@ -153,7 +146,7 @@ public extension TensorView {
 /// number of generic requirements when writing `@differentiable` attributes on
 /// generic differentiable `TensorView` functions.
 public protocol DifferentiableTensorView: TensorView & Differentiable where
-    Self == TangentVector, Element: AnyDifferentiableScalar {}
+    Self == TangentVector, Element: DifferentiableElement {}
 
 //==============================================================================
 // view subscripting helpers

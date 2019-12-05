@@ -21,7 +21,7 @@ public func allTests() -> [XCTestCaseEntry] {
         testCase(test_BinaryFunctions.allTests),
         testCase(test_Comparative.allTests),
         testCase(test_DataMigration.allTests),
-        testCase(test_ElementWise.allTests),
+        testCase(test_Math.allTests),
         testCase(test_Initialize.allTests),
         testCase(test_IterateView.allTests),
         testCase(test_Reductions.allTests),

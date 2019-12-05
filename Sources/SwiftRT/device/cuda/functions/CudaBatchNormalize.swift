@@ -71,7 +71,7 @@ public struct CudaBatchNormalize<T> where
         
         let deviceQueue = DeviceContext.currentQueue as! CudaQueue
         var ones = x.createDense(with: shape.extents)
-        deviceQueue.fill(&ones, with: 1)
+        deviceQueue.fill(result: &ones, with: 1)
         scale = ones
         
         func createZeroWorkspace(byteCount: Int) throws -> DeviceArray {

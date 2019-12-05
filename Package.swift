@@ -16,8 +16,12 @@ func isEnabled(_ id: String) -> Bool { getenv(id) != nil }
 let enableAll = isEnabled("SWIFTRT_ENABLE_ALL_SERVICES")
 let disableTesting = isEnabled("SWIFTRT_DISABLE_TESTING")
 
-// make sure to set Xcode Runpath Seatch Paths to /usr/local/cuda/lib
+// Apple Cuda support has been offically dropped
+#if os(Linux)
 let enableCuda = enableAll || isEnabled("SWIFTRT_ENABLE_CUDA")
+#else
+let enableCuda = false
+#endif
 
 let enableVulkan = enableAll || isEnabled("SWIFTRT_ENABLE_VULKAN")
 

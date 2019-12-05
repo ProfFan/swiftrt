@@ -71,6 +71,24 @@ public extension TensorView {
     }
     
     //--------------------------------------------------------------------------
+    /// repeating element
+    @differentiable(vjp: _vjpInit where Self: DifferentiableTensorView)
+    init(repeating value: Element, to extents: [Int], name: String? = nil) {
+        let strides = [Int](repeating: 0, count: extents.count)
+        let shape = DataShape(extents: extents, strides: strides)
+        self = Self.create([value], shape, name)
+    }
+    
+    //--------------------------------------------------------------------------
+    /// repeating element
+    @differentiable(where Self: DifferentiableTensorView)
+    init<U>(repeating value: Element, like other: U, name: String? = nil)
+        where U: TensorView
+    {
+        self = Self(repeating: value, to: other.extents)
+    }
+    
+    //--------------------------------------------------------------------------
     /// createDense(shape:
     func createDense(with shape: DataShape, name: String? = nil) -> Self {
         Self.create(shape.dense, name)
@@ -92,7 +110,8 @@ public extension TensorView {
     //--------------------------------------------------------------------------
     /// createReductionResult
     /// creates a tensor of suitable form to recieve a reduction result.
-    func createReductionResult(alongAxes axes: Set<Int>) -> Self {
+    func createReductionResult(alongAxes axes: Set<Int>?) -> Self {
+        guard let axes = axes else { return createSingleElement() }
         assert(axes.isSubset(of: 0..<rank), "axis is out of bounds")
         var resultExtents = extents
         axes.forEach { resultExtents[$0] = 1 }
@@ -108,14 +127,6 @@ public extension TensorView {
         return Self.create(shape, name)
     }
     
-    //--------------------------------------------------------------------------
-    /// create(repeating:
-    func create(repeating value: Element, name: String? = nil) -> Self {
-        let strides = [Int](repeating: 0, count: rank)
-        let shape = DataShape(extents: extents, strides: strides)
-        return Self.create([value], shape, name)
-    }
-
     //==========================================================================
     // utility functions for creating shaped types
     static func create(_ shape: DataShape, _ name: String?) -> Self {
@@ -161,5 +172,14 @@ public extension TensorView {
     }
 }
 
+//==============================================================================
+//
 
+public extension TensorView where Self: DifferentiableTensorView {
+    static func _vjpInit(repeating value: Element, to extents: [Int], name: String?) ->
+        (value: Self, pullback: (Self) -> (Element))
+    {
+        fatalError()
+    }
+}
 
