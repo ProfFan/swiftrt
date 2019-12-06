@@ -195,7 +195,10 @@ extension Vector: Differentiable & DifferentiableTensorView where
 
 //==============================================================================
 // MatrixView protocol
-public protocol MatrixView: TensorView {}
+public protocol MatrixView: TensorView {
+    associatedtype NewShape: ShapeProtocol
+    var newShape: NewShape { get }
+}
 
 public enum MatrixLayout { case rowMajor, columnMajor }
 
@@ -406,6 +409,9 @@ public struct Matrix<Element>: MatrixView {
     public var tensorArray: TensorArray<Element>
     public let viewOffset: Int
     public let singleElementExtents = [1, 1]
+    
+    public let newShape: Shape2
+
 
     public init(shape: DataShape,
                 tensorArray: TensorArray<Element>,
@@ -416,6 +422,8 @@ public struct Matrix<Element>: MatrixView {
         self.tensorArray = tensorArray
         self.viewOffset = viewOffset
         self.isShared = isShared
+        
+        newShape = Shape2(extents: Shape2.ones)
     }
 }
 

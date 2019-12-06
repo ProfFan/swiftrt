@@ -277,19 +277,3 @@ public struct DataShape: Equatable, Codable {
         return DataShape(extents: flatExtents)
     }
 }
-
-//==============================================================================
-// parameter matching helper
-@inlinable
-public func implicitlyMatchExtents<T>(_ lhs: T, _ rhs: T) -> (T, T)
-    where T: TensorView
-{
-    assert(lhs.rank == rhs.rank)
-    if lhs.elementCount == rhs.elementCount {
-        return (lhs, rhs)
-    } else if lhs.elementCount > rhs.elementCount {
-        return (lhs, rhs.repeated(to: lhs.extents))
-    } else {
-        return (lhs.repeated(to: rhs.extents), rhs)
-    }
-}
