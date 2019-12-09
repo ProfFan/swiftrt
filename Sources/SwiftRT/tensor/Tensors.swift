@@ -406,9 +406,6 @@ public struct Matrix<Element>: MatrixView {
     public var tensorArray: TensorArray<Element>
     public let viewOffset: Int
     public let singleElementExtents = [1, 1]
-    
-    public let newShape = Shape2(extents: Shape2.zeros)
-
 
     public init(shape: DataShape,
                 tensorArray: TensorArray<Element>,

@@ -540,7 +540,7 @@ public extension TensorView {
     mutating func deviceReadWrite(using queue: DeviceQueue? = nil) throws
         -> UnsafeMutableRawPointer
     {
-        return try UnsafeMutableRawPointer(readWrite(using: queue).baseAddress!)
+        try UnsafeMutableRawPointer(readWrite(using: queue).baseAddress!)
     }
     
     //--------------------------------------------------------------------------
@@ -548,8 +548,8 @@ public extension TensorView {
     /// Create a sub view of the tensorArray relative to this view
     func view(at offset: [Int], extents: [Int]) -> Self {
         // the view created will have the same isShared state as the parent
-        return createView(at: offset, extents: extents,
-                          strides: shape.strides, isReference: isShared)
+        createView(at: offset, extents: extents,
+                   strides: shape.strides, isReference: isShared)
     }
     
     //--------------------------------------------------------------------------
@@ -557,8 +557,8 @@ public extension TensorView {
     /// Create a sub view of the tensorArray relative to this view
     func view(at offset: [Int], extents: [Int], strides: [Int]) -> Self {
         // the view created will have the same isShared state as the parent
-        return createView(at: offset, extents: extents,
-                          strides: strides, isReference: isShared)
+        createView(at: offset, extents: extents,
+                   strides: strides, isReference: isShared)
     }
     
     //--------------------------------------------------------------------------
@@ -583,7 +583,7 @@ public extension TensorView {
     //--------------------------------------------------------------------------
     /// view(item:
     func view(item: Int) -> Self {
-        return viewItems(at: item, count: 1)
+        viewItems(at: item, count: 1)
     }
 }
 
