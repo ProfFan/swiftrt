@@ -16,9 +16,59 @@
 
 //==============================================================================
 //
+public protocol ShapeArrayProtocol: StaticArrayProtocol, Equatable, Codable
+    where Element: BinaryInteger & Equatable, Index == Int
+{
+    associatedtype Storage
+    
+    init(_ data: Storage)
+    init?(_ data: Storage?)
+}
+
+//extension StaticArray: ShapeArrayProtocol, Equatable where Element: BinaryInteger & Codable { }
+
+//==============================================================================
+//
+public struct ShapeArray<Element, Storage> : ShapeArrayProtocol
+    where Element: BinaryInteger & Equatable & Codable
+{
+    public var storage: Storage
+    public init(_ data: Storage) {
+        storage = data
+    }
+
+    public static func == (lhs: Self, rhs: Self) -> Bool {
+        for i in 0..<lhs.count {
+            if lhs[i] != rhs[i] { return false }
+        }
+        return true
+    }
+
+    enum CodingKeys: String, CodingKey { case name, data }
+    
+    /// encodes the contents of the array
+    public func encode(to encoder: Encoder) throws {
+        //        var container = encoder.container(keyedBy: CodingKeys.self)
+        //        try container.encode(name, forKey: .name)
+        //        let buffer = try readOnly(using: DeviceContext.hostQueue)
+        //        try container.encode(ContiguousArray(buffer), forKey: .data)
+    }
+    
+    public init(from decoder: Decoder) throws {
+        //        let container = try decoder.container(keyedBy: CodingKeys.self)
+        //        let name = try container.decode(String.self, forKey: .name)
+        //        let data = try container.decode(ContiguousArray<Element>.self,
+        //                                        forKey: .data)
+        //        self.init(elements: data, name: name)
+        fatalError()
+    }
+}
+
+//==============================================================================
+//
 public protocol ShapeProtocol: Codable {
     // types
-    associatedtype Array: ShapeArray
+    associatedtype Array: ShapeArrayProtocol
 
     // constants
     static var zeros: Array { get }
@@ -40,20 +90,6 @@ public protocol ShapeProtocol: Codable {
     /// - Parameter strides: the distance to the next element in each dimension
     init(extents: Array, strides: Array?)
 }
-
-//==============================================================================
-//
-public protocol ShapeArray:
-    RandomAccessCollection, MutableCollection, Equatable, Codable
-    where Element: BinaryInteger & Equatable, Index == Int
-{
-    associatedtype Storage
-    
-    init(_ data: Storage)
-    init?(_ data: Storage?)
-}
-
-extension StaticArray: ShapeArray, Equatable where Element: BinaryInteger & Codable { }
 
 //==============================================================================
 // default implementation
@@ -224,7 +260,7 @@ public extension ShapeProtocol {
 // Shape2
 public struct Shape2: ShapeProtocol {
     // constants
-    public typealias Array = StaticArray<Int, (Int, Int)>
+    public typealias Array = ShapeArray<Int, (Int, Int)>
     public static let zeros = Array((0, 0))
     public static let ones = Array((1, 1))
 
