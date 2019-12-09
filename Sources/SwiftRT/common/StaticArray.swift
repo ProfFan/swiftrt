@@ -73,15 +73,6 @@ public extension StaticArrayProtocol {
 }
 
 //==============================================================================
-//
-public struct StaticArray<Element, Storage> : StaticArrayProtocol {
-    public var storage: Storage
-    public init(_ data: Storage) {
-        storage = data
-    }
-}
-
-//==============================================================================
 // == operatpr
 extension StaticArrayProtocol where Element: Equatable {
     public static func == (lhs: Self, rhs: Self) -> Bool {
