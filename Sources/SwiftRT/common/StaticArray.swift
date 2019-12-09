@@ -13,6 +13,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 //
+import Foundation
 
 //==============================================================================
 //
@@ -61,7 +62,11 @@ public struct StaticArray<Element, Storage> :
 //==============================================================================
 //
 extension StaticArray: Equatable where Element: Equatable {
-    public static func == (lhs: StaticArray<Element, Storage>, rhs: StaticArray<Element, Storage>) -> Bool {
+    public static func == (lhs: StaticArray<Element, Storage>,
+                           rhs: StaticArray<Element, Storage>) -> Bool {
+        for i in 0..<lhs.count {
+            if lhs[i] != rhs[i] { return false }
+        }
         return true
     }
 }

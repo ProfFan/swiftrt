@@ -221,8 +221,12 @@ extension Matrix: AdditiveArithmetic where Element: Numeric {
 public extension MatrixView {
     func newView(at offset: Shape.Tuple, with extents: Shape.Tuple) {
         let a = Shape.Array(offset)
+        let b = Shape.Array(extents)
         let _ = Shape(extents: a)
         
+        if a == b {
+            print("equal")
+        }
 //        if offset == extents {
 //            print("equal")
 //        }
