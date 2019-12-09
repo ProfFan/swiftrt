@@ -224,7 +224,7 @@ public extension ShapeProtocol {
 // Shape2
 public struct Shape2: ShapeProtocol {
     // constants
-    public typealias Array = StaticArray2<Int>
+    public typealias Array = StaticArray<Int, (Int, Int)>
     public static let zeros = Array((0, 0))
     public static let ones = Array((1, 1))
 
