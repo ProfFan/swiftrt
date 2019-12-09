@@ -17,25 +17,38 @@ import Foundation
 
 //==============================================================================
 //
-public struct StaticArray<Element, Storage> :
+public protocol StaticArrayProtocol :
     RandomAccessCollection,
     MutableCollection
 {
-    //--------------------------------------------------------------------------
+    associatedtype Element
+    associatedtype Storage
+    
+    var storage: Storage { get set }
+    var count: Int { get }
+    var startIndex: Int { get }
+    var endIndex: Int { get }
+
+    init(_ data: Storage)
+    init?(_ data: Storage?)
+}
+
+//==============================================================================
+//
+public extension StaticArrayProtocol {
     // properties
-    public var storage: Storage
-    public let count: Int = {
-        MemoryLayout<Storage>.size / MemoryLayout<Element>.size }()
-    public let startIndex: Int = 0
-    public var endIndex: Int { count }
+    var count: Int {
+        assert(MemoryLayout<Storage>.size % MemoryLayout<Element>.size == 0,
+               "Storage size must be multiple of Element size")
+        return MemoryLayout<Storage>.size / MemoryLayout<Element>.size
+    }
+    var startIndex: Int { 0 }
+    var endIndex: Int { count }
 
     //--------------------------------------------------------------------------
     // initializers
-    public init(_ data: Storage) {
-        storage = data
-    }
-
-    public init?(_ data: Storage?) {
+    @inlinable @inline(__always)
+    init?(_ data: Storage?) {
         guard let data = data else { return nil }
         self.init(data)
     }
@@ -43,7 +56,7 @@ public struct StaticArray<Element, Storage> :
     //--------------------------------------------------------------------------
     // indexing
     @inlinable @inline(__always)
-    public subscript(index: Int) -> Element {
+    subscript(index: Int) -> Element {
         get {
             assert(index >= 0 && index < count, "index out of range")
             return withUnsafeBytes(of: storage) {
@@ -61,15 +74,24 @@ public struct StaticArray<Element, Storage> :
 
 //==============================================================================
 //
-extension StaticArray: Equatable where Element: Equatable {
-    public static func == (lhs: StaticArray<Element, Storage>,
-                           rhs: StaticArray<Element, Storage>) -> Bool {
+public struct StaticArray<Element, Storage> : StaticArrayProtocol {
+    public var storage: Storage
+    public init(_ data: Storage) {
+        storage = data
+    }
+}
+
+//==============================================================================
+// == operatpr
+extension StaticArrayProtocol where Element: Equatable {
+    public static func == (lhs: Self, rhs: Self) -> Bool {
         for i in 0..<lhs.count {
             if lhs[i] != rhs[i] { return false }
         }
         return true
     }
 }
+
 
 //==============================================================================
 //

@@ -45,7 +45,7 @@ public protocol ShapeProtocol: Codable {
 //
 public protocol ShapeArray:
     RandomAccessCollection, MutableCollection, Equatable, Codable
-    where Element: BinaryInteger, Index == Int
+    where Element: BinaryInteger & Equatable, Index == Int
 {
     associatedtype Storage
     
@@ -53,7 +53,7 @@ public protocol ShapeArray:
     init?(_ data: Storage?)
 }
 
-extension StaticArray: ShapeArray where Element: BinaryInteger & Codable { }
+extension StaticArray: ShapeArray, Equatable where Element: BinaryInteger & Codable { }
 
 //==============================================================================
 // default implementation
