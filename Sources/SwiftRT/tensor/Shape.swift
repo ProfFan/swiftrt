@@ -21,9 +21,6 @@ public protocol ShapeArrayProtocol: StaticArrayProtocol, Equatable, Codable
     where Element: BinaryInteger & Equatable, Index == Int
 {
     associatedtype Storage
-    
-    init(_ data: Storage)
-    init?(_ data: Storage?)
 }
 
 //==============================================================================
