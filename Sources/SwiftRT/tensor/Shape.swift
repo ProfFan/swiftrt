@@ -16,14 +16,13 @@
 
 //==============================================================================
 //
-public protocol ShapeProtocol: Equatable, Codable {
+public protocol ShapeProtocol: Codable {
     // types
-    associatedtype Storage: ArrayStorage where Storage.Element: BinaryInteger
-    typealias ShapeArray = StaticArray<Storage>
+    associatedtype Array: ShapeArray
 
     // constants
-    static var zeros: ShapeArray { get }
-    static var ones: ShapeArray { get }
+    static var zeros: Array { get }
+    static var ones: Array { get }
 
     //--------------------------------------------------------------------------
     // properties
@@ -31,17 +30,36 @@ public protocol ShapeProtocol: Equatable, Codable {
     /// The sparse number of elements spanned by the shape
     var spanCount: Int { get }
     /// The extent of the shape in each dimension
-    var extents: ShapeArray { get }
+    var extents: Array { get }
     /// The distance to the next element for each dimension
-    var strides: ShapeArray { get }
-
+    var strides: Array { get }
+    
     //--------------------------------------------------------------------------
-    init(extents: ShapeArray, strides: ShapeArray?)
+    init(extents: Array, strides: Array?)
 }
+
+//==============================================================================
+//
+public protocol ShapeArray:
+    RandomAccessCollection,
+    MutableCollection,
+    Equatable,
+    Codable
+    where Element: BinaryInteger, Index == Int
+{
+    associatedtype Storage
+    
+    init(data: Storage)
+    init?(data: Storage?)
+}
+
+extension StaticArray: ShapeArray where Element: BinaryInteger & Codable { }
 
 //==============================================================================
 // default implementation
 public extension ShapeProtocol {
+    typealias Tuple = Self.Array.Storage
+    
     //--------------------------------------------------------------------------
     // computed properties
     /// `true` if the underlying data for the whole shape has a stride of 1.
@@ -61,7 +79,7 @@ public extension ShapeProtocol {
 
     //--------------------------------------------------------------------------
     //
-    init(extents: ShapeArray) { self.init(extents: extents, strides: nil) }
+    init(extents: Array) { self.init(extents: extents, strides: nil) }
 
     //--------------------------------------------------------------------------
     // equal
@@ -73,7 +91,7 @@ public extension ShapeProtocol {
     // denseStrides
     // computes the strides for a dense shape
     @inlinable
-    static func denseStrides(_ extents: ShapeArray) -> ShapeArray {
+    static func denseStrides(_ extents: Array) -> Array {
         var strides = ones
         stride(from: extents.count, to: 1, by: -1).forEach {
             strides[$0 - 1] = extents[$0] * strides[$0]
@@ -99,7 +117,7 @@ public extension ShapeProtocol {
     // due to striding.
     // The span of the extent is the linear index of the last index + 1
     @inlinable
-    static func spanCount(_ extents: ShapeArray, _ strides: ShapeArray) -> Int {
+    static func spanCount(_ extents: Array, _ strides: Array) -> Int {
         Int(zip(extents, strides).reduce(0) { $0 + ($1.0 - 1) * $1.1 }) + 1
     }
     
@@ -108,9 +126,9 @@ public extension ShapeProtocol {
     /// The user can specify indices from `-rank..<rank`.
     /// Negative numbers reference dimensions from the end of `extents`
     /// This ensures they are resolved to positive values.
-    func makePositive(dims: ShapeArray) -> ShapeArray {
+    func makePositive(dims: Array) -> Array {
         var positive = dims
-        let wrapAround = Storage.Element(rank)
+        let wrapAround = Array.Element(rank)
         for i in 0..<rank where positive[i] < 0 {
             positive[i] += wrapAround
         }
@@ -120,13 +138,13 @@ public extension ShapeProtocol {
     //--------------------------------------------------------------------------
     /// linearIndex
     ///    returns the linear element index
-    func linearIndex(of index: ShapeArray) -> Int {
+    func linearIndex(of index: Array) -> Int {
         Int(zip(index, strides).reduce(0) { $0 + $1.0 * $1.1 })
     }
 
     //--------------------------------------------------------------------------
     /// contains
-    func contains(offset: ShapeArray) -> Bool {
+    func contains(offset: Array) -> Bool {
         linearIndex(of: offset) <= spanCount
     }
     
@@ -134,7 +152,7 @@ public extension ShapeProtocol {
         other.spanCount <= spanCount
     }
     
-    func contains(offset: ShapeArray, extents: ShapeArray) -> Bool {
+    func contains(offset: Array, extents: Array) -> Bool {
         linearIndex(of: offset) + Self.spanCount(extents, strides) <= spanCount
     }
 
@@ -153,7 +171,7 @@ public extension ShapeProtocol {
     
     //--------------------------------------------------------------------------
     /// repeated(to repeatedExtents:
-    func repeated(to repeatedExtents: ShapeArray) -> Self {
+    func repeated(to repeatedExtents: Array) -> Self {
         // make sure the extents are compatible
         assert({
             for i in 0..<rank {
@@ -181,7 +199,7 @@ public extension ShapeProtocol {
     /// - Returns: transposed/permuted shape
     /// - Precondition: Each value in `permutations` must be in the range
     ///   `-rank..<rank`
-    func transposed(with permutations: ShapeArray? = nil) -> Self {
+    func transposed(with permutations: Array? = nil) -> Self {
         guard rank > 1 else { return self }
         var newExtents = extents
         var newStrides = strides
@@ -205,29 +223,25 @@ public extension ShapeProtocol {
 //==============================================================================
 // Shape2
 public struct Shape2: ShapeProtocol {
-    // types
-    public typealias ShapeArray = StaticArray2<Int>
-
     // constants
-    public static let zeros = ShapeArray(ArrayStorage2(0, 0))
-    public static let ones = ShapeArray(ArrayStorage2(1, 1))
+    public typealias Array = StaticArray2<Int>
+    public static let zeros = Array(data: (0, 0))
+    public static let ones = Array(data: (1, 1))
 
     // properties
     public let count: Int
     public let spanCount: Int
-    public let extents: ShapeArray
-    public let strides: ShapeArray
-
+    public let extents: Array
+    public let strides: Array
+    
     //--------------------------------------------------------------------------
     /// Fully specified initializer
     /// - Parameter extents: extent of the shape in each dimension
     /// - Parameter strides: the distance to the next element in each dimension
-    public init(extents: ShapeArray, strides: ShapeArray? = nil) {
+    public init(extents: Array, strides: Array? = nil) {
         self.extents = extents
         self.strides = strides ?? Self.denseStrides(extents)
         count = Int(extents.reduce(1, *))
         spanCount = Self.spanCount(extents, self.strides)
     }
 }
-
-

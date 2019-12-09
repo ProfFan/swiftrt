@@ -14,53 +14,45 @@
 // limitations under the License.
 //
 
-public protocol ZeroedStorage {
-    init()
-}
-
-extension Int8: ZeroedStorage {}
-extension Int16: ZeroedStorage {}
-extension Int32: ZeroedStorage {}
-extension Int: ZeroedStorage {}
-
 //==============================================================================
 //
-public struct StaticArray<Storage> :
-    RandomAccessCollection, MutableCollection, Equatable, Codable
-    where Storage: ArrayStorage
+public struct StaticArray<Element, Storage> :
+    RandomAccessCollection,
+    MutableCollection
 {
     //--------------------------------------------------------------------------
     // properties
     public var storage: Storage
+    public let count: Int = {
+        MemoryLayout<Storage>.size / MemoryLayout<Element>.size }()
     public let startIndex: Int = 0
-    public let count: Int = Storage.count
-    public let endIndex: Int = Storage.count
+    public var endIndex: Int { count }
 
     //--------------------------------------------------------------------------
     // initializers
-    public init(_ data: Storage) {
+    public init(data: Storage) {
         storage = data
     }
 
-    public init?(_ data: Storage?) {
+    public init?(data: Storage?) {
         guard let data = data else { return nil }
-        self.init(data)
+        self.init(data: data)
     }
     
     //--------------------------------------------------------------------------
     // indexing
     @inlinable @inline(__always)
-    public subscript(index: Int) -> Storage.Element {
+    public subscript(index: Int) -> Element {
         get {
             assert(index >= 0 && index < count, "index out of range")
             return withUnsafeBytes(of: storage) {
-                $0.bindMemory(to: Storage.Element.self)[index]
+                $0.bindMemory(to: Element.self)[index]
             }
         }
         set {
             assert(index >= 0 && index < count, "index out of range")
             return withUnsafeMutableBytes(of: &storage) {
-                $0.bindMemory(to: Storage.Element.self)[index] = newValue
+                $0.bindMemory(to: Element.self)[index] = newValue
             }
         }
     }
@@ -68,26 +60,35 @@ public struct StaticArray<Storage> :
 
 //==============================================================================
 //
-public protocol ArrayStorage: ZeroedStorage, Equatable, Codable {
-    associatedtype Element: ZeroedStorage, Equatable, Codable
-    static var count: Int { get }
-}
-
-public extension ArrayStorage {
-    static var count: Int { MemoryLayout<Self>.size / MemoryLayout<Element>.size }
-}
-
-public struct ArrayStorage2<Element>: ArrayStorage where
-    Element: ZeroedStorage & Equatable & Codable
-{
-    private var _e0, _e1: Element
-    typealias E = Element
-
-    public init() { _e0 = E(); _e1 = E() }
-    init(_ e0: E, _ e1: E) { _e0 = e0; _e1 = e1 }
+extension StaticArray: Equatable where Element: Equatable {
+    public static func == (lhs: StaticArray<Element, Storage>, rhs: StaticArray<Element, Storage>) -> Bool {
+        return true
+    }
 }
 
 //==============================================================================
 //
-public typealias StaticArray2<T> =
-    StaticArray<ArrayStorage2<T>> where T: ZeroedStorage & Equatable & Codable
+extension StaticArray: Codable where Element: Codable {
+    enum CodingKeys: String, CodingKey { case name, data }
+
+    /// encodes the contents of the array
+    public func encode(to encoder: Encoder) throws {
+//        var container = encoder.container(keyedBy: CodingKeys.self)
+//        try container.encode(name, forKey: .name)
+//        let buffer = try readOnly(using: DeviceContext.hostQueue)
+//        try container.encode(ContiguousArray(buffer), forKey: .data)
+    }
+    
+    public init(from decoder: Decoder) throws {
+//        let container = try decoder.container(keyedBy: CodingKeys.self)
+//        let name = try container.decode(String.self, forKey: .name)
+//        let data = try container.decode(ContiguousArray<Element>.self,
+//                                        forKey: .data)
+//        self.init(elements: data, name: name)
+        fatalError()
+    }
+}
+
+//==============================================================================
+//
+public typealias StaticArray2<T> = StaticArray<T, (T, T)> where T: Equatable

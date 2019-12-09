@@ -196,8 +196,11 @@ extension Vector: Differentiable & DifferentiableTensorView where
 //==============================================================================
 // MatrixView protocol
 public protocol MatrixView: TensorView {
-    associatedtype NewShape: ShapeProtocol
-    var newShape: NewShape { get }
+    associatedtype Shape: ShapeProtocol
+    var newShape: Shape { get }
+
+    associatedtype FredShapeArray: ShapeArray
+    var fred: FredShapeArray { get }
 }
 
 public enum MatrixLayout { case rowMajor, columnMajor }
@@ -219,6 +222,15 @@ extension Matrix: AdditiveArithmetic where Element: Numeric {
 //==============================================================================
 // MatrixView extensions
 public extension MatrixView {
+    func newView(at offset: Shape.Tuple, with extents: Shape.Tuple) {
+        let a = Shape.Array(data: offset)
+        let _ = Shape(extents: a)
+    }
+//
+//    func newView(at offset: FredShapeArray.Storage, with extents: FredShapeArray.Storage) {
+//        let _ = FredShapeArray(data: offset)
+//    }
+
     //--------------------------------------------------------------------------
     /// reserved space
     init(extents: [Int], layout: MatrixLayout = .rowMajor, name: String? = nil)
@@ -410,7 +422,8 @@ public struct Matrix<Element>: MatrixView {
     public let viewOffset: Int
     public let singleElementExtents = [1, 1]
     
-    public let newShape: Shape2
+    public let newShape = Shape2(extents: Shape2.zeros)
+    public let fred = StaticArray<Int, (Int, Int)>(data: (0, 0))
 
 
     public init(shape: DataShape,
@@ -422,8 +435,6 @@ public struct Matrix<Element>: MatrixView {
         self.tensorArray = tensorArray
         self.viewOffset = viewOffset
         self.isShared = isShared
-        
-        newShape = Shape2(extents: Shape2.ones)
     }
 }
 

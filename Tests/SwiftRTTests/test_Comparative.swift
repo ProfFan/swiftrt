@@ -35,6 +35,9 @@ class test_Comparative: XCTestCase {
     func test_elementsAlmostEqual() {
         let m1 = Matrix<Float>(3, 2, with: [0, 1.05, 2.0, -3, 4.2, 5.001])
         let m2 = Matrix<Float>(3, 2, with: [0, 1.00, 2.1,  3, 4.0, 4.999])
+        
+        m1.newView(at: (0, 0), with: (2, 2))
+        
         let expected = [true, true, true, false, false, true]
         let result = elementsAlmostEqual(m1, m2, tolerance: 0.1)
         XCTAssert(result.flatArray == expected)
