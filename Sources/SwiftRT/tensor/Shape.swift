@@ -260,12 +260,55 @@ public extension ShapeProtocol {
 }
 
 //==============================================================================
+// Shape1
+public struct Shape1: ShapeProtocol {
+    // constants
+    public typealias Array = ShapeArray<Int, (Int)>
+    public static let zeros = Array((0))
+    public static let ones = Array((1))
+
+    // properties
+    public let count: Int
+    public let spanCount: Int
+    public let extents: Array
+    public let strides: Array
+
+    public init(extents: Array, strides: Array? = nil) {
+        self.extents = extents
+        self.strides = strides ?? Self.denseStrides(extents)
+        count = Int(extents.reduce(1, *))
+        spanCount = Self.spanCount(extents, self.strides)
+    }
+}
+
+//==============================================================================
 // Shape2
 public struct Shape2: ShapeProtocol {
     // constants
     public typealias Array = ShapeArray<Int, (Int, Int)>
     public static let zeros = Array((0, 0))
     public static let ones = Array((1, 1))
+
+    // properties
+    public let count: Int
+    public let spanCount: Int
+    public let extents: Array
+    public let strides: Array
+
+    public init(extents: Array, strides: Array? = nil) {
+        self.extents = extents
+        self.strides = strides ?? Self.denseStrides(extents)
+        count = Int(extents.reduce(1, *))
+        spanCount = Self.spanCount(extents, self.strides)
+    }
+}
+//==============================================================================
+// Shape3
+public struct Shape3: ShapeProtocol {
+    // constants
+    public typealias Array = ShapeArray<Int, (Int, Int, Int)>
+    public static let zeros = Array((0, 0, 0))
+    public static let ones = Array((1, 1, 1))
 
     // properties
     public let count: Int
