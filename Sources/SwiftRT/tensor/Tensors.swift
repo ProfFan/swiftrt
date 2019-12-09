@@ -195,10 +195,7 @@ extension Vector: Differentiable & DifferentiableTensorView where
 
 //==============================================================================
 // MatrixView protocol
-public protocol MatrixView: TensorView {
-    associatedtype Shape: ShapeProtocol
-    var newShape: Shape { get }
-}
+public protocol MatrixView: TensorView { }
 
 public enum MatrixLayout { case rowMajor, columnMajor }
 
@@ -219,19 +216,6 @@ extension Matrix: AdditiveArithmetic where Element: Numeric {
 //==============================================================================
 // MatrixView extensions
 public extension MatrixView {
-    func newView(at offset: Shape.Tuple, with extents: Shape.Tuple) {
-        let a = Shape.Array(offset)
-        let b = Shape.Array(extents)
-        let _ = Shape(extents: a)
-        
-        if a == b {
-            print("equal")
-        }
-//        if offset == extents {
-//            print("equal")
-//        }
-    }
-
     //--------------------------------------------------------------------------
     /// reserved space
     init(extents: [Int], layout: MatrixLayout = .rowMajor, name: String? = nil)
