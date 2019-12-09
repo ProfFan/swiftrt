@@ -33,18 +33,18 @@ public protocol ShapeProtocol: Codable {
     var extents: Array { get }
     /// The distance to the next element for each dimension
     var strides: Array { get }
-    
+        
     //--------------------------------------------------------------------------
+    /// Fully specified initializer
+    /// - Parameter extents: extent of the shape in each dimension
+    /// - Parameter strides: the distance to the next element in each dimension
     init(extents: Array, strides: Array?)
 }
 
 //==============================================================================
 //
 public protocol ShapeArray:
-    RandomAccessCollection,
-    MutableCollection,
-    Equatable,
-    Codable
+    RandomAccessCollection, MutableCollection, Equatable, Codable
     where Element: BinaryInteger, Index == Int
 {
     associatedtype Storage
@@ -233,11 +233,7 @@ public struct Shape2: ShapeProtocol {
     public let spanCount: Int
     public let extents: Array
     public let strides: Array
-    
-    //--------------------------------------------------------------------------
-    /// Fully specified initializer
-    /// - Parameter extents: extent of the shape in each dimension
-    /// - Parameter strides: the distance to the next element in each dimension
+
     public init(extents: Array, strides: Array? = nil) {
         self.extents = extents
         self.strides = strides ?? Self.denseStrides(extents)

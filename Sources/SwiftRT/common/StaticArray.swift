@@ -96,4 +96,6 @@ extension StaticArray: Codable where Element: Codable {
 
 //==============================================================================
 //
+public typealias StaticArray1<T> = StaticArray<T, (T)> where T: Equatable
 public typealias StaticArray2<T> = StaticArray<T, (T, T)> where T: Equatable
+public typealias StaticArray3<T> = StaticArray<T, (T, T, T)> where T: Equatable
