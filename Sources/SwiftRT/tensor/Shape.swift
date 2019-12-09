@@ -49,8 +49,8 @@ public protocol ShapeArray:
 {
     associatedtype Storage
     
-    init(data: Storage)
-    init?(data: Storage?)
+    init(_ data: Storage)
+    init?(_ data: Storage?)
 }
 
 extension StaticArray: ShapeArray where Element: BinaryInteger & Codable { }
@@ -225,8 +225,8 @@ public extension ShapeProtocol {
 public struct Shape2: ShapeProtocol {
     // constants
     public typealias Array = StaticArray2<Int>
-    public static let zeros = Array(data: (0, 0))
-    public static let ones = Array(data: (1, 1))
+    public static let zeros = Array((0, 0))
+    public static let ones = Array((1, 1))
 
     // properties
     public let count: Int

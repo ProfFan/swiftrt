@@ -30,13 +30,13 @@ public struct StaticArray<Element, Storage> :
 
     //--------------------------------------------------------------------------
     // initializers
-    public init(data: Storage) {
+    public init(_ data: Storage) {
         storage = data
     }
 
-    public init?(data: Storage?) {
+    public init?(_ data: Storage?) {
         guard let data = data else { return nil }
-        self.init(data: data)
+        self.init(data)
     }
     
     //--------------------------------------------------------------------------

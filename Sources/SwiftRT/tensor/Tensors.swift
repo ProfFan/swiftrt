@@ -198,9 +198,6 @@ extension Vector: Differentiable & DifferentiableTensorView where
 public protocol MatrixView: TensorView {
     associatedtype Shape: ShapeProtocol
     var newShape: Shape { get }
-
-    associatedtype FredShapeArray: ShapeArray
-    var fred: FredShapeArray { get }
 }
 
 public enum MatrixLayout { case rowMajor, columnMajor }
@@ -223,13 +220,13 @@ extension Matrix: AdditiveArithmetic where Element: Numeric {
 // MatrixView extensions
 public extension MatrixView {
     func newView(at offset: Shape.Tuple, with extents: Shape.Tuple) {
-        let a = Shape.Array(data: offset)
+        let a = Shape.Array(offset)
         let _ = Shape(extents: a)
+        
+//        if offset == extents {
+//            print("equal")
+//        }
     }
-//
-//    func newView(at offset: FredShapeArray.Storage, with extents: FredShapeArray.Storage) {
-//        let _ = FredShapeArray(data: offset)
-//    }
 
     //--------------------------------------------------------------------------
     /// reserved space
@@ -423,7 +420,6 @@ public struct Matrix<Element>: MatrixView {
     public let singleElementExtents = [1, 1]
     
     public let newShape = Shape2(extents: Shape2.zeros)
-    public let fred = StaticArray<Int, (Int, Int)>(data: (0, 0))
 
 
     public init(shape: DataShape,
