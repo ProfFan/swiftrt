@@ -175,7 +175,7 @@ class test_IterateView: XCTestCase {
     func test_perfVector() {
         #if !DEBUG
         let count = 1024 * 1024
-        let vector = Vector<Int32>(any: 0..<count)
+        let vector = Vector<Int32>(with: 0..<count)
         //            print(matrix.formatted((2,0)))
         let values = vector.elements
         
@@ -192,7 +192,7 @@ class test_IterateView: XCTestCase {
         let rows = 1024
         let cols = 1024
         
-        let matrix = Matrix<Int32>((rows, cols), any: 0..<(rows * cols))
+        let matrix = Matrix<Int32>(rows, cols, with: 0..<(rows * cols))
         let values = matrix.elements
         
         self.measure {
@@ -209,8 +209,8 @@ class test_IterateView: XCTestCase {
         let rows = 512
         let cols = 512
         
-        let matrix = Volume<Int32>((depths, rows, cols),
-                                   any: 0..<(depths * rows * cols))
+        let matrix = Volume<Int32>(depths, rows, cols,
+                                   with: 0..<(depths * rows * cols))
         let values = matrix.elements
         
         self.measure {
@@ -223,7 +223,7 @@ class test_IterateView: XCTestCase {
     // test_perfIndexCopy
     func test_perfIndexCopy() {
         #if !DEBUG
-        var m = Matrix<Int32>((1024, 1024)).startIndex
+        var m = Matrix<Int32>(1024, 1024).startIndex
         
         self.measure {
             for _ in 0..<1000000 {

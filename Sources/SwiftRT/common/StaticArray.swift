@@ -19,7 +19,8 @@ import Foundation
 //
 public protocol StaticArrayProtocol :
     RandomAccessCollection,
-    MutableCollection
+    MutableCollection,
+    CustomStringConvertible
 {
     associatedtype Element
     associatedtype Storage
@@ -37,12 +38,17 @@ public protocol StaticArrayProtocol :
 //
 public extension StaticArrayProtocol {
     // properties
+    @inlinable @inline(__always)
     var count: Int {
         assert(MemoryLayout<Storage>.size % MemoryLayout<Element>.size == 0,
                "Storage size must be multiple of Element size")
         return MemoryLayout<Storage>.size / MemoryLayout<Element>.size
     }
+
+    @inlinable @inline(__always)
     var startIndex: Int { 0 }
+
+    @inlinable @inline(__always)
     var endIndex: Int { count }
 
     //--------------------------------------------------------------------------
@@ -58,23 +64,24 @@ public extension StaticArrayProtocol {
     @inlinable @inline(__always)
     subscript(index: Int) -> Element {
         get {
-            assert(index >= 0 && index < count, "index out of range")
-            return withUnsafeBytes(of: storage) {
+            withUnsafeBytes(of: storage) {
                 $0.bindMemory(to: Element.self)[index]
             }
         }
         set {
-            assert(index >= 0 && index < count, "index out of range")
-            return withUnsafeMutableBytes(of: &storage) {
+            withUnsafeMutableBytes(of: &storage) {
                 $0.bindMemory(to: Element.self)[index] = newValue
             }
         }
     }
+
+    var description: String { String(describing: [Element](self)) }
 }
 
 //==============================================================================
 // == operatpr
 extension StaticArrayProtocol where Element: Equatable {
+    @inlinable @inline(__always)
     public static func == (lhs: Self, rhs: Self) -> Bool {
         for i in 0..<lhs.count {
             if lhs[i] != rhs[i] { return false }
@@ -82,3 +89,4 @@ extension StaticArrayProtocol where Element: Equatable {
         return true
     }
 }
+

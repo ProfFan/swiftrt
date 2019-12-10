@@ -30,12 +30,14 @@ public struct ShapeArray<Element, Storage> : ShapeArrayProtocol
 {
     public var storage: Storage
 
+    @inlinable @inline(__always)
     public init(_ data: Storage) {
         storage = data
     }
 
     //--------------------------------------------------------------------------
     // Equatable
+    @inlinable @inline(__always)
     public static func == (lhs: Self, rhs: Self) -> Bool {
         withUnsafeBytes(of: lhs.storage) { lhsPtr in
             withUnsafeBytes(of: rhs.storage) { rhsPtr in
@@ -97,31 +99,47 @@ public protocol ShapeProtocol: Codable {
 //==============================================================================
 // default implementation
 public extension ShapeProtocol {
+    //--------------------------------------------------------------------------
+    // tuple support
     typealias Tuple = Self.Array.Storage
+
+    @inlinable @inline(__always)
+    init(extents: Tuple, strides: Tuple? = nil) {
+        self.init(extents: Array(extents), strides: Array(strides))
+    }
     
     //--------------------------------------------------------------------------
     // computed properties
     /// `true` if the underlying data for the whole shape has a stride of 1.
+    @inlinable @inline(__always)
     var isContiguous: Bool { count == spanCount }
     /// `true` if the shape has zero elements
+    @inlinable @inline(__always)
     var isEmpty: Bool { count == 0 }
     /// `true` if the shape has one element
+    @inlinable @inline(__always)
     var isScalar: Bool { count == 1 }
     /// the index of the last dimension
+    @inlinable @inline(__always)
     var lastDimension: Int { extents.count - 1 }
     /// the number of sahpe extents
+    @inlinable @inline(__always)
     var rank: Int { extents.count }
     /// the number of items in extent 0
+    @inlinable @inline(__always)
     var items: Int { Int(extents[0]) }
     /// returns a dense version of self
+    @inlinable @inline(__always)
     var dense: Self { isContiguous ? self : Self(extents: extents) }
 
     //--------------------------------------------------------------------------
     //
+    @inlinable @inline(__always)
     init(extents: Array) { self.init(extents: extents, strides: nil) }
 
     //--------------------------------------------------------------------------
     // equal
+    @inlinable @inline(__always)
     static func == (lhs: Self, rhs: Self) -> Bool {
         lhs.extents == rhs.extents
     }
@@ -129,10 +147,10 @@ public extension ShapeProtocol {
     //--------------------------------------------------------------------------
     // denseStrides
     // computes the strides for a dense shape
-    @inlinable
+    @inlinable @inline(__always)
     static func denseStrides(_ extents: Array) -> Array {
         var strides = ones
-        stride(from: extents.count, to: 1, by: -1).forEach {
+        stride(from: extents.count - 1, to: 1, by: -1).forEach {
             strides[$0 - 1] = extents[$0] * strides[$0]
         }
         return strides
@@ -143,6 +161,7 @@ public extension ShapeProtocol {
     /// - Parameter others: array of data shapes to join
     /// - Parameter axis: the joining axis
     /// - Returns: returns a new shape that is the join with the others
+    @inlinable @inline(__always)
     func joined(with others: [Self], alongAxis axis: Int) -> Self {
         var newExtents = extents
         newExtents[axis] += others.reduce(0) { $0 + $1.extents[axis] }
@@ -155,7 +174,7 @@ public extension ShapeProtocol {
     // than the number of dense elements defined by the extents of the view
     // due to striding.
     // The span of the extent is the linear index of the last index + 1
-    @inlinable
+    @inlinable @inline(__always)
     static func spanCount(_ extents: Array, _ strides: Array) -> Int {
         Int(zip(extents, strides).reduce(0) { $0 + ($1.0 - 1) * $1.1 }) + 1
     }
@@ -165,10 +184,11 @@ public extension ShapeProtocol {
     /// The user can specify indices from `-rank..<rank`.
     /// Negative numbers reference dimensions from the end of `extents`
     /// This ensures they are resolved to positive values.
-    func makePositive(dims: Array) -> Array {
+    @inlinable @inline(__always)
+    static func makePositive(dims: Array) -> Array {
         var positive = dims
-        let wrapAround = Array.Element(rank)
-        for i in 0..<rank where positive[i] < 0 {
+        let wrapAround = Array.Element(dims.count)
+        for i in 0..<dims.count where positive[i] < 0 {
             positive[i] += wrapAround
         }
         return positive
@@ -177,26 +197,34 @@ public extension ShapeProtocol {
     //--------------------------------------------------------------------------
     /// linearIndex
     ///    returns the linear element index
-    func linearIndex(of index: Array) -> Int {
-        Int(zip(index, strides).reduce(0) { $0 + $1.0 * $1.1 })
+    @inlinable @inline(__always)
+    func linearIndex(of index: Tuple) -> Int {
+        let i = Int(zip(Array(index), strides).reduce(0) { $0 + $1.0 * $1.1 })
+        assert(i < spanCount)
+        return i
     }
 
     //--------------------------------------------------------------------------
     /// contains
-    func contains(offset: Array) -> Bool {
+    @inlinable @inline(__always)
+    func contains(offset: Tuple) -> Bool {
         linearIndex(of: offset) <= spanCount
     }
     
+    @inlinable @inline(__always)
     func contains(other: Self) -> Bool {
         other.spanCount <= spanCount
     }
     
-    func contains(offset: Array, extents: Array) -> Bool {
-        linearIndex(of: offset) + Self.spanCount(extents, strides) <= spanCount
+    @inlinable @inline(__always)
+    func contains(offset: Tuple, extents: Tuple) -> Bool {
+        linearIndex(of: offset) +
+            Self.spanCount(Array(extents), strides) <= spanCount
     }
 
     //--------------------------------------------------------------------------
     /// columnMajor
+    @inlinable @inline(__always)
     var columnMajor: Self {
         // return self if already column major
         guard strides[rank-1] < strides[rank-2] else { return self }
@@ -210,6 +238,7 @@ public extension ShapeProtocol {
     
     //--------------------------------------------------------------------------
     /// repeated(to repeatedExtents:
+    @inlinable @inline(__always)
     func repeated(to repeatedExtents: Array) -> Self {
         // make sure the extents are compatible
         assert({
@@ -238,6 +267,7 @@ public extension ShapeProtocol {
     /// - Returns: transposed/permuted shape
     /// - Precondition: Each value in `permutations` must be in the range
     ///   `-rank..<rank`
+    @inlinable @inline(__always)
     func transposed(with permutations: Array? = nil) -> Self {
         guard rank > 1 else { return self }
         var newExtents = extents
@@ -245,7 +275,7 @@ public extension ShapeProtocol {
 
         // determine the new extents and strides
         if let perm = permutations {
-            let mapping = makePositive(dims: perm)
+            let mapping = Self.makePositive(dims: perm)
             for index in 0..<rank {
                 newExtents[index] = extents[Int(mapping[index])]
                 newStrides[index] = strides[Int(mapping[index])]
@@ -273,6 +303,7 @@ public struct Shape1: ShapeProtocol {
     public let extents: Array
     public let strides: Array
 
+    @inlinable @inline(__always)
     public init(extents: Array, strides: Array? = nil) {
         self.extents = extents
         self.strides = strides ?? Self.denseStrides(extents)
@@ -295,6 +326,7 @@ public struct Shape2: ShapeProtocol {
     public let extents: Array
     public let strides: Array
 
+    @inlinable @inline(__always)
     public init(extents: Array, strides: Array? = nil) {
         self.extents = extents
         self.strides = strides ?? Self.denseStrides(extents)
@@ -316,6 +348,7 @@ public struct Shape3: ShapeProtocol {
     public let extents: Array
     public let strides: Array
 
+    @inlinable @inline(__always)
     public init(extents: Array, strides: Array? = nil) {
         self.extents = extents
         self.strides = strides ?? Self.denseStrides(extents)
