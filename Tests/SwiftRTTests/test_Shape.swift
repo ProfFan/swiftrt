@@ -55,7 +55,7 @@ class test_Shape: XCTestCase {
     //--------------------------------------------------------------------------
     // test_perfShape2
     func test_perfShape2() {
-//        #if !DEBUG
+        #if !DEBUG
         var shape = Shape2(extents: Shape2.zeros)
         var anchor = true
         self.measure {
@@ -75,6 +75,6 @@ class test_Shape: XCTestCase {
             }
         }
         XCTAssert(anchor && shape.extents == Shape2.Array((13, 3)))
-//        #endif
+        #endif
     }
 }
