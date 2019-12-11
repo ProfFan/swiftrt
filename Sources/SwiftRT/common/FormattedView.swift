@@ -32,7 +32,7 @@ public extension TensorView where Element: AnyConvertable & CVarArg {
         var index = [Int](repeating: 0, count: shape.rank)
         var itemCount = 0
         let indentSize = "  "
-        let extents = shape.extents
+        let extents = self.extents.array
         let lastDimension = shape.lastDimension
         let values = self.elements()
         var iterator = values.makeIterator()

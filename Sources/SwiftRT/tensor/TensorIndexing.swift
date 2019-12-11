@@ -69,7 +69,7 @@ public struct TensorValueCollection<View>: RandomAccessCollection
         self.buffer = buffer
         startIndex = view.startIndex
         endIndex = view.endIndex
-        count = view.shape.elementCount
+        count = view.count
     }
 
     public init(view: View) {
@@ -77,7 +77,7 @@ public struct TensorValueCollection<View>: RandomAccessCollection
         self.buffer = UnsafeBufferPointer<View.Element>(start: nil, count: 0)
         startIndex = view.startIndex
         endIndex = view.endIndex
-        count = view.shape.elementCount
+        count = view.count
     }
     
     //--------------------------------------------------------------------------
@@ -114,7 +114,7 @@ public struct TensorMutableValueCollection<View>: RandomAccessCollection,
         self.buffer = buffer
         startIndex = view.startIndex
         endIndex = view.endIndex
-        count = view.shape.elementCount
+        count = view.count
     }
     
     public init(view: inout View) {
@@ -122,7 +122,7 @@ public struct TensorMutableValueCollection<View>: RandomAccessCollection,
                                                                count: 0)
         startIndex = view.startIndex
         endIndex = view.endIndex
-        count = view.shape.elementCount
+        count = view.count
     }
     
     //--------------------------------------------------------------------------

@@ -20,7 +20,9 @@
 public func gradient<T, R>(
     at x: T,
     in fn: @differentiable (T) -> R) -> T.TangentVector
-    where T: DifferentiableTensorView, R: DifferentiableTensorView
+    where
+    T: DifferentiableTensorView,
+    R: DifferentiableTensorView, R.Shape == T.Shape
 {
     return pullback(at: x, in: fn)(R(repeating: 1, like: x))
 }
@@ -31,7 +33,7 @@ public func gradient<T, U, R>(
     where
     T: DifferentiableTensorView,
     U: DifferentiableTensorView,
-    R: DifferentiableTensorView
+    R: DifferentiableTensorView, R.Shape == T.Shape
 {
     return pullback(at: x, y, in: fn)(R(repeating: 1, like: x))
 }
@@ -41,8 +43,10 @@ public func gradient<T, U, V, R>(
     in fn: @differentiable (T, U, V) -> R) ->
     (T.TangentVector, U.TangentVector, V.TangentVector)
     where
-    T: DifferentiableTensorView, U: DifferentiableTensorView,
-    V: DifferentiableTensorView, R: DifferentiableTensorView
+    T: DifferentiableTensorView,
+    U: DifferentiableTensorView,
+    V: DifferentiableTensorView,
+    R: DifferentiableTensorView, R.Shape == T.Shape
 {
     return pullback(at: x, y, z, in: fn)(R(repeating: 1, like: x))
 }

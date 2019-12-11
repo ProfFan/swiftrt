@@ -30,10 +30,9 @@ infix operator .!= : ComparisonPrecedence
 public func implicitlyMatchExtents<T>(_ lhs: T, _ rhs: T) -> (T, T)
     where T: TensorView
 {
-    assert(lhs.rank == rhs.rank)
-    if lhs.elementCount == rhs.elementCount {
+    if lhs.count == rhs.count {
         return (lhs, rhs)
-    } else if lhs.elementCount > rhs.elementCount {
+    } else if lhs.count > rhs.count {
         return (lhs, rhs.repeated(to: lhs.extents))
     } else {
         return (lhs.repeated(to: rhs.extents), rhs)
@@ -234,7 +233,7 @@ public extension DeviceFunctions where Self: DeviceQueue {
         do {
             // Note: if the tensors are large then they could be copied in parallel
             let shared = try result.sharedView(using: self)
-            var index = [Int](repeating: 0, count: tensors[0].rank)
+            var index = T.Shape.zeros
             
             for tensor in tensors {
                 var outView = shared.view(at: index, extents: tensor.extents)

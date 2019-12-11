@@ -154,7 +154,7 @@ class test_Syntax: XCTestCase {
             print(volume.formatted((2,0)))
             
             let expected = [Int32](repeating: value,
-                                   count: volume.shape.elementCount)
+                                   count: volume.count)
             let values = try volume.flatArray()
             XCTAssert(values == expected)
         } catch {

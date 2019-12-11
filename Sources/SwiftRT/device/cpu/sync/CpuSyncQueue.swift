@@ -181,12 +181,12 @@ public final class CpuSynchronousQueue: CpuQueueProtocol, LocalDeviceQueue {
     //--------------------------------------------------------------------------
     /// simulateWork(x:timePerElement:result:
     /// introduces a delay in the queue by sleeping a duration of
-    /// x.shape.elementCount * timePerElement
+    /// x.count * timePerElement
     public func simulateWork<T>(x: T, timePerElement: TimeInterval,
                                 result: inout T)
         where T: TensorView
     {
-        let delay = TimeInterval(x.shape.elementCount) * timePerElement
+        let delay = TimeInterval(x.count) * timePerElement
         delayQueue(atLeast: delay)
     }
 

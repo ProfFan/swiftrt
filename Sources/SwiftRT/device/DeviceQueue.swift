@@ -79,7 +79,7 @@ public protocol DeviceQueue:
     // debugging functions
     /// simulateWork(x:timePerElement:result:
     /// introduces a delay in the queue by sleeping a duration of
-    /// x.shape.elementCount * timePerElement
+    /// x.count * timePerElement
     func simulateWork<T>(x: T, timePerElement: TimeInterval, result: inout T)
         where T: TensorView
     /// causes the queue to sleep for the specified interval for testing

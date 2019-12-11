@@ -353,7 +353,7 @@ public extension CpuQueue {
 //
 //            }
         } else {
-            let count = T.Element(x.shape.elementCount)
+            let count = T.Element(x.count)
             queue(#function, { try x.elements() }, &result) {
                 let value = $0.reduce(T.Element.zero) { $0 + $1 } / count
                 $1[$1.startIndex] = value
@@ -506,7 +506,7 @@ public extension CpuQueue {
     func squaredDifference<T>(lhs: T, rhs: T, result: inout T) where
         T: TensorView, T.Element: FloatingPoint
     {
-        assert(lhs.shape.elementCount == rhs.shape.elementCount,
+        assert(lhs.count == rhs.count,
                "tensors must have equal element counts")
         queue(#function, { try (lhs.elements(), rhs.elements()) }, &result) {
             zip($0.0, $0.1).map(to: &$1) {

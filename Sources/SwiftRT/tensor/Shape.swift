@@ -17,24 +17,60 @@ import Foundation
 
 //==============================================================================
 //
-public protocol ShapeArrayProtocol: StaticArrayProtocol, Equatable, Codable
-    where Element: BinaryInteger & Equatable, Index == Int
+public protocol ShapeArrayProtocol:
+    RandomAccessCollection,
+    MutableCollection,
+    CustomStringConvertible,
+    Equatable,
+    Codable
+    where Element == Int, Index == Int
 {
+    // types
     associatedtype Storage
+
+    // properties
+    var array: [Int] { get }
+    var storage: Storage { get set }
+    var tuple: Storage { get }
+
+    // initialzers
+    init(_ data: Storage)
+    init?(_ data: Storage?)
 }
 
 //==============================================================================
 //
-public struct ShapeArray<Element, Storage> : ShapeArrayProtocol
-    where Element: BinaryInteger & Equatable & Codable
-{
+public struct ShapeArray<Storage> : ShapeArrayProtocol {
+    /// the collection as a Swift Array
+    public var array: [Int] { [Int](self) }
+    /// some value object used for storage space
     public var storage: Storage
-
+    /// the number of elements in the array
+    public let count: Int = MemoryLayout<Storage>.size / MemoryLayout<Int>.size
+    /// starting index
+    public let startIndex: Int = 0
+    /// ending index
+    public var endIndex: Int { count }
+    /// description
+    public var description: String { String(describing: [Int](self)) }
+    /// tuple alias
+    public var tuple: Storage { storage }
+    
+    //--------------------------------------------------------------------------
+    // initializers
     @inlinable @inline(__always)
     public init(_ data: Storage) {
+        assert(MemoryLayout<Storage>.size % MemoryLayout<Int>.size == 0,
+               "Storage size must be multiple of Int size")
         storage = data
     }
 
+    @inlinable @inline(__always)
+    public init?(_ data: Storage?) {
+        guard let data = data else { return nil }
+        self.init(data)
+    }
+    
     //--------------------------------------------------------------------------
     // Equatable
     @inlinable @inline(__always)
@@ -44,6 +80,31 @@ public struct ShapeArray<Element, Storage> : ShapeArrayProtocol
                 memcmp(lhsPtr.baseAddress!,
                        rhsPtr.baseAddress!,
                        MemoryLayout<Storage>.size) == 0
+            }
+        }
+    }
+
+    @inlinable @inline(__always)
+    public static func == (lhs: Self, rhs: [Int]) -> Bool {
+        guard lhs.count == rhs.count else { return false }
+        for i in 0..<lhs.count {
+            if lhs[i] != rhs[i] { return false }
+        }
+        return true
+    }
+
+    //--------------------------------------------------------------------------
+    // indexing
+    @inlinable @inline(__always)
+    public subscript(index: Int) -> Int {
+        get {
+            withUnsafeBytes(of: storage) {
+                $0.bindMemory(to: Int.self)[index]
+            }
+        }
+        set {
+            withUnsafeMutableBytes(of: &storage) {
+                $0.bindMemory(to: Int.self)[index] = newValue
             }
         }
     }
@@ -60,7 +121,7 @@ public struct ShapeArray<Element, Storage> : ShapeArrayProtocol
     
     public init(from decoder: Decoder) throws {
         let container = try decoder.container(keyedBy: CodingKeys.self)
-        let data = try container.decode(ContiguousArray<Element>.self,
+        let data = try container.decode(ContiguousArray<Int>.self,
                                         forKey: .data)
         let s: Storage = data.withUnsafeBytes {
             $0.bindMemory(to: Storage.self)[0]
@@ -127,7 +188,7 @@ public extension ShapeProtocol {
     var rank: Int { extents.count }
     /// the number of items in extent 0
     @inlinable @inline(__always)
-    var items: Int { Int(extents[0]) }
+    var items: Int { extents[0] }
     /// returns a dense version of self
     @inlinable @inline(__always)
     var dense: Self { isContiguous ? self : Self(extents: extents) }
@@ -176,7 +237,8 @@ public extension ShapeProtocol {
     // The span of the extent is the linear index of the last index + 1
     @inlinable @inline(__always)
     static func spanCount(_ extents: Array, _ strides: Array) -> Int {
-        Int(zip(extents, strides).reduce(0) { $0 + ($1.0 - 1) * $1.1 }) + 1
+        let sc: Int = zip(extents, strides).reduce(0) { $0 + ($1.0 - 1) * $1.1 }
+        return sc + 1
     }
     
     //--------------------------------------------------------------------------
@@ -187,9 +249,8 @@ public extension ShapeProtocol {
     @inlinable @inline(__always)
     static func makePositive(dims: Array) -> Array {
         var positive = dims
-        let wrapAround = Array.Element(dims.count)
         for i in 0..<dims.count where positive[i] < 0 {
-            positive[i] += wrapAround
+            positive[i] += dims.count
         }
         return positive
     }
@@ -198,8 +259,8 @@ public extension ShapeProtocol {
     /// linearIndex
     ///    returns the linear element index
     @inlinable @inline(__always)
-    func linearIndex(of index: Tuple) -> Int {
-        let i = Int(zip(Array(index), strides).reduce(0) { $0 + $1.0 * $1.1 })
+    func linearIndex(of index: Array) -> Int {
+        let i = zip(index, strides).reduce(0) { $0 + $1.0 * $1.1 }
         assert(i < spanCount)
         return i
     }
@@ -207,7 +268,7 @@ public extension ShapeProtocol {
     //--------------------------------------------------------------------------
     /// contains
     @inlinable @inline(__always)
-    func contains(offset: Tuple) -> Bool {
+    func contains(offset: Array) -> Bool {
         linearIndex(of: offset) <= spanCount
     }
     
@@ -217,9 +278,8 @@ public extension ShapeProtocol {
     }
     
     @inlinable @inline(__always)
-    func contains(offset: Tuple, extents: Tuple) -> Bool {
-        linearIndex(of: offset) +
-            Self.spanCount(Array(extents), strides) <= spanCount
+    func contains(offset: Array, extents: Array) -> Bool {
+        linearIndex(of: offset) + Self.spanCount(extents, strides) <= spanCount
     }
 
     //--------------------------------------------------------------------------
@@ -277,8 +337,8 @@ public extension ShapeProtocol {
         if let perm = permutations {
             let mapping = Self.makePositive(dims: perm)
             for index in 0..<rank {
-                newExtents[index] = extents[Int(mapping[index])]
-                newStrides[index] = strides[Int(mapping[index])]
+                newExtents[index] = extents[mapping[index]]
+                newStrides[index] = strides[mapping[index]]
             }
         } else {
             // simple swap
@@ -293,7 +353,7 @@ public extension ShapeProtocol {
 // Shape1
 public struct Shape1: ShapeProtocol {
     // constants
-    public typealias Array = ShapeArray<Int, (Int)>
+    public typealias Array = ShapeArray<(Int)>
     public static let zeros = Array((0))
     public static let ones = Array((1))
 
@@ -307,7 +367,7 @@ public struct Shape1: ShapeProtocol {
     public init(extents: Array, strides: Array? = nil) {
         self.extents = extents
         self.strides = strides ?? Self.denseStrides(extents)
-        count = Int(extents.reduce(1, *))
+        count = extents.reduce(1, *)
         spanCount = Self.spanCount(extents, self.strides)
     }
 }
@@ -316,7 +376,7 @@ public struct Shape1: ShapeProtocol {
 // Shape2
 public struct Shape2: ShapeProtocol {
     // constants
-    public typealias Array = ShapeArray<Int, (Int, Int)>
+    public typealias Array = ShapeArray<(Int, Int)>
     public static let zeros = Array((0, 0))
     public static let ones = Array((1, 1))
 
@@ -330,7 +390,7 @@ public struct Shape2: ShapeProtocol {
     public init(extents: Array, strides: Array? = nil) {
         self.extents = extents
         self.strides = strides ?? Self.denseStrides(extents)
-        count = Int(extents.reduce(1, *))
+        count = extents.reduce(1, *)
         spanCount = Self.spanCount(extents, self.strides)
     }
 }
@@ -338,7 +398,7 @@ public struct Shape2: ShapeProtocol {
 // Shape3
 public struct Shape3: ShapeProtocol {
     // constants
-    public typealias Array = ShapeArray<Int, (Int, Int, Int)>
+    public typealias Array = ShapeArray<(Int, Int, Int)>
     public static let zeros = Array((0, 0, 0))
     public static let ones = Array((1, 1, 1))
 
@@ -352,7 +412,7 @@ public struct Shape3: ShapeProtocol {
     public init(extents: Array, strides: Array? = nil) {
         self.extents = extents
         self.strides = strides ?? Self.denseStrides(extents)
-        count = Int(extents.reduce(1, *))
+        count = extents.reduce(1, *)
         spanCount = Self.spanCount(extents, self.strides)
     }
 }

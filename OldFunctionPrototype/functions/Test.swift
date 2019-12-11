@@ -7,7 +7,7 @@ import Foundation
 //==============================================================================
 /// simulateWork(x:timePerElement:result:
 /// introduces a delay in the queue by sleeping a duration of
-/// x.shape.elementCount * timePerElement
+/// x.count * timePerElement
 
 /// in place
 /// - Parameter x: value tensor

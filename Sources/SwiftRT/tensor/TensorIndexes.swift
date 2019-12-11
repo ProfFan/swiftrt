@@ -35,14 +35,14 @@ public struct VectorIndex: TensorIndexing {
     //--------------------------------------------------------------------------
     // initializers
     public init<T>(view: T, at position: VectorPosition) where T: TensorView {
-        stride = view.shape.strides[0]
+        stride = Int(view.strides[0])
         viewIndex = position
         computeDataIndex()
     }
     
     public init<T>(endOf view: T) where T: TensorView {
-        stride = view.shape.strides[0]
-        viewIndex = view.shape.elementCount
+        stride = Int(view.strides[0])
+        viewIndex = view.count
         computeDataIndex()
     }
     
@@ -93,24 +93,24 @@ public struct MatrixIndex: TensorIndexing {
     //--------------------------------------------------------------------------
     // initializers
     public init<T>(view: T, at position: MatrixPosition) where T: TensorView {
-        rowExtent = view.shape.extents[0]
-        rowStride = view.shape.strides[0]
+        rowExtent = Int(view.extents[0])
+        rowStride = Int(view.strides[0])
         row = position.r
-        colExtent = view.shape.extents[1]
-        colStride = view.shape.strides[1]
+        colExtent = Int(view.extents[1])
+        colStride = Int(view.strides[1])
         col = position.c
         viewIndex = row * rowExtent + col * colExtent
         computeDataIndex()
     }
 
     public init<T>(endOf view: T) where T: TensorView {
-        rowExtent = view.shape.extents[0]
-        rowStride = view.shape.strides[0]
+        rowExtent = Int(view.extents[0])
+        rowStride = Int(view.strides[0])
         row = rowExtent
-        colExtent = view.shape.extents[1]
-        colStride = view.shape.strides[1]
+        colExtent = Int(view.extents[1])
+        colStride = Int(view.strides[1])
         col = 0
-        viewIndex = view.shape.elementCount
+        viewIndex = view.count
         computeDataIndex()
     }
 
@@ -174,30 +174,30 @@ public struct VolumeIndex: TensorIndexing {
     //--------------------------------------------------------------------------
     // initializers
     public init<T>(view: T, at position: VolumePosition) where T: TensorView {
-        depExtent = view.shape.extents[0]
-        depStride = view.shape.strides[0]
+        depExtent = Int(view.extents[0])
+        depStride = Int(view.strides[0])
         dep = position.d
-        rowExtent = view.shape.extents[1]
-        rowStride = view.shape.strides[1]
+        rowExtent = Int(view.extents[1])
+        rowStride = Int(view.strides[1])
         row = position.r
-        colExtent = view.shape.extents[2]
-        colStride = view.shape.strides[2]
+        colExtent = Int(view.extents[2])
+        colStride = Int(view.strides[2])
         col = position.c
         viewIndex = dep * depExtent + row * rowExtent + col * colExtent
         computeDataIndex()
     }
     
     public init<T>(endOf view: T) where T: TensorView {
-        depExtent = view.shape.extents[0]
-        depStride = view.shape.strides[0]
-        dep = view.shape.extents[0]
-        rowExtent = view.shape.extents[1]
-        rowStride = view.shape.strides[1]
+        depExtent = Int(view.extents[0])
+        depStride = Int(view.strides[0])
+        dep = Int(view.extents[0])
+        rowExtent = Int(view.extents[1])
+        rowStride = Int(view.strides[1])
         row = 0
-        colExtent = view.shape.extents[2]
-        colStride = view.shape.strides[2]
+        colExtent = Int(view.extents[2])
+        colStride = Int(view.strides[2])
         col = 0
-        viewIndex = view.shape.elementCount
+        viewIndex = view.count
         computeDataIndex()
     }
     
@@ -268,20 +268,19 @@ public struct NDIndex: TensorIndexing {
     // initializers
     public init<T>(view: T, at position: NDPosition) where T: TensorView {
         assert(position.count == 1 || position.count == view.rank)
-        extents = view.shape.extents
-        strides = view.shape.strides
-        self.position = position.count == 1 ?
-            [Int](repeating: position[0], count: view.rank) : position
+        extents = view.extents.array
+        strides = view.strides.array
+        self.position = position.count == 1 ? T.Shape.zeros.array : position
         viewIndex = zip(position, extents).reduce(0) { $0 + $1.0 * $1.1 }
         computeDataIndex()
     }
     
     public init<T>(endOf view: T) where T: TensorView {
         position = [Int](repeating: 0, count: view.rank)
-        position[0] = view.extents[0]
-        extents = view.shape.extents
-        strides = view.shape.strides
-        viewIndex = view.shape.elementCount
+        position[0] = Int(view.extents[0])
+        extents = view.extents.array
+        strides = view.strides.array
+        viewIndex = view.count
         computeDataIndex()
     }
     

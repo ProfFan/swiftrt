@@ -17,7 +17,7 @@ import Foundation
 
 //==============================================================================
 // VectorView protocol
-public protocol VectorView: TensorView {}
+public protocol VectorView: TensorView where Shape == Shape1 { }
 
 extension Vector: Codable where Element: Codable {}
 
@@ -38,18 +38,22 @@ extension Vector: AdditiveArithmetic where Element: Numeric {
 public extension VectorView {
     //--------------------------------------------------------------------------
     /// reserved space
-    init(extents: [Int], name: String? = nil) {
-        self = Self.create(DataShape(extents: extents), name)
+    init(extents: Shape.Array, name: String? = nil) {
+        self = Self.create(Shape(extents: extents), name)
+    }
+    
+    init(extents: Shape.Tuple, name: String? = nil) {
+        self.init(extents: Shape.Array(extents), name: name)
     }
     
     init(count: Int, name: String? = nil) {
-        self.init(extents: [count], name: name)
+        self.init(extents: (count), name: name)
     }
     
     //--------------------------------------------------------------------------
     /// from single `Element`
     init(element: Element, name: String? = nil) {
-        self = Self.create([element], DataShape(extents: [1]), name)
+        self = Self.create([element], Shape(extents: (1)), name)
     }
     
     //--------------------------------------------------------------------------
@@ -57,8 +61,7 @@ public extension VectorView {
     init<T>(with element: T, name: String? = nil) where
         T: AnyConvertable, Element: AnyConvertable
     {
-        let shape = DataShape(extents: [1])
-        self = Self.create([Element(any: element)], shape, name)
+        self = Self.create([Element(any: element)], Shape(extents: (1)), name)
     }
     
     //--------------------------------------------------------------------------
@@ -66,7 +69,7 @@ public extension VectorView {
     init<C>(elements: C, name: String? = nil) where
         C: Collection, C.Element == Element
     {
-        self = Self.create(elements, DataShape(extents: [elements.count]), name)
+        self = Self.create(elements, Shape(extents: (elements.count)), name)
     }
     
     //--------------------------------------------------------------------------
@@ -75,8 +78,7 @@ public extension VectorView {
         C: Collection, C.Element: AnyConvertable, Element: AnyConvertable
     {
         self = Self.create(elements.lazy.map { Element(any: $0) },
-                           DataShape(extents: [elements.count]),
-                           name)
+                           Shape(extents: (elements.count)), name)
     }
     
     //--------------------------------------------------------------------------
@@ -84,7 +86,7 @@ public extension VectorView {
     /// useful for memory mapped databases, or hardware device buffers
     init(referenceTo buffer: UnsafeBufferPointer<Element>, name: String? = nil)
     {
-        let shape = DataShape(extents: [buffer.count])
+        let shape = Shape(extents: (buffer.count))
         self = Self.create(referenceTo: buffer, shape, name)
     }
     
@@ -94,17 +96,17 @@ public extension VectorView {
     init(referenceTo buffer: UnsafeMutableBufferPointer<Element>,
          name: String? = nil)
     {
-        let shape = DataShape(extents: [buffer.count])
+        let shape = Shape(extents: (buffer.count))
         self = Self.create(referenceTo: buffer, shape, name)
     }
     
     //--------------------------------------------------------------------------
     // typed views
-    func createBoolTensor(with extents: [Int]) -> Vector<Bool> {
+    func createBoolTensor(with extents: Shape.Array) -> Vector<Bool> {
         Vector<Bool>(extents: extents)
     }
     
-    func createIndexTensor(with extents: [Int]) -> Vector<IndexElement> {
+    func createIndexTensor(with extents: Shape.Array) -> Vector<IndexElement> {
         Vector<IndexElement>(extents: extents)
     }
 }
@@ -129,7 +131,7 @@ public extension VectorView {
         R: RangeExpression, R.Bound == Int
     {
         let rRange = makePositive(range: r, count: extents[0])
-        return view(at: [rRange.lowerBound], extents: [rRange.count])
+        return view(at: (rRange.lowerBound), extents: (rRange.count))
     }
     
     @inlinable @inline(__always)
@@ -137,11 +139,11 @@ public extension VectorView {
         R: RangeExpression, R.Bound == Int
     {
         let rRange = makePositive(range: r.0, count: extents[0])
-        let viewPosition = [rRange.lowerBound]
-        let viewExtents = [rRange.count]
-        let steps = [r.1]
+        let viewPosition = Shape.Array((rRange.lowerBound))
+        let viewExtents = Shape.Array((rRange.count))
+        let steps = Shape.Array((r.1))
         let (subExtents, subStrides) = makeStepped(view: viewExtents,
-                                                   parent: shape.strides,
+                                                   parent: strides,
                                                    steps: steps)
         return view(at: viewPosition, extents: subExtents, strides: subStrides)
     }
@@ -166,12 +168,11 @@ public struct Vector<Element>: VectorView {
     // properties
     public let isShared: Bool
     public let format: TensorFormat = .vector
-    public let shape: DataShape
+    public let shape: Shape1
     public var tensorArray: TensorArray<Element>
     public let viewOffset: Int
-    public let singleElementExtents = [1]
     
-    public init(shape: DataShape,
+    public init(shape: Shape,
                 tensorArray: TensorArray<Element>,
                 viewOffset: Int,
                 isShared: Bool)
@@ -195,7 +196,7 @@ extension Vector: Differentiable & DifferentiableTensorView where
 
 //==============================================================================
 // MatrixView protocol
-public protocol MatrixView: TensorView { }
+public protocol MatrixView: TensorView  where Shape == Shape2 { }
 
 public enum MatrixLayout { case rowMajor, columnMajor }
 
@@ -218,7 +219,14 @@ extension Matrix: AdditiveArithmetic where Element: Numeric {
 public extension MatrixView {
     //--------------------------------------------------------------------------
     /// reserved space
-    init(extents: [Int], layout: MatrixLayout = .rowMajor, name: String? = nil)
+    init(extents: Shape.Array, layout: MatrixLayout = .rowMajor,
+         name: String? = nil)
+    {
+        self.init(extents: extents.storage, layout: layout, name: name)
+    }
+    
+    init(extents: Shape.Tuple, layout: MatrixLayout = .rowMajor,
+         name: String? = nil)
     {
         self = Self.create(Self.matrixShape(extents, layout), name)
     }
@@ -226,13 +234,13 @@ public extension MatrixView {
     init(_ rows: Int, _ cols: Int, layout: MatrixLayout = .rowMajor,
          name: String? = nil)
     {
-        self.init(extents: [rows, cols], layout: layout, name: name)
+        self.init(extents: (rows, cols), layout: layout, name: name)
     }
 
     //--------------------------------------------------------------------------
     /// from single `Element`
     init(element: Element, name: String? = nil) {
-        let shape = DataShape(extents: [1, 1])
+        let shape = Shape(extents: Shape.ones)
         self = Self.create([element], shape, name)
     }
 
@@ -241,7 +249,7 @@ public extension MatrixView {
     init<T>(with element: T, name: String? = nil) where
         T: AnyConvertable, Element: AnyConvertable
     {
-        let shape = DataShape(extents: [1, 1])
+        let shape = Shape(extents: Shape.ones)
         self = Self.create([Element(any: element)], shape, name)
     }
 
@@ -252,8 +260,8 @@ public extension MatrixView {
             name: String? = nil) where
         C: Collection, C.Element == Element
     {
-        let shape = Self.matrixShape([rows, cols], layout)
-        assert(shape.elementCount == elements.count)
+        let shape = Self.matrixShape((rows, cols), layout)
+        assert(shape.count == elements.count)
         self = Self.create(elements, shape, name)
     }
 
@@ -264,15 +272,15 @@ public extension MatrixView {
             name: String? = nil) where
         C: Collection, C.Element: AnyConvertable, Element: AnyConvertable
     {
-        let shape = Self.matrixShape([rows, cols], layout)
-        assert(shape.elementCount == elements.count)
+        let shape = Self.matrixShape((rows, cols), layout)
+        assert(shape.count == elements.count)
         self = Self.create(elements.lazy.map { Element(any: $0) }, shape, name)
     }
     
     //--------------------------------------------------------------------------
     /// from structred 2D `Element` collection
     init<T>(elements: [[T]], name: String? = nil) where T == Element{
-        let shape = DataShape(extents: [elements.count, elements.first!.count])
+        let shape = Shape(extents: (elements.count, elements.first!.count))
         self = Self.create(elements.joined(), shape, name)
     }
     
@@ -281,7 +289,7 @@ public extension MatrixView {
     init<T>(with elements: [[T]], name: String? = nil)
         where T: AnyConvertable, Element: AnyConvertable
     {
-        let shape = DataShape(extents: [elements.count, elements.first!.count])
+        let shape = Shape(extents: (elements.count, elements.first!.count))
         let flatElements = elements.joined().lazy.map {
             Element(any: $0)
         }
@@ -296,7 +304,7 @@ public extension MatrixView {
          layout: MatrixLayout = .rowMajor,
          name: String? = nil)
     {
-        let shape = Self.matrixShape([rows, cols], layout)
+        let shape = Self.matrixShape((rows, cols), layout)
         self = Self.create(referenceTo: buffer, shape, name)
     }
 
@@ -308,17 +316,17 @@ public extension MatrixView {
          layout: MatrixLayout = .rowMajor,
          name: String? = nil)
     {
-        let shape = Self.matrixShape([rows, cols], layout)
+        let shape = Self.matrixShape((rows, cols), layout)
         self = Self.create(referenceTo: buffer, shape, name)
     }
     
     //--------------------------------------------------------------------------
     // typed views
-    func createBoolTensor(with extents: [Int]) -> Matrix<Bool> {
+    func createBoolTensor(with extents: Shape.Array) -> Matrix<Bool> {
         Matrix<Bool>(extents: extents)
     }
     
-    func createIndexTensor(with extents: [Int]) -> Matrix<IndexElement> {
+    func createIndexTensor(with extents: Shape.Array) -> Matrix<IndexElement> {
         Matrix<IndexElement>(extents: extents)
     }
 
@@ -333,21 +341,11 @@ public extension MatrixView {
     
     //--------------------------------------------------------------------------
     // utilities
-    private static func matrixShape(
-        _ extents: [Int],
-        _ layout: MatrixLayout) -> DataShape
+    private static func matrixShape(_ extents: Shape.Tuple,
+                                    _ layout: MatrixLayout) -> Shape
     {
-        let shape = DataShape(extents: extents)
-        return layout == .rowMajor ? shape : shape.columnMajor()
-    }
-
-    private static func matrixRepeatedShape(
-        _ extents: [Int],
-        _ repeatedExtents: [Int],
-        _ layout: MatrixLayout) -> DataShape
-    {
-        let shape = DataShape(extents: extents).repeated(to: repeatedExtents)
-        return layout == .rowMajor ? shape : shape.columnMajor()
+        let shape = Shape(extents: extents)
+        return layout == .rowMajor ? shape : shape.columnMajor
     }
 }
 
@@ -374,8 +372,8 @@ public extension MatrixView {
     {
         let rRange = makePositive(range: r, count: extents[0])
         let cRange = makePositive(range: c, count: extents[1])
-        let viewPosition = [rRange.lowerBound, cRange.lowerBound]
-        let viewExtents = [rRange.count, cRange.count]
+        let viewPosition = Shape.Array((rRange.lowerBound, cRange.lowerBound))
+        let viewExtents = Shape.Array((rRange.count, cRange.count))
         return view(at: viewPosition, extents: viewExtents)
     }
     
@@ -386,11 +384,11 @@ public extension MatrixView {
     {
         let rRange = makePositive(range: r.0, count: extents[0])
         let cRange = makePositive(range: c.0, count: extents[1])
-        let viewPosition = [rRange.lowerBound, cRange.lowerBound]
-        let viewExtents = [rRange.count, cRange.count]
-        let steps = [r.1, c.1]
+        let viewPosition = Shape.Array((rRange.lowerBound, cRange.lowerBound))
+        let viewExtents = Shape.Array((rRange.count, cRange.count))
+        let steps = Shape.Array((r.1, c.1))
         let (subExtents, subStrides) = makeStepped(view: viewExtents,
-                                                   parent: shape.strides,
+                                                   parent: strides,
                                                    steps: steps)
         return view(at: viewPosition, extents: subExtents, strides: subStrides)
     }
@@ -402,12 +400,11 @@ public struct Matrix<Element>: MatrixView {
     // properties
     public let isShared: Bool
     public let format: TensorFormat = .matrix
-    public let shape: DataShape
+    public let shape: Shape2
     public var tensorArray: TensorArray<Element>
     public let viewOffset: Int
-    public let singleElementExtents = [1, 1]
 
-    public init(shape: DataShape,
+    public init(shape: Shape,
                 tensorArray: TensorArray<Element>,
                 viewOffset: Int,
                 isShared: Bool)
@@ -431,7 +428,7 @@ extension Matrix: Differentiable & DifferentiableTensorView where
 
 //==============================================================================
 // VolumeView protocol
-public protocol VolumeView: TensorView {}
+public protocol VolumeView: TensorView  where Shape == Shape3 {}
 
 extension Volume: Codable where Element: Codable {}
 
@@ -452,18 +449,22 @@ extension Volume: AdditiveArithmetic where Element: Numeric {
 public extension VolumeView {
     //--------------------------------------------------------------------------
     /// reserved space
-    init(extents: [Int], name: String? = nil) {
-        self = Self.create(DataShape(extents: extents), name)
+    init(extents: Shape.Array, name: String? = nil) {
+        self = Self.create(Shape(extents: extents), name)
     }
     
+    init(extents: Shape.Tuple, name: String? = nil) {
+        self.init(extents: Shape.Array(extents), name: name)
+    }
+
     init(_ deps: Int, _ rows: Int, _ cols: Int, name: String? = nil) {
-        self.init(extents: [deps, rows, cols], name: name)
+        self.init(extents: (deps, rows, cols), name: name)
     }
     
     //--------------------------------------------------------------------------
     /// from single `Element`
     init(element: Element, name: String? = nil) {
-        let shape = DataShape(extents: [1, 1, 1])
+        let shape = Shape(extents: Shape.ones)
         self = Self.create([element], shape, name)
     }
 
@@ -472,7 +473,7 @@ public extension VolumeView {
     init<T>(with element: T, name: String? = nil) where
         T: AnyConvertable, Element: AnyConvertable
     {
-        let shape = DataShape(extents: [1, 1, 1])
+        let shape = Shape(extents: Shape.ones)
         self = Self.create([Element(any: element)], shape, name)
     }
     
@@ -482,8 +483,8 @@ public extension VolumeView {
             elements: C, name: String? = nil) where
         C: Collection, C.Element == Element
     {
-        let shape = DataShape(extents: [deps, rows, cols])
-        assert(shape.elementCount == elements.count)
+        let shape = Shape(extents: (deps, rows, cols))
+        assert(shape.count == elements.count)
         self = Self.create(elements, shape, name)
     }
     
@@ -493,17 +494,17 @@ public extension VolumeView {
             with elements: C, name: String? = nil) where
         C: Collection, C.Element: AnyConvertable, Element: AnyConvertable
     {
-        let shape = DataShape(extents: [deps, rows, cols])
-        assert(shape.elementCount == elements.count)
+        let shape = Shape(extents: (deps, rows, cols))
+        assert(shape.count == elements.count)
         self = Self.create(elements.lazy.map { Element(any: $0) }, shape, name)
     }
     
     //--------------------------------------------------------------------------
     /// from structred 3D `Element` collection
     init<T>(elements: [[[T]]], name: String? = nil) where T == Element{
-        let shape = DataShape(extents: [elements.count,
-                                        elements.first!.count,
-                                        elements.first!.first!.count])
+        let shape = Shape(extents: (elements.count,
+                                    elements.first!.count,
+                                    elements.first!.first!.count))
         let flatElements = elements.joined().joined()
         self = Self.create(flatElements, shape, name)
     }
@@ -513,9 +514,9 @@ public extension VolumeView {
     init<T>(with elements: [[[T]]], name: String? = nil)
         where T: AnyConvertable, Element: AnyConvertable
     {
-        let shape = DataShape(extents: [elements.count,
-                                        elements.first!.count,
-                                        elements.first!.first!.count])
+        let shape = Shape(extents: (elements.count,
+                                    elements.first!.count,
+                                    elements.first!.first!.count))
         let flatElements = elements.joined().joined().lazy.map {
             Element(any: $0)
         }
@@ -529,7 +530,7 @@ public extension VolumeView {
          referenceTo buffer: UnsafeBufferPointer<Element>,
          name: String? = nil)
     {
-        let shape = DataShape(extents: [deps, rows, cols])
+        let shape = Shape(extents: (deps, rows, cols))
         self = Self.create(referenceTo: buffer, shape, name)
     }
     
@@ -540,17 +541,17 @@ public extension VolumeView {
          referenceTo buffer: UnsafeMutableBufferPointer<Element>,
          name: String? = nil)
     {
-        let shape = DataShape(extents: [deps, rows, cols])
+        let shape = Shape(extents: (deps, rows, cols))
         self = Self.create(referenceTo: buffer, shape, name)
     }
     
     //--------------------------------------------------------------------------
     // typed views
-    func createBoolTensor(with extents: [Int]) -> Volume<Bool> {
+    func createBoolTensor(with extents: Shape.Array) -> Volume<Bool> {
         Volume<Bool>(extents: extents)
     }
     
-    func createIndexTensor(with extents: [Int]) -> Volume<IndexElement> {
+    func createIndexTensor(with extents: Shape.Array) -> Volume<IndexElement> {
         Volume<IndexElement>(extents: extents)
     }
 }
@@ -572,10 +573,10 @@ public extension VolumeView {
         let dRange = makePositive(range: d, count: extents[0])
         let rRange = makePositive(range: r, count: extents[1])
         let cRange = makePositive(range: c, count: extents[2])
-        let viewPosition = [dRange.lowerBound,
+        let viewPosition = (dRange.lowerBound,
                             rRange.lowerBound,
-                            cRange.lowerBound]
-        let viewExtents = [dRange.count, rRange.count, cRange.count]
+                            cRange.lowerBound)
+        let viewExtents = (dRange.count, rRange.count, cRange.count)
         return view(at: viewPosition, extents: viewExtents)
     }
     
@@ -584,9 +585,9 @@ public extension VolumeView {
         let dRange = makePositive(range: d, count: extents[0])
         let rRange = makePositive(range: r, count: extents[1])
         let cRange = makePositive(range: c, count: extents[2])
-        let viewPosition = [dRange.from, rRange.from, cRange.from]
-        let viewExtents = [dRange.to, rRange.to, cRange.to]
-        let steps = [dRange.step, rRange.step, cRange.step]
+        let viewPosition = Shape.Array((dRange.from, rRange.from, cRange.from))
+        let viewExtents = Shape.Array((dRange.to, rRange.to, cRange.to))
+        let steps = Shape.Array((dRange.step, rRange.step, cRange.step))
         let (subExtents, subStrides) = makeStepped(view: viewExtents,
                                                    parent: shape.strides,
                                                    steps: steps)
@@ -600,12 +601,11 @@ public struct Volume<Element>: VolumeView {
     // properties
     public let isShared: Bool
     public let format: TensorFormat = .volume
-    public let shape: DataShape
+    public let shape: Shape3
     public var tensorArray: TensorArray<Element>
     public let viewOffset: Int
-    public let singleElementExtents = [1, 1, 1]
     
-    public init(shape: DataShape,
+    public init(shape: Shape,
                 tensorArray: TensorArray<Element>,
                 viewOffset: Int,
                 isShared: Bool)

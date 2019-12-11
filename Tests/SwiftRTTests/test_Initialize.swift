@@ -48,15 +48,15 @@ class test_Initialize: XCTestCase {
     // test_repeatElement
     func test_repeatElement() {
         let value: Int32 = 42
-        let volume = Volume<Int32>(element: value).repeated(to: [2, 3, 10])
-        let expected = [Int32](repeating: value, count: volume.elementCount)
+        let volume = Volume<Int32>(element: value).repeated(to: (2, 3, 10))
+        let expected = [Int32](repeating: value, count: volume.count)
         XCTAssert(volume.flatArray == expected)
     }
     
     //--------------------------------------------------------------------------
     // test_repeatRowVector
     func test_repeatRowVector() {
-        let matrix = Matrix<Int32>(1, 5, with: 0...4).repeated(to: [5, 5])
+        let matrix = Matrix<Int32>(1, 5, with: 0...4).repeated(to: (5, 5))
         let expected: [Int32] = [
             0, 1, 2, 3, 4,
             0, 1, 2, 3, 4,
@@ -71,7 +71,7 @@ class test_Initialize: XCTestCase {
     //--------------------------------------------------------------------------
     // test_repeatColVector
     func test_repeatColVector() {
-        let matrix = Matrix<Int32>(5, 1, with: 0...4).repeated(to: [5, 5])
+        let matrix = Matrix<Int32>(5, 1, with: 0...4).repeated(to: (5, 5))
         let expected: [Int32] = [
             0, 0, 0, 0, 0,
             1, 1, 1, 1, 1,

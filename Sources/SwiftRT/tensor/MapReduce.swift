@@ -52,7 +52,9 @@ public extension TensorView {
     func reduce<T>(
         into result: inout T,
         _ nextPartialResult: (Element, Element) -> Element)
-        where T: TensorView, Element == T.Element
+        where
+        T: TensorView, Self.Element == T.Element,
+        Self.Shape == T.Shape
     {
         assert(extents == result.extents, _messageElementCountMismatch)
         let elts = elements()

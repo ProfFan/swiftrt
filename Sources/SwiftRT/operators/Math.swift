@@ -25,10 +25,10 @@ import Real
 @inlinable @inline(__always)
 public func cast<T, U>(_ other: U) -> T where
     T: TensorView, T.Element: AnyConvertable,
-    U: TensorView, U.Element: AnyConvertable
+    U: TensorView, U.Element: AnyConvertable, U.Shape == T.Shape
 {
     let name = String(describing: T.self)
-    let array = TensorArray<T.Element>(count: other.elementCount, name: name)
+    let array = TensorArray<T.Element>(count: other.count, name: name)
     var result = T(shape: other.shape.dense, tensorArray: array,
                    viewOffset: 0, isShared: false)
 

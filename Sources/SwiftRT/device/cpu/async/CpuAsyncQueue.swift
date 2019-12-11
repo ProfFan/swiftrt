@@ -364,12 +364,12 @@ public final class CpuAsynchronousQueue:
     //--------------------------------------------------------------------------
     /// simulateWork(x:timePerElement:result:
     /// introduces a delay in the queue by sleeping a duration of
-    /// x.shape.elementCount * timePerElement
+    /// x.count * timePerElement
     public func simulateWork<T>(x: T, timePerElement: TimeInterval,
                                 result: inout T)
         where T: TensorView
     {
-        let delay = TimeInterval(x.shape.elementCount) * timePerElement
+        let delay = TimeInterval(x.count) * timePerElement
         delayQueue(atLeast: delay)
     }
 
@@ -405,7 +405,7 @@ public extension CpuAsynchronousQueue {
         }
         
         let outputs: () throws -> ([TensorMutableValueCollection<T>]) = {
-            var index = [Int](repeating: 0, count: tensors[0].rank)
+            var index = T.Shape.zeros
             let shared = try result.sharedView(using: self)
             var outCollections = [TensorMutableValueCollection<T>]()
             

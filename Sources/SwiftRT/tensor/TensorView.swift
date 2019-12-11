@@ -53,9 +53,13 @@ public protocol TensorView: Logging {
     associatedtype MutableValues: RandomAccessCollection & MutableCollection
         where MutableValues.Element == Element
     /// A concrete type used in generics to pass Boolean values
-    associatedtype BoolView: TensorView where BoolView.Element == Bool
+    associatedtype BoolView: TensorView where
+        BoolView.Element == Bool, BoolView.Shape == Shape
     /// A concrete type used in generics to return index results
-    associatedtype IndexView: TensorView where IndexView.Element == IndexElement
+    associatedtype IndexView: TensorView where
+        IndexView.Element == IndexElement, IndexView.Shape == Shape
+    /// tensor shape
+    associatedtype Shape: ShapeProtocol
 
     //--------------------------------------------------------------------------
     // properties
@@ -67,33 +71,30 @@ public protocol TensorView: Logging {
     /// format describes how to interpret the meaning of each dimension
     var format: TensorFormat { get }
     /// the shape of the view used for indexing
-    var shape: DataShape { get }
+    var shape: Shape { get }
     /// returns the first tensor index used for collections
     var startIndex: Index { get }
     /// class reference to the underlying byte buffer
     var tensorArray: TensorArray<Element> { get set }
     /// the linear element offset where the view begins
     var viewOffset: Int { get }
-    /// a static array of 1's with count == rank
-    /// used for creating reduction result tensors
-    var singleElementExtents: [Int] { get }
     
     //--------------------------------------------------------------------------
     /// fully specified used for creating views
-    init(shape: DataShape,
+    init(shape: Shape,
          tensorArray: TensorArray<Element>,
          viewOffset: Int,
          isShared: Bool)
 
     //--------------------------------------------------------------------------
     /// creates a new dense tensor of the same type with the specified extents
-    func createDense(with extents: [Int], name: String?) -> Self
+    func createDense(with extents: Shape.Array, name: String?) -> Self
     /// creates a new dense tensor where `Element` equals `Bool`
     /// with the specified extents
-    func createBoolTensor(with extents: [Int]) -> BoolView
+    func createBoolTensor(with extents: Shape.Array) -> BoolView
     /// creates a new dense tensor where `Element` equals `IndexElement`
     /// with the specified extents and initial values
-    func createIndexTensor(with extents: [Int]) -> IndexView
+    func createIndexTensor(with extents: Shape.Array) -> IndexView
 
     //--------------------------------------------------------------------------
     /// returns a collection of viewed elements
@@ -186,15 +187,20 @@ public func makePositive(range: RangeInterval, count: Int)
 /// - Parameter steps: the step interval along each dimension
 /// - Returns: the extents and strides to be used to create a subview
 @inlinable @inline(__always)
-public func makeStepped(view extents: [Int],
-                        parent strides: [Int],
-                        steps: [Int]) -> (extents: [Int], strides: [Int])
+public func makeStepped<T>(view extents: T,
+                        parent strides: T,
+                        steps: T) -> (extents: T, strides: T)
+    where T: ShapeArrayProtocol
 {
-    assert(extents.count == strides.count && extents.count == steps.count)
-    let subExtents = zip(extents, steps).map {
-        $0 / $1 + ($0 % $1 == 0 ? 0 : 1)
+    var subExtents = extents
+    zip(extents, steps).enumerated().forEach {
+        subExtents[$0] = $1.0 / $1.1 + ($1.0 % $1.1 == 0 ? 0 : 1)
     }
-    let subStrides = zip(strides, steps).map { $0 * $1 }
+
+    var subStrides = strides
+    zip(strides, steps).enumerated().forEach {
+        subStrides[$0] = $1.0 * $1.1
+    }
     return (subExtents, subStrides)
 }
 
@@ -252,7 +258,7 @@ public extension TensorView where Element: AnyElement {
 
     /// - Returns: the only element in the tensor
     var element: Element {
-        assert(shape.elementCount == 1, "the `element` property expects " +
+        assert(shape.isScalar, "the `element` property expects " +
             "the tensor to have a single Element. Use `first` for sets")
         return first
     }
@@ -263,33 +269,36 @@ public extension TensorView where Element: AnyElement {
 public extension TensorView {
     //--------------------------------------------------------------------------
     /// the number of elements in the collection
-    var elementCount: Int { return shape.elementCount }
+    var count: Int { shape.count }
     /// the extents of the view
-    var extents: [Int] { return shape.extents }
+    var extents: Shape.Array { shape.extents }
     /// `true` if the values are contiguosly arranged in memory
-    var isContiguous: Bool { return shape.isContiguous }
+    var isContiguous: Bool { shape.isContiguous }
     /// the number of items in the tensor, which is equal to `extents[0]`
-    var items: Int { return shape.extents[0] }
+    var items: Int { shape.items }
     /// is `true` if the last data access caused the view's underlying
     /// tensorArray object to be copied.
     /// Used primarily for debugging and unit testing
-    var lastAccessMutatedView: Bool { return tensorArray.lastAccessMutatedView }
+    var lastAccessMutatedView: Bool { tensorArray.lastAccessMutatedView }
     /// the name of the view, which can optionally be set to aid in debugging
-    var name: String { return tensorArray.name }
+    var name: String { tensorArray.name }
     /// the number of dimensions in the view
-    var rank: Int { return shape.rank }
+    var rank: Int { shape.rank }
+    /// the strides of the tensor elements
+    var strides: Shape.Array { shape.strides }
+
     //--------------------------------------------------------------------------
     /// createView
     /// Returns a view of the tensorArray relative to this view
-    private func createView(at offset: [Int], extents: [Int],
-                            strides: [Int], isReference: Bool) -> Self {
+    private func createView(at offset: Shape.Array, extents: Shape.Array,
+                            strides: Shape.Array, isReference: Bool) -> Self {
         // validate
         assert(offset.count == shape.rank && extents.count == shape.rank)
         assert(shape.contains(offset: offset, extents: extents))
 
         // the subview offset is the current plus the offset of index
         let dataOffset = viewOffset + shape.linearIndex(of: offset)
-        return Self(shape: DataShape(extents: extents, strides: strides),
+        return Self(shape: Shape(extents: extents, strides: strides),
                     tensorArray: tensorArray,
                     viewOffset: dataOffset,
                     isShared: isReference)
@@ -303,7 +312,7 @@ public extension TensorView {
     /// not uniquely held. Shared views will not perform
     /// copy-on-write when a write pointer is taken
     mutating func sharedView(using queue: DeviceQueue,
-                             reshaped: DataShape? = nil) throws -> Self {
+                             reshaped: Shape? = nil) throws -> Self {
         // get the queue, if we reference it as a tensorArray member it
         // it adds a ref count which messes things up
         let accessQueue = tensorArray.accessQueue
@@ -319,29 +328,33 @@ public extension TensorView {
 
     //--------------------------------------------------------------------------
     /// repeated(to extents:
-    func repeated(to extents: [Int]) -> Self {
-        return Self(shape: shape.repeated(to: extents),
-                    tensorArray: tensorArray,
-                    viewOffset: viewOffset,
-                    isShared: isShared)
+    func repeated(to extents: Shape.Array) -> Self {
+        Self(shape: shape.repeated(to: extents),
+             tensorArray: tensorArray,
+             viewOffset: viewOffset,
+             isShared: isShared)
     }
     
-    //--------------------------------------------------------------------------
-    /// flattened
-    /// Returns a view with all dimensions higher than `axis` set to 1
-    /// and the extent of `axis` adjusted to be the new total element count
-    func flattened(axis: Int = 0) -> Self {
-        // check if self already meets requirements
-        guard self.isShared != isShared || axis != shape.rank - 1 else {
-            return self
-        }
-        
-        // create flattened view
-        return Self(shape: shape.flattened(),
-                    tensorArray: tensorArray,
-                    viewOffset: viewOffset,
-                    isShared: isShared)
+    func repeated(to extents: Shape.Tuple) -> Self {
+        repeated(to: Shape.Array(extents))
     }
+    // TODO
+//    //--------------------------------------------------------------------------
+//    /// flattened
+//    /// Returns a view with all dimensions higher than `axis` set to 1
+//    /// and the extent of `axis` adjusted to be the new total element count
+//    func flattened(axis: Int = 0) -> Self {
+//        // check if self already meets requirements
+//        guard self.isShared != isShared || axis != shape.rank - 1 else {
+//            return self
+//        }
+//
+//        // create flattened view
+//        return Self(shape: shape.flattened(),
+//                    tensorArray: tensorArray,
+//                    viewOffset: viewOffset,
+//                    isShared: isShared)
+//    }
 
     //--------------------------------------------------------------------------
     /// realized
@@ -419,7 +432,7 @@ public extension TensorView {
         guard !isShared && !isUniqueReference() else { return }
         
         diagnostic("\(mutationString) \(name)(\(tensorArray.trackingId)) " +
-            "\(String(describing: Element.self))[\(shape.elementCount)]",
+            "\(String(describing: Element.self))[\(shape.count)]",
             categories: [.dataCopy, .dataMutation])
         
         // create the new array and copy the values
@@ -481,7 +494,7 @@ public extension TensorView {
 
             return UnsafeBufferPointer(
                 start: buffer.baseAddress!.advanced(by: viewOffset),
-                count: shape.elementSpanCount)
+                count: shape.spanCount)
         }
     }
     
@@ -529,7 +542,7 @@ public extension TensorView {
 
             return UnsafeMutableBufferPointer(
                 start: buffer.baseAddress!.advanced(by: viewOffset),
-                count: shape.elementSpanCount)
+                count: shape.spanCount)
         }
     }
     
@@ -546,16 +559,29 @@ public extension TensorView {
     //--------------------------------------------------------------------------
     /// view
     /// Create a sub view of the tensorArray relative to this view
-    func view(at offset: [Int], extents: [Int]) -> Self {
+    func view(at offset: Shape.Tuple, extents: Shape.Tuple) -> Self {
+        view(at: Shape.Array(offset), extents: Shape.Array(extents))
+    }
+
+    func view(at offset: Shape.Array, extents: Shape.Array) -> Self {
         // the view created will have the same isShared state as the parent
         createView(at: offset, extents: extents,
                    strides: shape.strides, isReference: isShared)
     }
-    
+
     //--------------------------------------------------------------------------
     /// view
     /// Create a sub view of the tensorArray relative to this view
-    func view(at offset: [Int], extents: [Int], strides: [Int]) -> Self {
+    func view(at offset: Shape.Tuple, extents: Shape.Tuple,
+              strides: Shape.Tuple) -> Self
+    {
+        view(at: Shape.Array(offset), extents: Shape.Array(extents),
+             strides: Shape.Array(strides))
+    }
+    
+    func view(at offset: Shape.Array, extents: Shape.Array,
+              strides: Shape.Array) -> Self
+    {
         // the view created will have the same isShared state as the parent
         createView(at: offset, extents: extents,
                    strides: strides, isReference: isShared)
@@ -567,14 +593,14 @@ public extension TensorView {
     /// It is used to simplify accessing a set of training samples.
     /// The view created will have the same isShared state as the parent
     func viewItems(at offset: Int, count: Int) -> Self {
-        let index, viewExtents: [Int]
-        if rank == 1 {
-            index = [offset]
-            viewExtents = [count]
-        } else {
-            index = [offset] + [Int](repeating: 0, count: rank - 1)
-            viewExtents = [count] + shape.extents.suffix(from: 1)
-        }
+        // set starting offset
+        var index = Shape.zeros
+        index[0] = offset
+        
+        // set extent
+        var viewExtents = Shape.zeros
+        viewExtents[0] = count
+        for i in 1..<viewExtents.count { viewExtents[i] = extents[i] }
         
         return createView(at: index, extents: viewExtents,
                           strides: shape.strides, isReference: isShared)
@@ -612,10 +638,11 @@ public extension TensorView {
         let batchQueue = DispatchQueue(label: "hostMultiWrite",
                                        attributes: .concurrent)
         let batchSize = batchSize ?? {
-            let size = extents[0] / ProcessInfo.processInfo.activeProcessorCount
-            return size == 0 ? extents[0] : size
+            let size = Int(extents[0]) /
+                ProcessInfo.processInfo.activeProcessorCount
+            return size == 0 ? Int(extents[0]) : size
         }()
-        let remainder = extents[0] % batchSize
+        let remainder = Int(extents[0]) % batchSize
         
         // do the work
         func queueBatch(item: Int, count: Int) throws {
@@ -638,7 +665,7 @@ public extension TensorView {
         _ = try shared.readWrite(using: queue)
         
         // launch the batches
-        let lastBatchIndex = extents[0] - remainder
+        let lastBatchIndex = Int(extents[0]) - remainder
         for i in stride(from: 0, to: lastBatchIndex, by: batchSize) {
             try queueBatch(item: i, count: batchSize)
         }
@@ -671,7 +698,7 @@ public extension TensorView {
             
             return UnsafeMutableBufferPointer(
                 start: buffer.baseAddress!.advanced(by: viewOffset),
-                count: shape.elementSpanCount)
+                count: shape.spanCount)
         }
     }
 }

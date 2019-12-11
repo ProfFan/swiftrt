@@ -26,7 +26,9 @@ let _messageNewTensorsShouldBeDense = "new tensors should be dense"
 public extension TensorView where Element: AnyConvertable {
     //--------------------------------------------------------------------------
     /// casting
-    init<U>(_ other: U) where U: TensorView, U.Element: AnyConvertable {
+    init<U>(_ other: U) where
+        U: TensorView, U.Element: AnyConvertable, Shape == U.Shape
+    {
         self = cast(other)
     }
 }
@@ -42,7 +44,7 @@ public extension TensorView {
     /// creates an empty tensor that can be used where a return
     /// value is needed in an error condition.
     init() {
-        self.init(shape: DataShape(),
+        self.init(shape: Shape(extents: Shape.zeros),
                   tensorArray: TensorArray(),
                   viewOffset: 0,
                   isShared: false)
@@ -73,9 +75,9 @@ public extension TensorView {
     //--------------------------------------------------------------------------
     /// repeating element
     @differentiable(vjp: _vjpInit where Self: DifferentiableTensorView)
-    init(repeating value: Element, to extents: [Int], name: String? = nil) {
-        let strides = [Int](repeating: 0, count: extents.count)
-        let shape = DataShape(extents: extents, strides: strides)
+    init(repeating value: Element, to extents: Shape.Array, name: String? = nil)
+    {
+        let shape = Shape(extents: extents, strides: Shape.zeros)
         self = Self.create([value], shape, name)
     }
     
@@ -83,23 +85,23 @@ public extension TensorView {
     /// repeating element
     @differentiable(where Self: DifferentiableTensorView)
     init<U>(repeating value: Element, like other: U, name: String? = nil)
-        where U: TensorView
+        where U: TensorView, Self.Shape == U.Shape
     {
-        self = Self(repeating: value, to: other.extents)
+        self = Self(repeating: value, to: other.extents, name: name)
     }
     
     //--------------------------------------------------------------------------
     /// createDense(shape:
-    func createDense(with shape: DataShape, name: String? = nil) -> Self {
+    func createDense(with shape: Shape, name: String? = nil) -> Self {
         Self.create(shape.dense, name)
     }
     
     //--------------------------------------------------------------------------
     /// createDense(extents:
-    func createDense(with extents: [Int], name: String? = nil) -> Self {
+    func createDense(with extents: Shape.Array, name: String? = nil) -> Self {
         let newShape = isContiguous ?
-            DataShape(extents: extents, strides: self.shape.strides) :
-            DataShape(extents: extents)
+            Shape(extents: extents, strides: self.shape.strides) :
+            Shape(extents: extents)
         return createDense(with: newShape, name: name)
     }
     
@@ -115,30 +117,28 @@ public extension TensorView {
         assert(axes.isSubset(of: 0..<rank), "axis is out of bounds")
         var resultExtents = extents
         axes.forEach { resultExtents[$0] = 1 }
-        return Self.create(DataShape(extents: resultExtents), nil)
+        return Self.create(Shape(extents: resultExtents), nil)
     }
 
     //--------------------------------------------------------------------------
     /// createSingleElement
     /// helper to create a rank extended value
     func createSingleElement(name: String? = nil) -> Self {
-        let shape = DataShape(extents: singleElementExtents,
-                              strides: singleElementExtents)
-        return Self.create(shape, name)
+        Self.create(Shape(extents: Shape.ones, strides: Shape.ones), name)
     }
     
     //==========================================================================
     // utility functions for creating shaped types
-    static func create(_ shape: DataShape, _ name: String?) -> Self {
+    static func create(_ shape: Shape, _ name: String?) -> Self {
         let name = name ?? String(describing: Self.self)
-        let array = TensorArray<Element>(count: shape.elementCount, name: name)
+        let array = TensorArray<Element>(count: shape.count, name: name)
         return Self(shape: shape, tensorArray: array,
                     viewOffset: 0, isShared: false)
     }
     
     static func create(referenceTo buffer: UnsafeBufferPointer<Element>,
-                       _ shape: DataShape, _ name: String?) -> Self {
-        assert(shape.elementCount == buffer.count,
+                       _ shape: Shape, _ name: String?) -> Self {
+        assert(shape.count == buffer.count,
                "shape count does not match buffer count")
         // create tensor data reference to buffer
         let name = name ?? String(describing: Self.self)
@@ -148,8 +148,8 @@ public extension TensorView {
     }
     
     static func create(referenceTo buffer: UnsafeMutableBufferPointer<Element>,
-                       _ shape: DataShape, _ name: String?) -> Self {
-        assert(shape.elementCount == buffer.count,
+                       _ shape: Shape, _ name: String?) -> Self {
+        assert(shape.count == buffer.count,
                "shape count does not match buffer count")
         // create tensor data reference to buffer
         let name = name ?? String(describing: Self.self)
@@ -158,13 +158,12 @@ public extension TensorView {
                     viewOffset: 0, isShared: false)
     }
     
-    static func create<C>(_ elements: C, _ shape: DataShape,
+    static func create<C>(_ elements: C, _ shape: Shape,
                           _ name: String?) -> Self where
         C: Collection, C.Element == Element
     {
         // it can be less if the elements are being repeated
-        assert(elements.count <= shape.elementCount,
-               _messageElementCountMismatch)
+        assert(elements.count <= shape.count, _messageElementCountMismatch)
         let name = name ?? String(describing: Self.self)
         let array = TensorArray<Element>(elements: elements, name: name)
         return Self(shape: shape, tensorArray: array,
@@ -176,7 +175,8 @@ public extension TensorView {
 //
 
 public extension TensorView where Self: DifferentiableTensorView {
-    static func _vjpInit(repeating value: Element, to extents: [Int], name: String?) ->
+    static func _vjpInit(repeating value: Element, to extents: Shape.Array,
+                         name: String?) ->
         (value: Self, pullback: (Self) -> (Element))
     {
         fatalError()

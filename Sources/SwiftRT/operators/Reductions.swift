@@ -169,7 +169,7 @@ public func mean<T>(_ x: T, alongAxes axes: Set<Int>? = nil) -> T
     // the divisor is the product of the `axes` that are summed
     let divisor = (axes?.reduce(T.Element.one) {
         $0 * T.Element(exactly: x.extents[$1])!
-    }) ?? T.Element(exactly: x.elementCount)!
+    }) ?? T.Element(exactly: x.count)!
     
     var result = x.createReductionResult(alongAxes: axes)
     DeviceContext.currentQueue.reduce(x: x,
@@ -201,7 +201,7 @@ internal func _vjpMean<T>(_ x: T, alongAxes axes: Set<Int>? = nil)
     -> (value: T, pullback: (T) -> T) where T: DifferentiableTensorView
 {
     let value = x.mean(alongAxes: axes)
-    let count = T.Element(exactly: x.elementCount)!
+    let count = T.Element(exactly: x.count)!
     return (value, { [xext = x.extents] in $0.repeated(to: xext) / count })
 }
 

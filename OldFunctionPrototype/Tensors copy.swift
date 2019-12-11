@@ -101,7 +101,7 @@ public extension VectorView {
     init(count: Int, name: String? = nil) {
         let shape = DataShape(extents: [count])
         let name = name ?? String(describing: Self.self)
-        let array = TensorArray<Element>(count: shape.elementCount, name: name)
+        let array = TensorArray<Element>(count: shape.count, name: name)
         self.init(shape: shape, tensorArray: array,
                   viewOffset: 0, isShared: false)
     }
@@ -125,7 +125,7 @@ public extension VectorView {
     /// BoolView
     func createBoolTensor(with extents: [Int]) -> Vector<Bool> {
         let shape = DataShape(extents: extents)
-        let array = TensorArray<Bool>(count: shape.elementCount,
+        let array = TensorArray<Bool>(count: shape.count,
                                       name: String(describing: Self.self))
         return Vector<Bool>(shape: shape, tensorArray: array,
                             viewOffset: 0, isShared: false)
@@ -136,7 +136,7 @@ public extension VectorView {
     func createIndexTensor(with extents: [Int]) -> Vector<IndexElement> {
         let shape = DataShape(extents: extents)
         let name = String(describing: Self.self)
-        let array = TensorArray<IndexElement>(count: shape.elementCount,
+        let array = TensorArray<IndexElement>(count: shape.count,
                                               name: name)
         return Vector<IndexElement>(shape: shape, tensorArray: array,
                                     viewOffset: 0, isShared: false)
@@ -171,7 +171,7 @@ public extension VectorView {
     {
         let shape = DataShape(extents: [elements.count])
         let name = name ?? String(describing: Self.self)
-        assert(shape.elementCount == elements.count, countMismatch)
+        assert(shape.count == elements.count, countMismatch)
         let array = TensorArray<Element>(elements: elements, name: name)
         self.init(shape: shape, tensorArray: array,
                   viewOffset: 0, isShared: false)
@@ -243,7 +243,7 @@ public extension MatrixView {
     init(_ extents: MatrixExtents, name: String? = nil) {
         let shape = DataShape(extents: [extents.rows, extents.cols])
         let name = name ?? String(describing: Self.self)
-        let array = TensorArray<Element>(count: shape.elementCount, name: name)
+        let array = TensorArray<Element>(count: shape.count, name: name)
         self.init(shape: shape, tensorArray: array,
                   viewOffset: 0, isShared: false)
     }
@@ -272,7 +272,7 @@ public extension MatrixView {
         let shape = layout == .rowMajor ?
             DataShape(extents: extents) :
             DataShape(extents: extents).columnMajor()
-        assert(shape.elementCount == buffer.count,
+        assert(shape.count == buffer.count,
                "shape count does not match buffer count")
         
         self.init(shape: shape, tensorArray: array,
@@ -283,7 +283,7 @@ public extension MatrixView {
     /// BoolView
     func createBoolTensor(with extents: [Int]) -> Matrix<Bool> {
         let shape = DataShape(extents: extents)
-        let array = TensorArray<Bool>(count: shape.elementCount,
+        let array = TensorArray<Bool>(count: shape.count,
                                       name: String(describing: Self.self))
         return Matrix<Bool>(shape: shape, tensorArray: array,
                             viewOffset: 0, isShared: false)
@@ -294,7 +294,7 @@ public extension MatrixView {
     func createIndexTensor(with extents: [Int]) -> Matrix<IndexElement> {
         let shape = DataShape(extents: extents)
         let name = String(describing: Self.self)
-        let array = TensorArray<IndexElement>(count: shape.elementCount,
+        let array = TensorArray<IndexElement>(count: shape.count,
                                               name: name)
         return Matrix<IndexElement>(shape: shape, tensorArray: array,
                                     viewOffset: 0, isShared: false)
@@ -353,7 +353,7 @@ public extension MatrixView {
         let shape = layout == .rowMajor ?
             DataShape(extents: extents) :
             DataShape(extents: extents).columnMajor()
-        assert(shape.elementCount == elements.count, countMismatch)
+        assert(shape.count == elements.count, countMismatch)
         let name = name ?? String(describing: Self.self)
         let array = TensorArray<Element>(elements: elements, name: name)
         self.init(shape: shape, tensorArray: array,
@@ -444,7 +444,7 @@ public extension VolumeView {
         let extents = [extents.depths, extents.rows, extents.cols]
         let shape = DataShape(extents: extents)
         let name = name ?? String(describing: Self.self)
-        let array = TensorArray<Element>(count: shape.elementCount, name: name)
+        let array = TensorArray<Element>(count: shape.count, name: name)
         self.init(shape: shape, tensorArray: array,
                   viewOffset: 0, isShared: false)
     }
@@ -467,7 +467,7 @@ public extension VolumeView {
         let array = TensorArray<Element>(referenceTo: buffer, name: name)
         let extents = [extents.depths, extents.rows, extents.cols]
         let shape = DataShape(extents: extents)
-        assert(shape.elementCount == buffer.count,
+        assert(shape.count == buffer.count,
                "shape count does not match buffer count")
         
         self.init(shape: shape, tensorArray: array,
@@ -478,7 +478,7 @@ public extension VolumeView {
     /// BoolView
     func createBoolTensor(with extents: [Int]) -> Volume<Bool> {
         let shape = DataShape(extents: extents)
-        let array = TensorArray<Bool>(count: shape.elementCount,
+        let array = TensorArray<Bool>(count: shape.count,
                                       name: String(describing: Self.self))
         return Volume<Bool>(shape: shape, tensorArray: array,
                             viewOffset: 0, isShared: false)
@@ -489,7 +489,7 @@ public extension VolumeView {
     func createIndexTensor(with extents: [Int]) -> Volume<IndexElement> {
         let shape = DataShape(extents: extents)
         let name = String(describing: Self.self)
-        let array = TensorArray<IndexElement>(count: shape.elementCount,
+        let array = TensorArray<IndexElement>(count: shape.count,
                                               name: name)
         return Volume<IndexElement>(shape: shape, tensorArray: array,
                                     viewOffset: 0, isShared: false)
@@ -526,7 +526,7 @@ public extension VolumeView {
         let extents = [extents.depths, extents.rows, extents.cols]
         let shape = DataShape(extents: extents)
         let name = name ?? String(describing: Self.self)
-        assert(shape.elementCount == elements.count, countMismatch)
+        assert(shape.count == elements.count, countMismatch)
         let array = TensorArray<Element>(elements: elements, name: name)
         self.init(shape: shape, tensorArray: array,
                   viewOffset: 0, isShared: false)
@@ -575,7 +575,7 @@ public extension NDTensorView {
     init(_ extents: [Int], name: String? = nil) {
         let shape = DataShape(extents: extents)
         let name = name ?? String(describing: Self.self)
-        let array = TensorArray<Element>(count: shape.elementCount, name: name)
+        let array = TensorArray<Element>(count: shape.count, name: name)
         self.init(shape: shape, tensorArray: array,
                   viewOffset: 0, isShared: false)
     }
@@ -592,7 +592,7 @@ public extension NDTensorView {
 
         // create shape considering column major
         let shape = DataShape(extents: extents)
-        assert(shape.elementCount == buffer.count,
+        assert(shape.count == buffer.count,
                "shape count does not match buffer count")
         
         self.init(shape: shape, tensorArray: array,
@@ -604,7 +604,7 @@ public extension NDTensorView {
     func createBoolTensor(with extents: [Int]) -> NDTensor<Bool> {
         let shape = DataShape(extents: extents)
         let name = String(describing: Self.self)
-        let array = TensorArray<Bool>(count: shape.elementCount, name: name)
+        let array = TensorArray<Bool>(count: shape.count, name: name)
         return NDTensor<Bool>(shape: shape, tensorArray: array,
                               viewOffset: 0, isShared: false)
     }
@@ -614,7 +614,7 @@ public extension NDTensorView {
     func createIndexTensor(with extents: [Int]) -> NDTensor<IndexElement> {
         let shape = DataShape(extents: extents)
         let name = String(describing: Self.self)
-        let array = TensorArray<IndexElement>(count: shape.elementCount,
+        let array = TensorArray<IndexElement>(count: shape.count,
                                               name: name)
         return NDTensor<IndexElement>(shape: shape, tensorArray: array,
                                       viewOffset: 0, isShared: false)
@@ -640,7 +640,7 @@ public extension NDTensorView {
     {
         let shape = DataShape(extents: extents)
         let name = name ?? String(describing: Self.self)
-        assert(shape.elementCount == elements.count, countMismatch)
+        assert(shape.count == elements.count, countMismatch)
         let array = TensorArray<Element>(elements: elements, name: name)
         self.init(shape: shape, tensorArray: array,
                   viewOffset: 0, isShared: false)
@@ -699,7 +699,7 @@ public extension NCHWTensorView {
                       extents.rows, extents.cols]
         let shape = DataShape(extents: extent)
         let name = name ?? String(describing: Self.self)
-        let array = TensorArray<Element>(count: shape.elementCount, name: name)
+        let array = TensorArray<Element>(count: shape.count, name: name)
         self.init(shape: shape, tensorArray: array,
                   viewOffset: 0, isShared: false)
     }
@@ -725,7 +725,7 @@ public extension NCHWTensorView {
         let extents = [extents.items, extents.channels,
                        extents.rows, extents.cols]
         let shape = DataShape(extents: extents)
-        assert(shape.elementCount == buffer.count,
+        assert(shape.count == buffer.count,
                "shape count does not match buffer count")
         
         self.init(shape: shape, tensorArray: array,
@@ -737,7 +737,7 @@ public extension NCHWTensorView {
     func createBoolTensor(with extents: [Int]) -> NCHWTensor<Bool> {
         let shape = DataShape(extents: extents)
         let name = String(describing: Self.self)
-        let array = TensorArray<Bool>(count: shape.elementCount, name: name)
+        let array = TensorArray<Bool>(count: shape.count, name: name)
         return NCHWTensor<Bool>(shape: shape, tensorArray: array,
                                 viewOffset: 0, isShared: false)
     }
@@ -747,7 +747,7 @@ public extension NCHWTensorView {
     func createIndexTensor(with extents: [Int]) -> NCHWTensor<IndexElement> {
         let shape = DataShape(extents: extents)
         let name = String(describing: Self.self)
-        let array = TensorArray<IndexElement>(count: shape.elementCount,
+        let array = TensorArray<IndexElement>(count: shape.count,
                                               name: name)
         return NCHWTensor<IndexElement>(shape: shape, tensorArray: array,
                                         viewOffset: 0, isShared: false)
@@ -785,7 +785,7 @@ public extension NCHWTensorView {
                        extents.rows, extents.cols]
         let shape = DataShape(extents: extents)
         let name = name ?? String(describing: Self.self)
-        assert(shape.elementCount == elements.count, countMismatch)
+        assert(shape.count == elements.count, countMismatch)
         let array = TensorArray<Element>(elements: elements, name: name)
         self.init(shape: shape, tensorArray: array,
                   viewOffset: 0, isShared: false)
@@ -842,7 +842,7 @@ public extension NHWCTensorView {
                        extents.cols, extents.channels]
         let shape = DataShape(extents: extents)
         let name = name ?? String(describing: Self.self)
-        let array = TensorArray<Element>(count: shape.elementCount, name: name)
+        let array = TensorArray<Element>(count: shape.count, name: name)
         self.init(shape: shape, tensorArray: array,
                   viewOffset: 0, isShared: false)
     }
@@ -868,7 +868,7 @@ public extension NHWCTensorView {
         let extents = [extents.items, extents.rows,
                        extents.cols, extents.channels]
         let shape = DataShape(extents: extents)
-        assert(shape.elementCount == buffer.count,
+        assert(shape.count == buffer.count,
                "shape count does not match buffer count")
 
         self.init(shape: shape, tensorArray: array,
@@ -880,7 +880,7 @@ public extension NHWCTensorView {
     func createBoolTensor(with extents: [Int]) -> NHWCTensor<Bool> {
         let shape = DataShape(extents: extents)
         let name = String(describing: Self.self)
-        let array = TensorArray<Bool>(count: shape.elementCount, name: name)
+        let array = TensorArray<Bool>(count: shape.count, name: name)
         return NHWCTensor<Bool>(shape: shape, tensorArray: array,
                                 viewOffset: 0, isShared: false)
     }
@@ -890,7 +890,7 @@ public extension NHWCTensorView {
     func createIndexTensor(with extents: [Int]) -> NHWCTensor<IndexElement> {
         let shape = DataShape(extents: extents)
         let name = String(describing: Self.self)
-        let array = TensorArray<IndexElement>(count: shape.elementCount,
+        let array = TensorArray<IndexElement>(count: shape.count,
                                               name: name)
         return NHWCTensor<IndexElement>(shape: shape, tensorArray: array,
                                         viewOffset: 0, isShared: false)
@@ -928,7 +928,7 @@ public extension NHWCTensorView {
                        extents.cols, extents.channels]
         let shape = DataShape(extents: extents)
         let name = name ?? String(describing: Self.self)
-        assert(shape.elementCount == elements.count, countMismatch)
+        assert(shape.count == elements.count, countMismatch)
         let array = TensorArray<Element>(elements: elements, name: name)
         self.init(shape: shape, tensorArray: array,
                   viewOffset: 0, isShared: false)
