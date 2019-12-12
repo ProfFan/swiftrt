@@ -31,7 +31,6 @@ class test_Shape: XCTestCase {
     func test_perfDataShape2() {
         #if !DEBUG
         var shape = DataShape()
-        var anchor = true
         self.measure {
             for _ in 0..<100000 {
                 let a = DataShape(extents: [3, 4])
@@ -41,14 +40,10 @@ class test_Shape: XCTestCase {
                 let r = DataShape(extents: [1, 1]).repeated(to: a.extents)
                 let j = a.joined(with: [ds, c, r], alongAxis: 1)
                 let t = j.transposed()
-                let li = t.linearIndex(of: [3, 2])
-                let c0 = t.contains(shape: a)
-                let c1 = t.contains(offset: [1, 1], extents: [2, 2])
-                anchor = li > 0 && c0 && c1
                 shape = t
             }
         }
-        XCTAssert(anchor && shape.extents == [13, 3])
+        XCTAssert(shape.extents == [13, 3])
         #endif
     }
 
@@ -57,7 +52,6 @@ class test_Shape: XCTestCase {
     func test_perfShape2() {
         #if !DEBUG
         var shape = Shape2(extents: Shape2.zeros)
-        var anchor = true
         self.measure {
             for _ in 0..<100000 {
                 let a = Shape2(extents: (3, 4))
@@ -67,14 +61,10 @@ class test_Shape: XCTestCase {
                 let r = Shape2(extents: Shape2.ones).repeated(to: a.extents)
                 let j = a.joined(with: [ds, c, r], alongAxis: 1)
                 let t = j.transposed()
-                let li = t.linearIndex(of: (3, 2))
-                let c0 = t.contains(other: a)
-                let c1 = t.contains(offset: (1, 1), extents: (2, 2))
-                anchor = li > 0 && c0 && c1
                 shape = t
             }
         }
-        XCTAssert(anchor && shape.extents == Shape2.Array((13, 3)))
+        XCTAssert(shape.extents == Shape2.Array((13, 3)))
         #endif
     }
 }

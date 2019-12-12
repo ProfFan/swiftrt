@@ -41,19 +41,18 @@ public protocol ShapeArrayProtocol:
 //
 public struct ShapeArray<Storage> : ShapeArrayProtocol {
     /// the collection as a Swift Array
+    @inlinable @inline(__always)
     public var array: [Int] { [Int](self) }
     /// some value object used for storage space
     public var storage: Storage
     /// the number of elements in the array
-    public let count: Int = MemoryLayout<Storage>.size / MemoryLayout<Int>.size
+    public let count: Int
     /// starting index
-    public let startIndex: Int = 0
+    public let startIndex: Int
     /// ending index
-    public var endIndex: Int { count }
+    public let endIndex: Int
     /// description
     public var description: String { String(describing: [Int](self)) }
-    /// tuple alias
-    public var tuple: Storage { storage }
     
     //--------------------------------------------------------------------------
     // initializers
@@ -62,6 +61,9 @@ public struct ShapeArray<Storage> : ShapeArrayProtocol {
         assert(MemoryLayout<Storage>.size % MemoryLayout<Int>.size == 0,
                "Storage size must be multiple of Int size")
         storage = data
+        count = MemoryLayout<Storage>.size / MemoryLayout<Int>.size
+        startIndex = 0
+        endIndex = count
     }
 
     @inlinable @inline(__always)
@@ -85,6 +87,15 @@ public struct ShapeArray<Storage> : ShapeArrayProtocol {
 
     @inlinable @inline(__always)
     public static func == (lhs: Self, rhs: [Int]) -> Bool {
+        guard lhs.count == rhs.count else { return false }
+        for i in 0..<lhs.count {
+            if lhs[i] != rhs[i] { return false }
+        }
+        return true
+    }
+
+    @inlinable @inline(__always)
+    public static func == (lhs: [Int], rhs: Self) -> Bool {
         guard lhs.count == rhs.count else { return false }
         for i in 0..<lhs.count {
             if lhs[i] != rhs[i] { return false }
@@ -236,8 +247,7 @@ public extension ShapeProtocol {
     // The span of the extent is the linear index of the last index + 1
     @inlinable @inline(__always)
     static func spanCount(_ extents: Array, _ strides: Array) -> Int {
-        let sc: Int = zip(extents, strides).reduce(0) { $0 + ($1.0 - 1) * $1.1 }
-        return sc + 1
+        (zip(extents, strides).reduce(0) { $0 + ($1.0 - 1) * $1.1 }) + 1
     }
     
     //--------------------------------------------------------------------------

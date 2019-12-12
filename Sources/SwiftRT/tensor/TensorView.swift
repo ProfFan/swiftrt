@@ -151,8 +151,6 @@ public protocol DifferentiableTensorView: TensorView & Differentiable where
 
 //==============================================================================
 // view subscripting helpers
-
-@inlinable @inline(__always)
 public func makePositive<R>(range: R, count: Int) -> Range<Int> where
     R: RangeExpression, R.Bound == Int
 {
@@ -169,7 +167,6 @@ public func makePositive<R>(range: R, count: Int) -> Range<Int> where
 /// - Parameter count: the number of elements in the collection that
 /// the range calculation should be relative to.
 /// - Returns: a positive range relative to the specified bounding `count`
-@inlinable @inline(__always)
 public func makePositive(range: RangeInterval, count: Int)
     -> ResolvedRangeInterval
 {
@@ -186,7 +183,6 @@ public func makePositive(range: RangeInterval, count: Int)
 /// - Parameter parent: the strides of the parent view
 /// - Parameter steps: the step interval along each dimension
 /// - Returns: the extents and strides to be used to create a subview
-@inlinable @inline(__always)
 public func makeStepped<T>(view extents: T,
                         parent strides: T,
                         steps: T) -> (extents: T, strides: T)
@@ -372,21 +368,18 @@ public extension TensorView {
     
     //--------------------------------------------------------------------------
     /// an array of viewed elements
-    @inlinable @inline(__always)
     var array: [Element] {
         return [Element](elements())
     }
 
     //--------------------------------------------------------------------------
     /// an array of viewed elements
-    @inlinable @inline(__always)
     var flatArray: [Element] {
         return [Element](elements())
     }
     
     //--------------------------------------------------------------------------
     /// get a single value at the specified index
-    @inlinable @inline(__always)
     func value(at position: Index.Position) throws -> Element {
         let buffer = try readOnly()
         let index = Index(view: self, at: position)
@@ -395,7 +388,6 @@ public extension TensorView {
     
     //--------------------------------------------------------------------------
     /// set a single value at the specified index
-    @inlinable @inline(__always)
     mutating func set(value: Element, at position: Index.Position) throws {
         let buffer = try readWrite()
         let index = Index(view: self, at: position)
