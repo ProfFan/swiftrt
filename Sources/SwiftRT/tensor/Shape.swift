@@ -48,9 +48,7 @@ public struct ShapeArray<Storage> : ShapeArrayProtocol {
     /// the number of elements in the array
     @inlinable @inline(__always)
     public var count: Int {
-        assert(MemoryLayout<Storage>.size % MemoryLayout<Element>.size == 0,
-               "Storage size must be multiple of Element size")
-        return MemoryLayout<Storage>.size / MemoryLayout<Element>.size
+        MemoryLayout<Storage>.size / MemoryLayout<Element>.size
     }
     /// starting index
     @inlinable @inline(__always)
@@ -60,7 +58,7 @@ public struct ShapeArray<Storage> : ShapeArrayProtocol {
     public var endIndex: Int { count }
 
     /// description
-    public var description: String { String(describing: [Int](self)) }
+    public var description: String { String(describing: array) }
     
     //--------------------------------------------------------------------------
     // initializers
