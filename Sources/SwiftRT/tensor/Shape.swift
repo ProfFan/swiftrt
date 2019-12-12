@@ -31,7 +31,6 @@ public protocol ShapeArrayProtocol:
     // properties
     var array: [Int] { get }
     var storage: Storage { get set }
-    var tuple: Storage { get }
 
     // initialzers
     init(_ data: Storage)
@@ -211,7 +210,7 @@ public extension ShapeProtocol {
     @inlinable @inline(__always)
     static func denseStrides(_ extents: Array) -> Array {
         var strides = ones
-        stride(from: extents.count - 1, to: 1, by: -1).forEach {
+        stride(from: extents.count - 1, through: 1, by: -1).forEach {
             strides[$0 - 1] = extents[$0] * strides[$0]
         }
         return strides
