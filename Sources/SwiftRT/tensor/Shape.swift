@@ -46,11 +46,19 @@ public struct ShapeArray<Storage> : ShapeArrayProtocol {
     /// some value object used for storage space
     public var storage: Storage
     /// the number of elements in the array
-    public let count: Int
+    @inlinable @inline(__always)
+    public var count: Int {
+        assert(MemoryLayout<Storage>.size % MemoryLayout<Element>.size == 0,
+               "Storage size must be multiple of Element size")
+        return MemoryLayout<Storage>.size / MemoryLayout<Element>.size
+    }
     /// starting index
-    public let startIndex: Int
+    @inlinable @inline(__always)
+    public var startIndex: Int { 0 }
     /// ending index
-    public let endIndex: Int
+    @inlinable @inline(__always)
+    public var endIndex: Int { count }
+
     /// description
     public var description: String { String(describing: [Int](self)) }
     
@@ -61,9 +69,6 @@ public struct ShapeArray<Storage> : ShapeArrayProtocol {
         assert(MemoryLayout<Storage>.size % MemoryLayout<Int>.size == 0,
                "Storage size must be multiple of Int size")
         storage = data
-        count = MemoryLayout<Storage>.size / MemoryLayout<Int>.size
-        startIndex = 0
-        endIndex = count
     }
 
     @inlinable @inline(__always)
