@@ -247,7 +247,11 @@ public extension ShapeProtocol {
     // The span of the extent is the linear index of the last index + 1
     @inlinable @inline(__always)
     static func spanCount(_ extents: Array, _ strides: Array) -> Int {
-        (zip(extents, strides).reduce(0) { $0 + ($1.0 - 1) * $1.1 }) + 1
+        var result = 0
+        for i in 0..<extents.count {
+            result += (extents[i] - 1) * strides[i]
+        }
+        return result + 1
     }
     
     //--------------------------------------------------------------------------

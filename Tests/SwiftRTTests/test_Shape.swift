@@ -31,6 +31,7 @@ class test_Shape: XCTestCase {
     func test_perfDataShape2() {
         #if !DEBUG
         var shape = DataShape()
+        var i = 0
         self.measure {
             for _ in 0..<100000 {
                 let a = DataShape(extents: [3, 4])
@@ -41,9 +42,10 @@ class test_Shape: XCTestCase {
                 let j = a.joined(with: [ds, c, r], alongAxis: 1)
                 let t = j.transposed()
                 shape = t
+                i = shape.linearIndex(of: [1, 1])
             }
         }
-        XCTAssert(shape.extents == [13, 3])
+        XCTAssert(shape.extents == [13, 3] && i > 0)
         #endif
     }
 
@@ -52,6 +54,8 @@ class test_Shape: XCTestCase {
     func test_perfShape2() {
         #if !DEBUG
         var shape = Shape2(extents: Shape2.zeros)
+        let index = ShapeArray((1, 1))
+        var i = 0
         self.measure {
             for _ in 0..<100000 {
                 let a = Shape2(extents: (3, 4))
@@ -62,9 +66,10 @@ class test_Shape: XCTestCase {
                 let j = a.joined(with: [ds, c, r], alongAxis: 1)
                 let t = j.transposed()
                 shape = t
+                i = shape.linearIndex(of: index)
             }
         }
-        XCTAssert(shape.extents == Shape2.Array((13, 3)))
+        XCTAssert(shape.extents == Shape2.Array((13, 3)) && i > 0)
         #endif
     }
 }
