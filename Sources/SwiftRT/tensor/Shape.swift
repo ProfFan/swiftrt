@@ -221,8 +221,8 @@ public extension ShapeProtocol {
     @inlinable @inline(__always)
     static func denseStrides(_ extents: Array) -> Array {
         var strides = ones
-        stride(from: extents.count - 1, through: 1, by: -1).forEach {
-            strides[$0 - 1] = extents[$0] * strides[$0]
+        for i in stride(from: extents.count - 1, through: 1, by: -1) {
+            strides[i - 1] = extents[i] * strides[i]
         }
         return strides
     }
@@ -351,8 +351,10 @@ public extension ShapeProtocol {
             }
         } else {
             // simple swap
-            newExtents.swapAt(rank-1, rank-2)
-            newStrides.swapAt(rank-1, rank-2)
+            let r1 = rank-1
+            let r2 = rank-2
+            newExtents.swapAt(r1, r2)
+            newStrides.swapAt(r1, r2)
         }
         return Self(extents: newExtents, strides: newStrides)
     }
@@ -376,7 +378,7 @@ public struct Shape1: ShapeProtocol {
     public init(extents: Array, strides: Array? = nil) {
         self.extents = extents
         self.strides = strides ?? Self.denseStrides(extents)
-        count = extents.reduce(1, *)
+        count = extents[0]
         spanCount = Self.spanCount(extents, self.strides)
     }
 }
