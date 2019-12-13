@@ -61,6 +61,23 @@ public func max<T>(_ lhs: T.Element, _ rhs: T) -> T where
     max(T(repeating: lhs, like: rhs), rhs)
 }
 
+public extension TensorView {
+    @inlinable @inline(__always)
+    @differentiable(where T: DifferentiableTensorView)
+    func max<T>(_ lhs: T, _ rhs: T) -> T where
+        T: TensorView, T.Element: Comparable { SwiftRT.max(lhs, rhs) }
+
+    @inlinable @inline(__always)
+    @differentiable(where T: DifferentiableTensorView)
+    func max<T>(_ lhs: T, _ rhs: T.Element) -> T where
+        T: TensorView, T.Element: Comparable { SwiftRT.max(lhs, rhs) }
+
+    @inlinable @inline(__always)
+    @differentiable(where T: DifferentiableTensorView)
+    func max<T>(_ lhs: T.Element, _ rhs: T) -> T where
+        T: TensorView, T.Element: Comparable { SwiftRT.max(lhs, rhs) }
+}
+
 //--------------------------------------
 // derivative functions
 @inlinable @inline(__always)
@@ -128,6 +145,23 @@ public func min<T>(_ lhs: T.Element, _ rhs: T) -> T
     where T: TensorView, T.Element: Comparable
 {
     min(T(repeating: lhs, like: rhs), rhs)
+}
+
+public extension TensorView {
+    @inlinable @inline(__always)
+    @differentiable(where T: DifferentiableTensorView)
+    func min<T>(_ lhs: T, _ rhs: T) -> T where
+        T: TensorView, T.Element: Comparable { SwiftRT.min(lhs, rhs) }
+
+    @inlinable @inline(__always)
+    @differentiable(where T: DifferentiableTensorView)
+    func min<T>(_ lhs: T, _ rhs: T.Element) -> T where
+        T: TensorView, T.Element: Comparable { SwiftRT.min(lhs, rhs) }
+
+    @inlinable @inline(__always)
+    @differentiable(where T: DifferentiableTensorView)
+    func min<T>(_ lhs: T.Element, _ rhs: T) -> T where
+        T: TensorView, T.Element: Comparable { SwiftRT.min(lhs, rhs) }
 }
 
 //--------------------------------------

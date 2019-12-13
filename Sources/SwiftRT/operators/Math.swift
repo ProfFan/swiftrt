@@ -55,6 +55,11 @@ public extension TensorView where Element: Real {
     @differentiable(where Self: DifferentiableTensorView)
     @inlinable @inline(__always)
     func exp() -> Self { SwiftRT.exp(self) }
+    
+    @differentiable(where T: DifferentiableTensorView)
+    @inlinable @inline(__always)
+    func exp<T>(_ x: T) -> T
+        where T: TensorView, T.Element: Real { SwiftRT.exp(x) }
 }
 
 //--------------------------------------
@@ -87,6 +92,11 @@ public extension TensorView where Element: Real {
     @differentiable(where Self: DifferentiableTensorView)
     @inlinable @inline(__always)
     func log() -> Self { SwiftRT.log(self) }
+    
+    @differentiable(where T: DifferentiableTensorView)
+    @inlinable @inline(__always)
+    func log<T>(_ x: T) -> T
+        where T: TensorView, T.Element: Real { SwiftRT.log(x) }
 }
 
 //--------------------------------------
