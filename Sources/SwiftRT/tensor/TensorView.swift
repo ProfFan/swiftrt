@@ -151,7 +151,7 @@ public protocol DifferentiableTensorView: TensorView & Differentiable where
 
 //==============================================================================
 // view subscripting helpers
-public func makePositive<R>(range: R, count: Int) -> Range<Int> where
+public func resolve<R>(range: R, count: Int) -> Range<Int> where
     R: RangeExpression, R.Bound == Int
 {
     let count = count - 1
@@ -167,7 +167,7 @@ public func makePositive<R>(range: R, count: Int) -> Range<Int> where
 /// - Parameter count: the number of elements in the collection that
 /// the range calculation should be relative to.
 /// - Returns: a positive range relative to the specified bounding `count`
-public func makePositive(range: RangeInterval, count: Int)
+public func resolve(range: RangeInterval, count: Int)
     -> ResolvedRangeInterval
 {
     var from = range.from ?? 0
@@ -184,8 +184,8 @@ public func makePositive(range: RangeInterval, count: Int)
 /// - Parameter steps: the step interval along each dimension
 /// - Returns: the extents and strides to be used to create a subview
 public func makeStepped<T>(view extents: T,
-                        parent strides: T,
-                        steps: T) -> (extents: T, strides: T)
+                           parent strides: T,
+                           steps: T) -> (extents: T, strides: T)
     where T: ShapeArrayProtocol
 {
     var subExtents = extents

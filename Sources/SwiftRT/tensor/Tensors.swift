@@ -125,20 +125,27 @@ public extension VectorView {
     // TODO(TF-281): Rewrite `@differentiable` attribute as a `@differentiating`
     // attribute when `@differentiating` supports subscript declaration
     // references.
-    @differentiable(vjp: vjpSubscript where Self: DifferentiableTensorView)
+    @differentiable(vjp: _vjpSubscript where Self: DifferentiableTensorView)
     @inlinable @inline(__always)
     subscript<R>(r: R) -> Self where
         R: RangeExpression, R.Bound == Int
     {
-        let rRange = makePositive(range: r, count: extents[0])
-        return view(at: (rRange.lowerBound), extents: (rRange.count))
+        get {
+            let r = resolve(range: r, count: extents[0])
+            return view(at: (r.lowerBound), extents: (r.count))
+        }
+        set {
+            let r = resolve(range: r, count: extents[0])
+            var v = view(at: (r.lowerBound), extents: (r.count))
+            copy(from: newValue, to: &v)
+        }
     }
     
     @inlinable @inline(__always)
     subscript<R>(r: (R, by: Int)) -> Self where
         R: RangeExpression, R.Bound == Int
     {
-        let rRange = makePositive(range: r.0, count: extents[0])
+        let rRange = resolve(range: r.0, count: extents[0])
         let viewPosition = Shape.Array((rRange.lowerBound))
         let viewExtents = Shape.Array((rRange.count))
         let steps = Shape.Array((r.1))
@@ -152,13 +159,16 @@ public extension VectorView {
 //==============================================================================
 /// Derivative registration
 extension VectorView where Self: DifferentiableTensorView {
+    // https://github.com/apple/swift/blob/37b507b31c77ef969151f385cd1902dd44fb3b7f/stdlib/public/core/Array.swift#L2091
     @inlinable @inline(__always)
-    func vjpSubscript<R>(r: R) -> (value: Self, pullback: (Self) -> Self) where
+    func _vjpSubscript<R>(r: R) -> (value: Self, pullback: (Self) -> Self) where
         R: RangeExpression, R.Bound == Int
     {
-        let value = self[r]
-        // FIXME: Implement pullback.
-        return (value, { v in fatalError() })
+        return (self[r], { v in
+            var result = self.zeros
+            result[r] = v
+            return result
+        })
     }
 }
 
@@ -370,8 +380,8 @@ public extension MatrixView {
         R: RangeExpression, R.Bound == Int,
         C: RangeExpression, C.Bound == Int
     {
-        let rRange = makePositive(range: r, count: extents[0])
-        let cRange = makePositive(range: c, count: extents[1])
+        let rRange = resolve(range: r, count: extents[0])
+        let cRange = resolve(range: c, count: extents[1])
         let viewPosition = Shape.Array((rRange.lowerBound, cRange.lowerBound))
         let viewExtents = Shape.Array((rRange.count, cRange.count))
         return view(at: viewPosition, extents: viewExtents)
@@ -382,8 +392,8 @@ public extension MatrixView {
         R: RangeExpression, R.Bound == Int,
         C: RangeExpression, C.Bound == Int
     {
-        let rRange = makePositive(range: r.0, count: extents[0])
-        let cRange = makePositive(range: c.0, count: extents[1])
+        let rRange = resolve(range: r.0, count: extents[0])
+        let cRange = resolve(range: c.0, count: extents[1])
         let viewPosition = Shape.Array((rRange.lowerBound, cRange.lowerBound))
         let viewExtents = Shape.Array((rRange.count, cRange.count))
         let steps = Shape.Array((r.1, c.1))
@@ -570,9 +580,9 @@ public extension VolumeView {
         R: RangeExpression, R.Bound == Int,
         C: RangeExpression, C.Bound == Int
     {
-        let dRange = makePositive(range: d, count: extents[0])
-        let rRange = makePositive(range: r, count: extents[1])
-        let cRange = makePositive(range: c, count: extents[2])
+        let dRange = resolve(range: d, count: extents[0])
+        let rRange = resolve(range: r, count: extents[1])
+        let cRange = resolve(range: c, count: extents[2])
         let viewPosition = (dRange.lowerBound,
                             rRange.lowerBound,
                             cRange.lowerBound)
@@ -582,9 +592,9 @@ public extension VolumeView {
     
     @inlinable @inline(__always)
     subscript(_ d: RangeInterval, r: RangeInterval, c: RangeInterval) -> Self {
-        let dRange = makePositive(range: d, count: extents[0])
-        let rRange = makePositive(range: r, count: extents[1])
-        let cRange = makePositive(range: c, count: extents[2])
+        let dRange = resolve(range: d, count: extents[0])
+        let rRange = resolve(range: r, count: extents[1])
+        let cRange = resolve(range: c, count: extents[2])
         let viewPosition = Shape.Array((dRange.from, rRange.from, cRange.from))
         let viewExtents = Shape.Array((dRange.to, rRange.to, cRange.to))
         let steps = Shape.Array((dRange.step, rRange.step, cRange.step))

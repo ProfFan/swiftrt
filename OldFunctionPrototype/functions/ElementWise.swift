@@ -12,9 +12,9 @@ import Foundation
 /// - Parameter view: tensor to be copied
 /// - Parameter result: the tensor where the result will be written
 @inlinable @inline(__always)
-public func copy<T>(view: T, result: inout T) where T: TensorView
+public func copy<T>(from view: T, to result: inout T) where T: TensorView
 {
-    DeviceContext.currentQueue.copy(view: view, result: &result)
+    DeviceContext.currentQueue.copy(from: view, to: &result)
 }
 
 //==============================================================================

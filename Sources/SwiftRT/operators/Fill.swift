@@ -37,12 +37,40 @@ public extension TensorView {
 }
 
 //==============================================================================
+/// copy
+/// copies the elements from `view` to `result`
+
+/// with placement
+/// - Parameter from view: tensor to be copied
+/// - Parameter to result: the tensor where the result will be written
+@inlinable @inline(__always)
+public func copy<T>(from view: T, to result: inout T) where T: TensorView
+{
+    DeviceContext.currentQueue.copy(from: view, to: &result)
+}
+
+//==============================================================================
 /// fill<T>(result:value:
 /// fills the view with the specified value
 public func fill<T>(_ result: inout T, with value: T.Element) where
     T: TensorView
 {
     DeviceContext.currentQueue.fill(result: &result, with: value)
+}
+
+//==============================================================================
+public extension TensorView where Element: Numeric {
+    var zeros: Self {
+        var result = createDense()
+        fill(&result, with: 0)
+        return result
+    }
+    
+    var ones: Self {
+        var result = createDense()
+        fill(&result, with: 1)
+        return result
+    }
 }
 
 //==============================================================================

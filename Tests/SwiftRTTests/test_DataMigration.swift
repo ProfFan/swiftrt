@@ -22,6 +22,7 @@ class test_DataMigration: XCTestCase {
     //==========================================================================
     // support terminal test run
     static var allTests = [
+        ("test_copy", test_copy),
         ("test_stressCopyOnWriteDevice", test_stressCopyOnWriteDevice),
         ("test_viewMutateOnWrite", test_viewMutateOnWrite),
         ("test_tensorDataMigration", test_tensorDataMigration),
@@ -32,6 +33,16 @@ class test_DataMigration: XCTestCase {
         ("test_columnMajorDataView", test_columnMajorDataView),
     ]
 	
+    //--------------------------------------------------------------------------
+    // test_copy
+    // tests copying from source to destination view
+    func test_copy() {
+        let v1 = Vector<Int32>(with: 1...3)
+        var v2 = Vector<Int32>(with: repeatElement(0, count: 3))
+        SwiftRT.copy(from: v1, to: &v2)
+        XCTAssert(v1.flatArray == [1, 2, 3])
+    }
+    
     //--------------------------------------------------------------------------
     // test_stressCopyOnWriteDevice
     // stresses view mutation and async copies on device
