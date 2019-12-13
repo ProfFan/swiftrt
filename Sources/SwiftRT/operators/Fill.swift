@@ -52,23 +52,18 @@ public func copy<T>(from view: T, to result: inout T) where T: TensorView
 //==============================================================================
 /// fill<T>(result:value:
 /// fills the view with the specified value
-public func fill<T>(_ result: inout T, with value: T.Element) where
-    T: TensorView
+public func fill<T>(_ result: inout T, with element: T.Element)
+    where T: TensorView
 {
-    DeviceContext.currentQueue.fill(result: &result, with: value)
+    DeviceContext.currentQueue.fill(result: &result, with: element)
 }
 
-//==============================================================================
-public extension TensorView where Element: Numeric {
-    var zeros: Self {
+public extension TensorView {
+    /// filled
+    /// creates a tensor and fills on device
+    func filled(with element: Element) -> Self {
         var result = createDense()
-        fill(&result, with: 0)
-        return result
-    }
-    
-    var ones: Self {
-        var result = createDense()
-        fill(&result, with: 1)
+        fill(&result, with: element)
         return result
     }
 }

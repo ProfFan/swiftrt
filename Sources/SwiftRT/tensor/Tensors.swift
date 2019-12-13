@@ -165,7 +165,7 @@ extension VectorView where Self: DifferentiableTensorView {
         R: RangeExpression, R.Bound == Int
     {
         return (self[r], { v in
-            var result = self.zeros
+            var result = self.filled(with: 0)
             result[r] = v
             return result
         })
