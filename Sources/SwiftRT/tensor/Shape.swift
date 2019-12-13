@@ -207,6 +207,17 @@ public extension ShapeProtocol {
     var dense: Self { isContiguous ? self : Self(extents: extents) }
 
     //--------------------------------------------------------------------------
+    // spanCount
+    // A sub view may cover a wider range of parent element indexes
+    // than the number of dense elements defined by the extents of the view
+    // due to striding.
+    // The span of the extent is the linear index of the last index + 1
+    @inlinable @inline(__always)
+    var spanCount: Int {
+        (zip(extents, strides).reduce(0) { $0 + ($1.0 - 1) * $1.1 }) + 1
+    }
+    
+    //--------------------------------------------------------------------------
     //
     @inlinable @inline(__always)
     init(extents: Array) { self.init(extents: extents, strides: nil) }
@@ -240,21 +251,6 @@ public extension ShapeProtocol {
         var newExtents = extents
         newExtents[axis] += others.reduce(0) { $0 + $1.extents[axis] }
         return Self(extents: newExtents)
-    }
-    
-    //--------------------------------------------------------------------------
-    // spanCount
-    // A sub view may cover a wider range of parent element indexes
-    // than the number of dense elements defined by the extents of the view
-    // due to striding.
-    // The span of the extent is the linear index of the last index + 1
-    @inlinable @inline(__always)
-    static func spanCount(_ extents: Array, _ strides: Array) -> Int {
-        var result = 0
-        for i in 0..<extents.count {
-            result += (extents[i] - 1) * strides[i]
-        }
-        return result + 1
     }
     
     //--------------------------------------------------------------------------
@@ -295,7 +291,8 @@ public extension ShapeProtocol {
     
     @inlinable @inline(__always)
     func contains(offset: Array, extents: Array) -> Bool {
-        linearIndex(of: offset) + Self.spanCount(extents, strides) <= spanCount
+        linearIndex(of: offset) +
+            Self(extents: extents, strides: strides).spanCount <= spanCount
     }
 
     //--------------------------------------------------------------------------
@@ -377,7 +374,6 @@ public struct Shape1: ShapeProtocol {
 
     // properties
     public let count: Int
-    public let spanCount: Int
     public let extents: Array
     public let strides: Array
 
@@ -386,7 +382,6 @@ public struct Shape1: ShapeProtocol {
         self.extents = extents
         self.strides = strides ?? Self.denseStrides(extents)
         count = extents[0]
-        spanCount = Self.spanCount(extents, self.strides)
     }
 }
 
@@ -400,7 +395,6 @@ public struct Shape2: ShapeProtocol {
 
     // properties
     public let count: Int
-    public let spanCount: Int
     public let extents: Array
     public let strides: Array
 
@@ -409,7 +403,6 @@ public struct Shape2: ShapeProtocol {
         self.extents = extents
         self.strides = strides ?? Self.denseStrides(extents)
         count = extents.reduce(1, *)
-        spanCount = Self.spanCount(extents, self.strides)
     }
 }
 //==============================================================================
@@ -422,7 +415,6 @@ public struct Shape3: ShapeProtocol {
 
     // properties
     public let count: Int
-    public let spanCount: Int
     public let extents: Array
     public let strides: Array
 
@@ -431,6 +423,5 @@ public struct Shape3: ShapeProtocol {
         self.extents = extents
         self.strides = strides ?? Self.denseStrides(extents)
         count = extents.reduce(1, *)
-        spanCount = Self.spanCount(extents, self.strides)
     }
 }
