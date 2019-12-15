@@ -42,8 +42,8 @@ let enableTestCpu = !disableTesting
 func runMakefile(target: String, workingDir: String) {
     let fileManager = FileManager()
     let task = Process()
-    let kernelsPath = "\(fileManager.currentDirectoryPath)/\(workingDir)"
-    task.currentDirectoryPath = kernelsPath
+    task.currentDirectoryURL = URL(fileURLWithPath:
+    "\(fileManager.currentDirectoryPath)/\(workingDir)", isDirectory: true)
     task.executableURL = URL(fileURLWithPath: "/usr/bin/make")
     
     task.arguments = ["TARGET=\"\(target)\""]
