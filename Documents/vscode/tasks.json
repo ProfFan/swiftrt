@@ -18,7 +18,10 @@
                 "panel": "shared",
                 "showReuseMessage": false,
                 "clear": false
-            }
+            },
+            "problemMatcher": [
+                "$eslint-compact"
+            ]
         },
         {
             "label": "swift-build-tests",
@@ -26,6 +29,23 @@
             "command": "swift build --build-tests",
             "group": {
                 "kind": "build",
+                "isDefault": true
+            },
+            "presentation": {
+                "echo": true,
+                "reveal": "always",
+                "focus": false,
+                "panel": "shared",
+                "showReuseMessage": false,
+                "clear": false
+            }
+        },
+        {
+            "label": "swift test",
+            "type": "shell",
+            "command": "swift test",
+            "group": {
+                "kind": "test",
                 "isDefault": true
             },
             "presentation": {

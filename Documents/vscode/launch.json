@@ -8,7 +8,7 @@
             "type": "lldb",
             "request": "launch",
             "name": "Debug tests on Linux",
-            "program": "./.build/x86_64-unknown-linux/debug/SwiftRTPackageTests.xctest",
+            "program": "${workspaceFolder}/.build/x86_64-unknown-linux/debug/SwiftRTPackageTests.xctest",
             "preLaunchTask": "swift-build-tests"
         }
     ]
