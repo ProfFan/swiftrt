@@ -33,8 +33,8 @@ class test_Comparative: XCTestCase {
     //--------------------------------------------------------------------------
     // test_elementsAlmostEqual
     func test_elementsAlmostEqual() {
-        let m1 = Matrix<Float>(3, 2, with: [0, 1.05, 2.0, -3, 4.2, 5.001])
-        let m2 = Matrix<Float>(3, 2, with: [0, 1.00, 2.1,  3, 4.0, 4.999])
+        let m1 = Matrix(3, 2, with: [0, 1.05, 2.0, -3, 4.2, 5.001])
+        let m2 = Matrix(3, 2, with: [0, 1.00, 2.1,  3, 4.0, 4.999])
         let expected = [true, true, true, false, false, true]
         let result = elementsAlmostEqual(m1, m2, tolerance: 0.1)
         XCTAssert(result.flatArray == expected)
@@ -44,15 +44,15 @@ class test_Comparative: XCTestCase {
     // test_equality
     func test_equality() {
         // compare by value
-        let m1 = Matrix<Float>(3, 2, with: 0..<6)
-        let m2 = Matrix<Float>(3, 2, with: 0..<6)
+        let m1 = Matrix(3, 2, with: 0..<6)
+        let m2 = Matrix(3, 2, with: 0..<6)
         XCTAssert(m1 == m2)
         
         // compare via alias detection
         let m3 = m2
         XCTAssert(m3 == m2)
         
-        let m4 = Matrix<Float>(3, 2, with: 1..<7)
+        let m4 = Matrix(3, 2, with: 1..<7)
         let ne = (m4 .!= m3).any().element
         XCTAssert(ne)
         XCTAssert(m4 != m3)
@@ -61,8 +61,8 @@ class test_Comparative: XCTestCase {
     //--------------------------------------------------------------------------
     // test_maximum
     func test_maximum() {
-        let m1 = Matrix<Float>(3, 2, with: [0, 1, -2, -3, -4, 5])
-        let m2 = Matrix<Float>(3, 2, with: [0, -7, 2, 3, 4, 5])
+        let m1 = Matrix(3, 2, with: [0, 1, -2, -3, -4, 5])
+        let m2 = Matrix(3, 2, with: [0, -7, 2, 3, 4, 5])
         let result = max(m1, m2)
         let expected: [Float] = [0, 1, 2, 3, 4, 5]
         XCTAssert(result.flatArray == expected)
@@ -71,7 +71,7 @@ class test_Comparative: XCTestCase {
     //--------------------------------------------------------------------------
     // test_maximumScalar
     func test_maximumScalar() {
-        let m1 = Matrix<Float>(3, 2, with: 0...5)
+        let m1 = Matrix(3, 2, with: 0...5)
         let result = max(m1, 2)
         let expected: [Float] = [2, 2, 2, 3, 4, 5]
         XCTAssert(result.flatArray == expected)
@@ -80,8 +80,8 @@ class test_Comparative: XCTestCase {
     //--------------------------------------------------------------------------
     // test_minimum
     func test_minimum() {
-        let m1 = Matrix<Float>(3, 2, with: [0, 1, 2, -3, 4, -5])
-        let m2 = Matrix<Float>(3, 2, with: [0, -1, -2, 3, -4, 5])
+        let m1 = Matrix(3, 2, with: [0, 1, 2, -3, 4, -5])
+        let m2 = Matrix(3, 2, with: [0, -1, -2, 3, -4, 5])
         let result = min(m1, m2)
         let expected: [Float] = [0, -1, -2, -3, -4, -5]
         XCTAssert(result.flatArray == expected)
@@ -90,7 +90,7 @@ class test_Comparative: XCTestCase {
     //--------------------------------------------------------------------------
     // test_minimumScalar
     func test_minimumScalar() {
-        let m1 = Matrix<Float>(3, 2, with: 0...5)
+        let m1 = Matrix(3, 2, with: 0...5)
         let result = min(m1, 3)
         let expected: [Float] = [0, 1, 2, 3, 3, 3]
         XCTAssert(result.flatArray == expected)

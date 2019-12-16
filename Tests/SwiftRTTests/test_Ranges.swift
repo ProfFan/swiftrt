@@ -28,14 +28,14 @@ class test_Ranges: XCTestCase {
     //--------------------------------------------------------------------------
     // test_vectorWriteRange
     func test_vectorWriteRange() {
-        Platform.local.servicePriority = [cpuSynchronousServiceName]
-        Platform.log.level = .diagnostic
-        Platform.log.categories = [.dataAlloc, .dataCopy, .dataMutation]
-        var v1 = Vector<Float>(with: 0...6)
-        let sevens = Vector<Float>(with: repeatElement(7, count: 3))
-        v1[0..<2] = sevens
-        XCTAssert(v1.flatArray == [0, 1, 7, 7, 7, 5])
-//        let m2 = Vector<Float>(with: 1...6)
+//        Platform.local.servicePriority = [cpuSynchronousServiceName]
+//        Platform.log.level = .diagnostic
+//        Platform.log.categories = [.dataAlloc, .dataCopy, .dataMutation]
+//        var v1 = Vector(with: 0...6)
+//        let sevens = Vector(with: repeatElement(7, count: 3))
+//        v1[0..<2] = sevens
+//        XCTAssert(v1.flatArray == [0, 1, 7, 7, 7, 5])
+//        let m2 = Vector(with: 1...6)
 //        XCTAssert(gradientIsValid(at: m2, tolerance: 0.7, in: { exp($0) }))
     }
 }

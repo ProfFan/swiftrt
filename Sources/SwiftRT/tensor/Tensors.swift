@@ -19,17 +19,17 @@ import Foundation
 // VectorView protocol
 public protocol VectorView: TensorView where Shape == Shape1 { }
 
-extension Vector: Codable where Element: Codable {}
+extension VectorT: Codable where Element: Codable {}
 
-extension Vector: CustomStringConvertible where Element: AnyConvertable {
+extension VectorT: CustomStringConvertible where Element: AnyConvertable {
     public var description: String { return formatted() }
 }
 
-extension Vector: Equatable where Element: Equatable { }
+extension VectorT: Equatable where Element: Equatable { }
 
-extension Vector: AdditiveArithmetic where Element: Numeric {
-    public static var zero: Vector<Element> {
-        Vector<Element>(element: Element.zero)
+extension VectorT: AdditiveArithmetic where Element: Numeric {
+    public static var zero: VectorT<Element> {
+        VectorT<Element>(element: Element.zero)
     }
 }
 
@@ -102,12 +102,12 @@ public extension VectorView {
     
     //--------------------------------------------------------------------------
     // typed views
-    func createBoolTensor(with extents: Shape.Array) -> Vector<Bool> {
-        Vector<Bool>(extents: extents)
+    func createBoolTensor(with extents: Shape.Array) -> VectorT<Bool> {
+        VectorT<Bool>(extents: extents)
     }
     
-    func createIndexTensor(with extents: Shape.Array) -> Vector<IndexElement> {
-        Vector<IndexElement>(extents: extents)
+    func createIndexTensor(with extents: Shape.Array) -> VectorT<IndexT> {
+        VectorT<IndexT>(extents: extents)
     }
 }
 
@@ -174,7 +174,7 @@ extension VectorView where Self: DifferentiableTensorView {
 
 //==============================================================================
 // Vector
-public struct Vector<Element>: VectorView {
+public struct VectorT<Element>: VectorView {
     // properties
     public let isShared: Bool
     public let format: TensorFormat = .vector
@@ -194,10 +194,10 @@ public struct Vector<Element>: VectorView {
     }
 }
 
-extension Vector: Differentiable & DifferentiableTensorView where
+extension VectorT: Differentiable & DifferentiableTensorView where
     Element: DifferentiableElement
 {
-    public typealias TangentVector = Vector
+    public typealias TangentVector = VectorT
 }
 
 //******************************************************************************
@@ -210,17 +210,17 @@ public protocol MatrixView: TensorView  where Shape == Shape2 { }
 
 public enum MatrixLayout { case rowMajor, columnMajor }
 
-extension Matrix: Codable where Element: Codable {}
+extension MatrixT: Codable where Element: Codable {}
 
-extension Matrix: CustomStringConvertible where Element: AnyConvertable {
+extension MatrixT: CustomStringConvertible where Element: AnyConvertable {
     public var description: String { return formatted() }
 }
 
-extension Matrix: Equatable where Element: Equatable { }
+extension MatrixT: Equatable where Element: Equatable { }
 
-extension Matrix: AdditiveArithmetic where Element: Numeric {
-    public static var zero: Matrix<Element> {
-        Matrix<Element>(element: Element.zero)
+extension MatrixT: AdditiveArithmetic where Element: Numeric {
+    public static var zero: MatrixT<Element> {
+        MatrixT<Element>(element: Element.zero)
     }
 }
 
@@ -332,12 +332,12 @@ public extension MatrixView {
     
     //--------------------------------------------------------------------------
     // typed views
-    func createBoolTensor(with extents: Shape.Array) -> Matrix<Bool> {
-        Matrix<Bool>(extents: extents)
+    func createBoolTensor(with extents: Shape.Array) -> MatrixT<Bool> {
+        MatrixT<Bool>(extents: extents)
     }
     
-    func createIndexTensor(with extents: Shape.Array) -> Matrix<IndexElement> {
-        Matrix<IndexElement>(extents: extents)
+    func createIndexTensor(with extents: Shape.Array) -> MatrixT<IndexT> {
+        MatrixT<IndexT>(extents: extents)
     }
 
     //--------------------------------------------------------------------------
@@ -406,7 +406,7 @@ public extension MatrixView {
 
 //==============================================================================
 // Matrix
-public struct Matrix<Element>: MatrixView {
+public struct MatrixT<Element>: MatrixView {
     // properties
     public let isShared: Bool
     public let format: TensorFormat = .matrix
@@ -426,10 +426,10 @@ public struct Matrix<Element>: MatrixView {
     }
 }
 
-extension Matrix: Differentiable & DifferentiableTensorView where
+extension MatrixT: Differentiable & DifferentiableTensorView where
     Element: DifferentiableElement
 {
-    public typealias TangentVector = Matrix
+    public typealias TangentVector = MatrixT
 }
 
 //******************************************************************************
@@ -440,17 +440,17 @@ extension Matrix: Differentiable & DifferentiableTensorView where
 // VolumeView protocol
 public protocol VolumeView: TensorView  where Shape == Shape3 {}
 
-extension Volume: Codable where Element: Codable {}
+extension VolumeT: Codable where Element: Codable {}
 
-extension Volume: CustomStringConvertible where Element: AnyConvertable {
+extension VolumeT: CustomStringConvertible where Element: AnyConvertable {
     public var description: String { return formatted() }
 }
 
-extension Volume: Equatable where Element: Equatable { }
+extension VolumeT: Equatable where Element: Equatable { }
 
-extension Volume: AdditiveArithmetic where Element: Numeric {
-    public static var zero: Volume<Element> {
-        Volume<Element>(element: Element.zero)
+extension VolumeT: AdditiveArithmetic where Element: Numeric {
+    public static var zero: VolumeT<Element> {
+        VolumeT<Element>(element: Element.zero)
     }
 }
 
@@ -557,12 +557,12 @@ public extension VolumeView {
     
     //--------------------------------------------------------------------------
     // typed views
-    func createBoolTensor(with extents: Shape.Array) -> Volume<Bool> {
-        Volume<Bool>(extents: extents)
+    func createBoolTensor(with extents: Shape.Array) -> VolumeT<Bool> {
+        VolumeT<Bool>(extents: extents)
     }
     
-    func createIndexTensor(with extents: Shape.Array) -> Volume<IndexElement> {
-        Volume<IndexElement>(extents: extents)
+    func createIndexTensor(with extents: Shape.Array) -> VolumeT<IndexT> {
+        VolumeT<IndexT>(extents: extents)
     }
 }
 
@@ -607,7 +607,7 @@ public extension VolumeView {
 
 //==============================================================================
 // Volume
-public struct Volume<Element>: VolumeView {
+public struct VolumeT<Element>: VolumeView {
     // properties
     public let isShared: Bool
     public let format: TensorFormat = .volume
@@ -627,8 +627,8 @@ public struct Volume<Element>: VolumeView {
     }
 }
 
-extension Volume: Differentiable & DifferentiableTensorView where
+extension VolumeT: Differentiable & DifferentiableTensorView where
     Element: DifferentiableElement
 {
-    public typealias TangentVector = Volume
+    public typealias TangentVector = VolumeT
 }

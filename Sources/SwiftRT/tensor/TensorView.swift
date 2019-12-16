@@ -57,7 +57,7 @@ public protocol TensorView: Logging {
         BoolView.Element == Bool, BoolView.Shape == Shape
     /// A concrete type used in generics to return index results
     associatedtype IndexView: TensorView where
-        IndexView.Element == IndexElement, IndexView.Shape == Shape
+        IndexView.Element == IndexT, IndexView.Shape == Shape
     /// tensor shape
     associatedtype Shape: ShapeProtocol
 
@@ -92,7 +92,7 @@ public protocol TensorView: Logging {
     /// creates a new dense tensor where `Element` equals `Bool`
     /// with the specified extents
     func createBoolTensor(with extents: Shape.Array) -> BoolView
-    /// creates a new dense tensor where `Element` equals `IndexElement`
+    /// creates a new dense tensor where `Element` equals `IndexT`
     /// with the specified extents and initial values
     func createIndexTensor(with extents: Shape.Array) -> IndexView
 
@@ -199,11 +199,6 @@ public func makeStepped<T>(view extents: T,
     }
     return (subExtents, subStrides)
 }
-
-//==============================================================================
-/// IndexElement
-/// The data type used for tensors that contain tensor spatial index values
-public typealias IndexElement = Int32
 
 //==============================================================================
 /// ScalarType

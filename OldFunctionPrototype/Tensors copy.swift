@@ -74,7 +74,7 @@ public func makeStepped(view extents: [Int],
 
 //==============================================================================
 // Codable extensions
-extension Vector: Codable where Element: Codable {}
+extension VectorT: Codable where Element: Codable {}
 extension Matrix: Codable where Element: Codable {}
 extension Volume: Codable where Element: Codable {}
 extension NDTensor: Codable where Element: Codable {}
@@ -85,7 +85,7 @@ extension NCHWTensor: Codable where Element: Codable {}
 // VectorView
 public protocol VectorView: TensorView { }
 
-extension Vector: CustomStringConvertible where Element: AnyConvertable {
+extension VectorT: CustomStringConvertible where Element: AnyConvertable {
     public var description: String { return formatted() }
 }
 
@@ -133,12 +133,12 @@ public extension VectorView {
     
     //--------------------------------------------------------------------------
     /// IndexView
-    func createIndexTensor(with extents: [Int]) -> Vector<IndexElement> {
+    func createIndexTensor(with extents: [Int]) -> Vector<IndexT> {
         let shape = DataShape(extents: extents)
         let name = String(describing: Self.self)
-        let array = TensorArray<IndexElement>(count: shape.count,
+        let array = TensorArray<IndexT>(count: shape.count,
                                               name: name)
-        return Vector<IndexElement>(shape: shape, tensorArray: array,
+        return Vector<IndexT>(shape: shape, tensorArray: array,
                                     viewOffset: 0, isShared: false)
     }
 }
@@ -291,12 +291,12 @@ public extension MatrixView {
     
     //--------------------------------------------------------------------------
     /// IndexView
-    func createIndexTensor(with extents: [Int]) -> Matrix<IndexElement> {
+    func createIndexTensor(with extents: [Int]) -> Matrix<IndexT> {
         let shape = DataShape(extents: extents)
         let name = String(describing: Self.self)
-        let array = TensorArray<IndexElement>(count: shape.count,
+        let array = TensorArray<IndexT>(count: shape.count,
                                               name: name)
-        return Matrix<IndexElement>(shape: shape, tensorArray: array,
+        return Matrix<IndexT>(shape: shape, tensorArray: array,
                                     viewOffset: 0, isShared: false)
     }
 
@@ -486,12 +486,12 @@ public extension VolumeView {
     
     //--------------------------------------------------------------------------
     /// IndexView
-    func createIndexTensor(with extents: [Int]) -> Volume<IndexElement> {
+    func createIndexTensor(with extents: [Int]) -> Volume<IndexT> {
         let shape = DataShape(extents: extents)
         let name = String(describing: Self.self)
-        let array = TensorArray<IndexElement>(count: shape.count,
+        let array = TensorArray<IndexT>(count: shape.count,
                                               name: name)
-        return Volume<IndexElement>(shape: shape, tensorArray: array,
+        return Volume<IndexT>(shape: shape, tensorArray: array,
                                     viewOffset: 0, isShared: false)
     }
 }
@@ -611,12 +611,12 @@ public extension NDTensorView {
     
     //--------------------------------------------------------------------------
     /// IndexView
-    func createIndexTensor(with extents: [Int]) -> NDTensor<IndexElement> {
+    func createIndexTensor(with extents: [Int]) -> NDTensor<IndexT> {
         let shape = DataShape(extents: extents)
         let name = String(describing: Self.self)
-        let array = TensorArray<IndexElement>(count: shape.count,
+        let array = TensorArray<IndexT>(count: shape.count,
                                               name: name)
-        return NDTensor<IndexElement>(shape: shape, tensorArray: array,
+        return NDTensor<IndexT>(shape: shape, tensorArray: array,
                                       viewOffset: 0, isShared: false)
     }
 }
@@ -744,12 +744,12 @@ public extension NCHWTensorView {
     
     //--------------------------------------------------------------------------
     /// IndexView
-    func createIndexTensor(with extents: [Int]) -> NCHWTensor<IndexElement> {
+    func createIndexTensor(with extents: [Int]) -> NCHWTensor<IndexT> {
         let shape = DataShape(extents: extents)
         let name = String(describing: Self.self)
-        let array = TensorArray<IndexElement>(count: shape.count,
+        let array = TensorArray<IndexT>(count: shape.count,
                                               name: name)
-        return NCHWTensor<IndexElement>(shape: shape, tensorArray: array,
+        return NCHWTensor<IndexT>(shape: shape, tensorArray: array,
                                         viewOffset: 0, isShared: false)
     }
 }
@@ -887,12 +887,12 @@ public extension NHWCTensorView {
     
     //--------------------------------------------------------------------------
     /// IndexView
-    func createIndexTensor(with extents: [Int]) -> NHWCTensor<IndexElement> {
+    func createIndexTensor(with extents: [Int]) -> NHWCTensor<IndexT> {
         let shape = DataShape(extents: extents)
         let name = String(describing: Self.self)
-        let array = TensorArray<IndexElement>(count: shape.count,
+        let array = TensorArray<IndexT>(count: shape.count,
                                               name: name)
-        return NHWCTensor<IndexElement>(shape: shape, tensorArray: array,
+        return NHWCTensor<IndexT>(shape: shape, tensorArray: array,
                                         viewOffset: 0, isShared: false)
     }
 }

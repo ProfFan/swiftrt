@@ -38,7 +38,7 @@ public extension CpuQueue {
     
     //--------------------------------------------------------------------------
     /// all
-    func all<T>(x: T, along axes: Vector<IndexElement>?, result: inout T) where
+    func all<T>(x: T, along axes: Vector<IndexT>?, result: inout T) where
         T: TensorView, T.Element == Bool
     {
         queue(#function, { try x.elements() }, &result) {
@@ -48,7 +48,7 @@ public extension CpuQueue {
     
     //--------------------------------------------------------------------------
     /// any
-    func any<T>(x: T, along axes: Vector<IndexElement>?, result: inout T) where
+    func any<T>(x: T, along axes: Vector<IndexT>?, result: inout T) where
         T: TensorView, T.Element == Bool
     {
         queue(#function, { try x.elements() }, &result) {
@@ -70,7 +70,7 @@ public extension CpuQueue {
     
     //--------------------------------------------------------------------------
     /// argmax
-    func argmax<T>(x: T, along axes: Vector<IndexElement>?,
+    func argmax<T>(x: T, along axes: Vector<IndexT>?,
                    result: inout T.IndexView) where
         T: TensorView, T.Element: Numeric
     {
@@ -79,7 +79,7 @@ public extension CpuQueue {
     
     //--------------------------------------------------------------------------
     /// argmin
-    func argmin<T>(x: T, along axes: Vector<IndexElement>?,
+    func argmin<T>(x: T, along axes: Vector<IndexT>?,
                    result: inout T.IndexView) where
         T: TensorView, T.Element: Numeric
     {
@@ -88,7 +88,7 @@ public extension CpuQueue {
     
     //--------------------------------------------------------------------------
     /// asum
-    func asum<T>(x: T, along axes: Vector<IndexElement>?, result: inout T) where
+    func asum<T>(x: T, along axes: Vector<IndexT>?, result: inout T) where
         T: TensorView, T.Element: FloatingPoint
     {
         queue(#function, { try x.elements() }, &result) {
@@ -343,7 +343,7 @@ public extension CpuQueue {
     
     //--------------------------------------------------------------------------
     /// mean
-    func mean<T>(x: T, along axes: Vector<IndexElement>?, result: inout T) where
+    func mean<T>(x: T, along axes: Vector<IndexT>?, result: inout T) where
         T: TensorView, T.Element: FloatingPoint
     {
         if let axes = axes, axes.shape.extents[0] > 0 {
@@ -435,7 +435,7 @@ public extension CpuQueue {
 
     //--------------------------------------------------------------------------
     // prod
-    func prod<T>(x: T, along axes: Vector<IndexElement>?, result: inout T) where
+    func prod<T>(x: T, along axes: Vector<IndexT>?, result: inout T) where
         T: TensorView, T.Element: AnyNumeric
     {
         let one = T.Element(any: 1)
@@ -538,7 +538,7 @@ public extension CpuQueue {
     
     //--------------------------------------------------------------------------
     // sum
-    func sum<T>(x: T, along axes: Vector<IndexElement>?, result: inout T) where
+    func sum<T>(x: T, along axes: Vector<IndexT>?, result: inout T) where
         T: TensorView, T.Element: Numeric
     {
         if let axes = axes, axes.shape.extents[0] > 0 {

@@ -34,12 +34,12 @@ class test_Codable: XCTestCase {
         do {
             let jsonEncoder = JSONEncoder()
             let expected = stride(from: -2.0, to: 2.0, by: 0.5).map { Float($0)}
-            let vector = Vector<Float>(elements: expected)
+            let vector = Vector(elements: expected)
             let jsonData = try jsonEncoder.encode(vector)
 //            let jsonVectorString = String(data: jsonData, encoding: .utf8)!
 //            print(jsonVectorString)
             let decoder = JSONDecoder()
-            let vector2 = try decoder.decode(Vector<Float>.self, from: jsonData)
+            let vector2 = try decoder.decode(Vector.self, from: jsonData)
             let values = try vector2.flatArray()
             XCTAssert(values == expected)
         } catch {

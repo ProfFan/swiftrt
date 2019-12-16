@@ -28,12 +28,12 @@ public protocol DeviceIntrinsics {
     /// Returns `true` if all values are `true`. Otherwise, returns `false`.
     /// - Parameter x: the tensor value
     /// - Parameter axes: The axes to reduce
-    func all<T>(x: T, along axes: Vector<IndexElement>?, result: inout T)
+    func all<T>(x: T, along axes: Vector<IndexT>?, result: inout T)
         where T: TensorView, T.Element == Bool
     /// Returns `true` if any values are`true`. Otherwise, returns `false`.
     /// - Parameter x: the tensor value
     /// - Parameter axes: The axes to reduce
-    func any<T>(x: T, along axes: Vector<IndexElement>?, result: inout T)
+    func any<T>(x: T, along axes: Vector<IndexT>?, result: inout T)
         where T: TensorView, T.Element == Bool
     /// Performs a point wise comparison within the specified tolerance
     func approximatelyEqual<T>(lhs: T, rhs: T,
@@ -45,7 +45,7 @@ public protocol DeviceIntrinsics {
     /// - Parameter x: the tensor value
     /// - Parameter axes: The axes to reduce
     /// - Precondition: Each value in `axes` must be in the range `-rank..<rank`
-    func argmax<T>(x: T, along axes: Vector<IndexElement>?,
+    func argmax<T>(x: T, along axes: Vector<IndexT>?,
                    result: inout T.IndexView) where
         T: TensorView, T.Element: Numeric
     /// Returns the indices of the minimum values along the specified axes. The
@@ -53,13 +53,13 @@ public protocol DeviceIntrinsics {
     /// - Parameter x: the tensor value
     /// - Parameter axes: The axes to reduce
     /// - Precondition: Each value in `axes` must be in the range `-rank..<rank`
-    func argmin<T>(x: T, along axes: Vector<IndexElement>?,
+    func argmin<T>(x: T, along axes: Vector<IndexT>?,
                    result: inout T.IndexView) where
         T: TensorView, T.Element: Numeric
     /// Sums the absolute value of the input along the specified axes
     /// - Parameter x: the tensor value
     /// - Parameter axes: The axes to reduce
-    func asum<T>(x: T, along axes: Vector<IndexElement>?, result: inout T) where
+    func asum<T>(x: T, along axes: Vector<IndexT>?, result: inout T) where
         T: TensorView, T.Element: FloatingPoint
     /// cast scalar types
     /// - Parameter from: the input data
@@ -149,7 +149,7 @@ public protocol DeviceIntrinsics {
     /// - Parameter x: the tensor value
     /// - Parameter axes: The axes to reduce
     /// - Precondition: Each value in `axes` must be in the range `-rank...rank`
-    func mean<T>(x: T, along axes: Vector<IndexElement>?, result: inout T) where
+    func mean<T>(x: T, along axes: Vector<IndexT>?, result: inout T) where
         T: TensorView, T.Element: FloatingPoint
     /// Returns the minimum values along the specified axes. The reduced
     /// dimensions are removed.
@@ -181,7 +181,7 @@ public protocol DeviceIntrinsics {
     /// - Parameter x: the tensor value
     /// - Parameter axes: The axes to reduce
     /// - Precondition: Each value in `axes` must be in the range `-rank...rank`
-    func prod<T>(x: T, along axes: Vector<IndexElement>?, result: inout T) where
+    func prod<T>(x: T, along axes: Vector<IndexT>?, result: inout T) where
         T: TensorView, T.Element: AnyNumeric
     /// Replaces elements of `x` with `other` in the lanes where `mask` is`true`
     ///
@@ -216,7 +216,7 @@ public protocol DeviceIntrinsics {
     /// Sums the input along the specified axes
     /// - Parameter x: the tensor value
     /// - Parameter axes: The axes to reduce
-    func sum<T>(x: T, along axes: Vector<IndexElement>?, result: inout T) where
+    func sum<T>(x: T, along axes: Vector<IndexT>?, result: inout T) where
         T: TensorView, T.Element: Numeric
     /// Computes the element-wise `tan`
     func tan<T>(x: T, result: inout T) where

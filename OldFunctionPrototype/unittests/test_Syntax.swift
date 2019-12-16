@@ -75,7 +75,7 @@ class test_Syntax: XCTestCase {
         ]
         
         do {
-            let matrix = Matrix<Float>((3, 5), with: 0..<15)
+            let matrix = Matrix((3, 5), with: 0..<15)
             let sum = try matrix.sum().asElement()
             XCTAssert(sum == 105.0)
         } catch {

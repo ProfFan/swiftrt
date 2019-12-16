@@ -16,7 +16,7 @@ import Foundation
 /// - Parameter result: the scalar tensor where the result will be written
 /// - Precondition: Each value in `axes` must be in the range `-rank..<rank`.
 @inlinable @inline(__always)
-public func all<T>(_ x: T, alongAxes axes: Vector<IndexElement>? = nil,
+public func all<T>(_ x: T, alongAxes axes: Vector<IndexT>? = nil,
                    result: inout T)
     where T: TensorView, T.Element == Bool
 {
@@ -31,7 +31,7 @@ public extension TensorView where Element == Bool {
     @inlinable @inline(__always)
     func all(alongAxes: Int...) -> Self {
         // turn into a vector
-        let axes = Vector<IndexElement>(
+        let axes = Vector<IndexT>(
             with: shape.makePositive(indices: alongAxes))
         var result = createDense()
         SwiftRT.all(self, alongAxes: axes, result: &result)
@@ -53,7 +53,7 @@ public extension TensorView where Element == Bool {
     @inlinable @inline(__always)
     func all(squeezing: Int...) -> NDTensor<Element> {
         let axes = shape.makePositive(indices: squeezing)
-        let axesVec = Vector<IndexElement>(with: axes)
+        let axesVec = Vector<IndexT>(with: axes)
         var result = createDense()
         SwiftRT.all(self, alongAxes: axesVec, result: &result)
         return result.squeezed(axes: axes)
@@ -72,7 +72,7 @@ public extension TensorView where Element == Bool {
 /// - Parameter result: the scalar tensor where the result will be written
 /// - Precondition: Each value in `axes` must be in the range `-rank..<rank`.
 @inlinable @inline(__always)
-public func mean<T>(_ x: T, alongAxes axes: Vector<IndexElement>? = nil,
+public func mean<T>(_ x: T, alongAxes axes: Vector<IndexT>? = nil,
                     result: inout T)
     where T: TensorView, T.Element: BinaryFloatingPoint
 {
@@ -85,7 +85,7 @@ public func mean<T>(_ x: T, alongAxes axes: Vector<IndexElement>? = nil,
 /// - Parameter result: the scalar tensor where the result will be written
 /// - Precondition: Each value in `axes` must be in the range `-rank..<rank`.
 @inlinable @inline(__always)
-public func mean<T>(_ x: T, alongAxes axes: Vector<IndexElement>? = nil) -> T
+public func mean<T>(_ x: T, alongAxes axes: Vector<IndexT>? = nil) -> T
     where T: TensorView, T.Element: BinaryFloatingPoint
 {
     let extents = [Int](repeating: 1, count: x.rank)
@@ -100,7 +100,7 @@ public func mean<T>(_ x: T, alongAxes axes: Vector<IndexElement>? = nil) -> T
 /// - Precondition: Each value in `axes` must be in the range `-rank..<rank`.
 public extension TensorView where Element: BinaryFloatingPoint {
     @inlinable @inline(__always)
-    func mean(alongAxes axes: Vector<IndexElement>? = nil) -> Self {
+    func mean(alongAxes axes: Vector<IndexT>? = nil) -> Self {
         var result = createDense()
         SwiftRT.mean(self, alongAxes: axes, result: &result)
         return result
@@ -109,7 +109,7 @@ public extension TensorView where Element: BinaryFloatingPoint {
     @inlinable @inline(__always)
     func mean(alongAxes: [Int]) -> Self {
         // turn into a vector
-        let axes = Vector<IndexElement>(
+        let axes = Vector<IndexT>(
             with: shape.makePositive(indices: alongAxes))
         return mean(alongAxes: axes)
     }
@@ -134,7 +134,7 @@ public extension TensorView where Element: BinaryFloatingPoint {
     @inlinable @inline(__always)
     func mean(squeezingAxes: Int...) -> NDTensor<Element> {
         let axes = shape.makePositive(indices: squeezingAxes)
-        let axesVec = Vector<IndexElement>(with: axes)
+        let axesVec = Vector<IndexT>(with: axes)
         var result = createDense()
         SwiftRT.mean(self, alongAxes: axesVec, result: &result)
         return result.squeezed(axes: axes)
@@ -153,7 +153,7 @@ public extension TensorView where Element: BinaryFloatingPoint {
 /// - Parameter result: the scalar tensor where the result will be written
 /// - Precondition: Each value in `axes` must be in the range `-rank..<rank`.
 @inlinable @inline(__always)
-public func sum<T>(_ x: T, alongAxes axes: Vector<IndexElement>? = nil,
+public func sum<T>(_ x: T, alongAxes axes: Vector<IndexT>? = nil,
                    result: inout T)
     where T: TensorView, T.Element: Numeric
 {
@@ -166,7 +166,7 @@ public func sum<T>(_ x: T, alongAxes axes: Vector<IndexElement>? = nil,
 /// - Parameter result: the scalar tensor where the result will be written
 /// - Precondition: Each value in `axes` must be in the range `-rank..<rank`.
 @inlinable @inline(__always)
-public func sum<T>(_ x: T, alongAxes axes: Vector<IndexElement>? = nil) -> T
+public func sum<T>(_ x: T, alongAxes axes: Vector<IndexT>? = nil) -> T
     where T: TensorView, T.Element: Numeric
 {
     let extents = [Int](repeating: 1, count: x.rank)
@@ -183,7 +183,7 @@ public extension TensorView where Element: Numeric {
     @inlinable @inline(__always)
     func sum(alongAxes: Int...) -> Self {
         // turn into a vector
-        let axes = Vector<IndexElement>(
+        let axes = Vector<IndexT>(
             with: shape.makePositive(indices: alongAxes))
         var result = createDense()
         SwiftRT.sum(self, alongAxes: axes, result: &result)
@@ -205,7 +205,7 @@ public extension TensorView where Element: Numeric {
     @inlinable @inline(__always)
     func sum(squeezingAxes: Int...) -> NDTensor<Element> {
         let axes = shape.makePositive(indices: squeezingAxes)
-        let axesVec = Vector<IndexElement>(with: axes)
+        let axesVec = Vector<IndexT>(with: axes)
         var result = createDense()
         SwiftRT.sum(self, alongAxes: axesVec, result: &result)
         return result.squeezed(axes: axes)
@@ -225,7 +225,7 @@ public extension TensorView where Element: Numeric {
 /// - Parameter result: the scalar tensor where the result will be written
 /// - Precondition: Each value in `axes` must be in the range `-rank..<rank`.
 @inlinable @inline(__always)
-public func variance<T>(_ x: T, alongAxes axes: Vector<IndexElement>? = nil,
+public func variance<T>(_ x: T, alongAxes axes: Vector<IndexT>? = nil,
                         mean: inout T, result: inout T)
     where T: TensorView, T.Element: BinaryFloatingPoint
 {
@@ -244,7 +244,7 @@ public func variance<T>(_ x: T, alongAxes axes: Vector<IndexElement>? = nil,
 /// - Parameter result: the scalar tensor where the result will be written
 /// - Precondition: Each value in `axes` must be in the range `-rank..<rank`.
 @inlinable @inline(__always)
-public func variance<T>(_ x: T, alongAxes axes: Vector<IndexElement>? = nil)
+public func variance<T>(_ x: T, alongAxes axes: Vector<IndexT>? = nil)
     -> (mean: T, variance: T)
     where T: TensorView, T.Element: BinaryFloatingPoint
 {
@@ -263,7 +263,7 @@ public extension TensorView where Element: BinaryFloatingPoint {
     func variance(alongAxes: [Int]) -> (mean: Self, variance: Self) {
         // turn into a vector
         let positiveAxes = shape.makePositive(indices: alongAxes)
-        let axes = Vector<IndexElement>(with: positiveAxes)
+        let axes = Vector<IndexT>(with: positiveAxes)
         return SwiftRT.variance(self, alongAxes: axes)
     }
 
@@ -306,7 +306,7 @@ public extension TensorView where Element: BinaryFloatingPoint {
 /// - Precondition: Each value in `axes` must be in the range `-rank..<rank`.
 @inlinable @inline(__always)
 public func standardDeviation<T>(_ x: T,
-                                 alongAxes axes: Vector<IndexElement>? = nil,
+                                 alongAxes axes: Vector<IndexT>? = nil,
                                  mean: inout T, result: inout T)
     where T: TensorView, T.Element: BinaryFloatingPoint
 {
@@ -322,7 +322,7 @@ public func standardDeviation<T>(_ x: T,
 /// - Precondition: Each value in `axes` must be in the range `-rank..<rank`.
 @inlinable @inline(__always)
 public func standardDeviation<T>(_ x: T,
-                                 alongAxes axes: Vector<IndexElement>? = nil)
+                                 alongAxes axes: Vector<IndexT>? = nil)
     -> (mean: T, variance: T)
     where T: TensorView, T.Element: BinaryFloatingPoint
 {
@@ -341,7 +341,7 @@ public extension TensorView where Element: BinaryFloatingPoint {
     func standardDeviation(alongAxes: [Int]) -> (mean: Self, variance: Self) {
         // turn into a vector
         let positiveAxes = shape.makePositive(indices: alongAxes)
-        let axes = Vector<IndexElement>(with: positiveAxes)
+        let axes = Vector<IndexT>(with: positiveAxes)
         return SwiftRT.standardDeviation(self, alongAxes: axes)
     }
     

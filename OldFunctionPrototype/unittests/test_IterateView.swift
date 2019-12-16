@@ -45,7 +45,7 @@ class test_IterateView: XCTestCase {
         do {
             let count: Int32 = 10
             let expected = [Int32](0..<count)
-            let vector = Vector<Int32>(elements: expected)
+            let vector = IndexVector(elements: expected)
             print(vector.formatted((2,0)))
             
             let values = try vector.flatArray()
@@ -89,7 +89,7 @@ class test_IterateView: XCTestCase {
     // test_VectorSubView
     func test_VectorSubView() {
         do {
-            let vector = Vector<Int32>(with: 0..<10)
+            let vector = IndexVector(with: 0..<10)
             let view = vector.view(at: [2], extents: [3])
             //            print(subView.formatted((2,0)))
             
@@ -148,7 +148,7 @@ class test_IterateView: XCTestCase {
         #if !DEBUG
         do {
             let count = 1024 * 1024
-            let vector = Vector<Int32>(any: 0..<count)
+            let vector = IndexVector(any: 0..<count)
             //            print(matrix.formatted((2,0)))
             let values = try vector.elements()
             

@@ -40,7 +40,7 @@ class test_Reductions: XCTestCase {
     func test_sumVector() {
         Platform.local.servicePriority = [cpuSynchronousServiceName]
         
-        let m = Vector<Float>(with: [0, 1, 2, 3])
+        let m = Vector(with: [0, 1, 2, 3])
         let result = m.sum()
         XCTAssert(result.extents == [1])
         XCTAssert(result.element == 6)
@@ -51,7 +51,7 @@ class test_Reductions: XCTestCase {
     func test_sumMatrix() {
         Platform.local.servicePriority = [cpuSynchronousServiceName]
 
-        let m = Matrix<Float>(3, 2, with: [
+        let m = Matrix(3, 2, with: [
             0, 1,
             2, 3,
             4, 5
@@ -98,7 +98,7 @@ class test_Reductions: XCTestCase {
     func test_abssumMatrix() {
         Platform.local.servicePriority = [cpuSynchronousServiceName]
 
-        let m = Matrix<Float>(3, 2, with: [
+        let m = Matrix(3, 2, with: [
             0, -1,
             -2, 3,
             4, -5
@@ -146,17 +146,17 @@ class test_Reductions: XCTestCase {
         Platform.local.servicePriority = [cpuSynchronousServiceName]
         
         do {
-            let m = Vector(elements: [true, true, true])
+            let m = BoolVector(elements: [true, true, true])
             XCTAssert(m.all().element == true)
         }
         
         do {
-            let m = Vector(elements: [true, false, true])
+            let m = BoolVector(elements: [true, false, true])
             XCTAssert(m.all().element == false)
         }
 
         do {
-            let m = Vector(elements: [false, false, false])
+            let m = BoolVector(elements: [false, false, false])
             XCTAssert(m.all().element == false)
         }
     }
@@ -167,17 +167,17 @@ class test_Reductions: XCTestCase {
         Platform.local.servicePriority = [cpuSynchronousServiceName]
         
         do {
-            let m = Vector(elements: [true, true, true])
+            let m = BoolVector(elements: [true, true, true])
             XCTAssert(m.any().element == true)
         }
         
         do {
-            let m = Vector(elements: [false, false, true])
+            let m = BoolVector(elements: [false, false, true])
             XCTAssert(m.any().element == true)
         }
         
         do {
-            let m = Vector(elements: [false, false, false])
+            let m = BoolVector(elements: [false, false, false])
             XCTAssert(m.any().element == false)
         }
     }
@@ -185,7 +185,7 @@ class test_Reductions: XCTestCase {
     //--------------------------------------------------------------------------
     // test_maxMatrix
     func test_maxMatrix() {
-        let m = Matrix<Float>(with:
+        let m = Matrix(with:
             [
                 [-1, 3, -6],
                 [1, -3,  6],
@@ -216,7 +216,7 @@ class test_Reductions: XCTestCase {
     //--------------------------------------------------------------------------
     // test_minMatrix
     func test_minMatrix() {
-        let m = Matrix<Float>(with:
+        let m = Matrix(with:
             [
                 [-1, 3, -6],
                 [1, -3,  6],
@@ -247,7 +247,7 @@ class test_Reductions: XCTestCase {
     //--------------------------------------------------------------------------
     // test_absmaxMatrix
     func test_absmaxMatrix() {
-        let m = Matrix<Float>(with:
+        let m = Matrix(with:
             [
                 [-1, 3, -6],
                 [1, -3,  6],
@@ -280,7 +280,7 @@ class test_Reductions: XCTestCase {
         func test_meanMatrix() {
             Platform.local.servicePriority = [cpuSynchronousServiceName]
 
-            let m = Matrix<Float>(3, 2, with: [
+            let m = Matrix(3, 2, with: [
                 0, 1,
                 2, 3,
                 4, 5
@@ -327,7 +327,7 @@ class test_Reductions: XCTestCase {
     func test_sqrtSumSquaresMatrix() {
         Platform.local.servicePriority = [cpuSynchronousServiceName]
 
-        let m = Matrix<Float>(with: [
+        let m = Matrix(with: [
             [0, 1],
             [2, 3],
             [4, 5]
@@ -370,7 +370,7 @@ class test_Reductions: XCTestCase {
     func test_sqrtSumSquaresVolume() {
         Platform.local.servicePriority = [cpuSynchronousServiceName]
         
-        let m = Volume<Float>(with: [
+        let m = Volume(with: [
             [
                 [ 0,  1],
                 [ 2,  3],

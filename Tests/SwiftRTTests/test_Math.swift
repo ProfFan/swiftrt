@@ -32,8 +32,8 @@ class test_Math: XCTestCase {
     //--------------------------------------------------------------------------
     // test_concat
     func test_concat() {
-        let t1 = Matrix<Float>(2, 3, with: 1...6)
-        let t2 = Matrix<Float>(2, 3, with: 7...12)
+        let t1 = Matrix(2, 3, with: 1...6)
+        let t2 = Matrix(2, 3, with: 7...12)
         let c1 = t1.concat(t2)
         XCTAssert(c1.extents == [4, 3])
         let c1Expected: [Float] = [
@@ -58,12 +58,12 @@ class test_Math: XCTestCase {
     func test_exp() {
         Platform.local.servicePriority = [cpuSynchronousServiceName]
         let range = 0..<6
-        let matrix = Matrix<Float>(3, 2, with: range)
+        let matrix = Matrix(3, 2, with: range)
         let values = exp(matrix).flatArray
         let expected: [Float] = range.map { Foundation.exp(Float($0)) }
         XCTAssert(values == expected)
         
-        let m2 = Matrix<Float>(3, 2, with: 1...6)
+        let m2 = Matrix(3, 2, with: 1...6)
         XCTAssert(gradientIsValid(at: m2, tolerance: 0.7, in: { exp($0) }))
     }
 
@@ -72,12 +72,12 @@ class test_Math: XCTestCase {
     func test_log() {
         Platform.local.servicePriority = [cpuSynchronousServiceName]
         let range = 0..<6
-        let matrix = Matrix<Float>(3, 2, with: range)
+        let matrix = Matrix(3, 2, with: range)
         let values = log(matrix).flatArray
         let expected: [Float] = range.map { Foundation.log(Float($0)) }
         XCTAssert(values == expected)
         
-        let m2 = Matrix<Float>(3, 2, with: 1...6)
+        let m2 = Matrix(3, 2, with: 1...6)
         XCTAssert(gradientIsValid(at: m2, in: { log($0) }))
     }
     
@@ -85,7 +85,7 @@ class test_Math: XCTestCase {
     // test_neg
     func test_neg() {
         let range = 0..<6
-        let matrix = Matrix<Float>(3, 2, with: range)
+        let matrix = Matrix(3, 2, with: range)
         let expected: [Float] = range.map { -Float($0) }
 
         let values = matrix.neg().flatArray
@@ -94,19 +94,19 @@ class test_Math: XCTestCase {
         let values2 = -matrix
         XCTAssert(values2.flatArray == expected)
 
-        let m2 = Matrix<Float>(3, 2, with: 1...6)
+        let m2 = Matrix(3, 2, with: 1...6)
         XCTAssert(gradientIsValid(at: m2, tolerance: 0.002, in: { neg($0) }))
     }
     
     //--------------------------------------------------------------------------
     // test_squared
     func test_squared() {
-        let matrix = Matrix<Float>(3, 2, with: [0, -1, 2, -3, 4, 5])
+        let matrix = Matrix(3, 2, with: [0, -1, 2, -3, 4, 5])
         let values = matrix.squared().flatArray
         let expected: [Float] = (0...5).map { Float($0 * $0) }
         XCTAssert(values == expected)
 
-        let m2 = Matrix<Float>(3, 2, with: 1...6)
+        let m2 = Matrix(3, 2, with: 1...6)
         XCTAssert(gradientIsValid(at: m2, tolerance: 0.02, in: { squared($0) }))
     }
 }
