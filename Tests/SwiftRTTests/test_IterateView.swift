@@ -55,37 +55,37 @@ class test_IterateView: XCTestCase {
     //==========================================================================
     // test_VectorRange
     func test_VectorRange() {
-        let vector = IndexVector(with: 0...10)
-        let values = vector[0...].flatArray
-        XCTAssert(values == [Int32](0...10))
+        let vector = IndexVector(with: 0..<10)
+        let values = vector[(0), (0)].flatArray
+        XCTAssert(values == [Int32](0..<10))
 
         // negative values work back from the end
-        let values2 = vector[(-4)...(-2)].flatArray
-        XCTAssert(values2 == [Int32](6...8))
+        let values2 = vector[(-4), (2)].flatArray
+        XCTAssert(values2 == [Int32](6..<8))
     }
 
     //==========================================================================
     // test_VectorSteppedRange
     func test_VectorSteppedRange() {
-        let vector = IndexVector(with: 0...10)
-        let v1 = vector[(1..<3, 2)].flatArray
+        let vector = IndexVector(with: 0..<10)
+        let v1 = vector[(1), (2), (2)].flatArray
         XCTAssert(v1.count == 1)
-        let v2 = vector[(1..<4, 2)].flatArray
+        let v2 = vector[(1), (4), (2)].flatArray
         XCTAssert(v2.count == 2)
-        let v3 = vector[(1..<5, 2)].flatArray
+        let v3 = vector[(1), (4), (2)].flatArray
         XCTAssert(v3.count == 2)
 
-        let v4 = vector[(1..<5, 3)].flatArray
+        let v4 = vector[(1), (5), (3)].flatArray
         XCTAssert(v4.count == 2)
         let e4: [Int32] = [1, 4]
         XCTAssert(v4 == e4)
 
-        let v5 = vector[(1..<6, 3)].flatArray
+        let v5 = vector[(1), (6), (3)].flatArray
         XCTAssert(v5.count == 2)
         let e5: [Int32] = [1, 4]
         XCTAssert(v5 == e5)
 
-        let v6 = vector[(1..<8, 3)].flatArray
+        let v6 = vector[(1), (8), (3)].flatArray
         XCTAssert(v6.count == 3)
         let e6: [Int32] = [1, 4, 7]
         XCTAssert(v6 == e6)
@@ -103,12 +103,12 @@ class test_IterateView: XCTestCase {
     // test_MatrixRange
     func test_MatrixRange() {
         let m = IndexMatrix(2, 5, with: 0..<10)
-        let v1 = m[...1, 1...3].flatArray
+        let v1 = m[(0, 1), (2, 3)].flatArray
         let expected1: [Int32] = [1, 2, 3, 6, 7, 8]
         XCTAssert(v1 == expected1)
         
         let m2 = IndexMatrix(5, 5, with: 0..<25)
-        let v2 = m2[1..<4, 1..<4].flatArray
+        let v2 = m2[(1, 1), (3, 3)].flatArray
         let expected2: [Int32] = [6, 7, 8, 11, 12, 13, 16, 17, 18]
         XCTAssert(v2 == expected2)
     }
@@ -117,7 +117,7 @@ class test_IterateView: XCTestCase {
     // test_MatrixSteppedRange
     func test_MatrixSteppedRange() {
         let m = IndexMatrix(2, 5, with: 0..<10)
-        let v1 = m[(0..., by: 1), (1...3, by: 2)].flatArray
+        let v1 = m[(0, 1), (0, 3), (1, 2)].flatArray
         let expected1: [Int32] = [1, 3, 6, 8]
         XCTAssert(v1 == expected1)
     }

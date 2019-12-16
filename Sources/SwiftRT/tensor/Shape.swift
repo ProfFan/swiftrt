@@ -145,6 +145,17 @@ public struct ShapeArray<Storage> : ShapeArrayProtocol {
 
 //==============================================================================
 //
+extension ShapeArrayProtocol {
+    @inlinable  @inline(__always)
+    func map(_ transform: (Element) -> Element) -> Self {
+        var result = self
+        zip(result.indices, self).forEach { result[$0] = transform($1) }
+        return result
+    }
+}
+
+//==============================================================================
+//
 public protocol ShapeProtocol: Codable {
     // types
     associatedtype Array: ShapeArrayProtocol

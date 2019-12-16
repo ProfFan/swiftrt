@@ -150,57 +150,6 @@ public protocol DifferentiableTensorView: TensorView & Differentiable where
     Self == TangentVector, Element: DifferentiableElement {}
 
 //==============================================================================
-// view subscripting helpers
-public func resolve<R>(range: R, count: Int) -> Range<Int> where
-    R: RangeExpression, R.Bound == Int
-{
-    let count = count - 1
-    let r = range.relative(to: -count..<count + 1)
-    let lower = r.lowerBound < 0 ? r.lowerBound + count : r.lowerBound
-    let upper = r.upperBound < 0 ? r.upperBound + count : r.upperBound
-    return lower..<upper
-}
-
-/// makePositive(range:count:
-/// - Parameter range: a range expression specifying the bounds of
-/// the desired range. Negative bounds are relative to the end of the range
-/// - Parameter count: the number of elements in the collection that
-/// the range calculation should be relative to.
-/// - Returns: a positive range relative to the specified bounding `count`
-public func resolve(range: RangeInterval, count: Int)
-    -> ResolvedRangeInterval
-{
-    var from = range.from ?? 0
-    if from < 0 { from += count }
-    var to = range.to ?? count
-    if to < 0 { to += count }
-    return (from, to, range.step ?? 1)
-}
-
-/// makeStepped(view:parent:steps:
-/// computes the extents and strides for creating a stepped subview
-/// - Parameter view: the extents of the desired view in parent coordinates
-/// - Parameter parent: the strides of the parent view
-/// - Parameter steps: the step interval along each dimension
-/// - Returns: the extents and strides to be used to create a subview
-public func makeStepped<T>(view extents: T,
-                           parent strides: T,
-                           steps: T) -> (extents: T, strides: T)
-    where T: ShapeArrayProtocol
-{
-    var subExtents = extents
-    zip(extents, steps).enumerated().forEach {
-        subExtents[$0] = $1.0 / $1.1 + ($1.0 % $1.1 == 0 ? 0 : 1)
-    }
-
-    var subStrides = strides
-    zip(strides, steps).enumerated().forEach {
-        subStrides[$0] = $1.0 * $1.1
-    }
-    return (subExtents, subStrides)
-}
-
-//==============================================================================
 /// ScalarType
 /// Used primarily for serialization, C APIs, and Cuda kernels
 // TODO: maybe remove this after Cuda integration if not used
@@ -281,8 +230,8 @@ public extension TensorView {
     //--------------------------------------------------------------------------
     /// createView
     /// Returns a view of the tensorArray relative to this view
-    private func createView(at offset: Shape.Array, extents: Shape.Array,
-                            strides: Shape.Array, isReference: Bool) -> Self {
+    func createView(at offset: Shape.Array, extents: Shape.Array,
+                    strides: Shape.Array, isReference: Bool) -> Self {
         // validate
         assert(offset.count == shape.rank && extents.count == shape.rank)
         assert(shape.contains(offset: offset, extents: extents))

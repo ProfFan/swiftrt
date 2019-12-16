@@ -37,6 +37,17 @@ extension VectorT: AdditiveArithmetic where Element: Numeric {
 // MatrixView extensions
 public extension VectorView {
     //--------------------------------------------------------------------------
+    // TODO: probably move these off onto the TensorViewCollection
+    var startIndex: VectorIndex { return VectorIndex(view: self, at: (0)) }
+    var endIndex: VectorIndex { return VectorIndex(endOf: self) }
+
+    @inlinable @inline(__always)
+    subscript(index: Int) -> Self {
+        get { self[(index), (1)] }
+        set { self[(index), (1)] = newValue }
+    }
+
+    //--------------------------------------------------------------------------
     /// reserved space
     init(extents: Shape.Array, name: String? = nil) {
         self = Self.create(Shape(extents: extents), name)
@@ -112,67 +123,6 @@ public extension VectorView {
 }
 
 //==============================================================================
-// range subscripting
-public extension VectorView {
-    //--------------------------------------------------------------------------
-    // TODO: probably move these off onto the TensorViewCollection
-    var startIndex: VectorIndex { return VectorIndex(view: self, at: (0)) }
-    var endIndex: VectorIndex { return VectorIndex(endOf: self) }
-    
-    @inlinable @inline(__always)
-    subscript(r: UnboundedRange) -> Self { self }
-
-    // TODO(TF-281): Rewrite `@differentiable` attribute as a `@differentiating`
-    // attribute when `@differentiating` supports subscript declaration
-    // references.
-    @differentiable(vjp: _vjpSubscript where Self: DifferentiableTensorView)
-    @inlinable @inline(__always)
-    subscript<R>(r: R) -> Self where
-        R: RangeExpression, R.Bound == Int
-    {
-        get {
-            let r = resolve(range: r, count: extents[0])
-            return view(at: (r.lowerBound), extents: (r.count))
-        }
-        set {
-            let r = resolve(range: r, count: extents[0])
-            var v = view(at: (r.lowerBound), extents: (r.count))
-            copy(from: newValue, to: &v)
-        }
-    }
-    
-    @inlinable @inline(__always)
-    subscript<R>(r: (R, by: Int)) -> Self where
-        R: RangeExpression, R.Bound == Int
-    {
-        let rRange = resolve(range: r.0, count: extents[0])
-        let viewPosition = Shape.Array((rRange.lowerBound))
-        let viewExtents = Shape.Array((rRange.count))
-        let steps = Shape.Array((r.1))
-        let (subExtents, subStrides) = makeStepped(view: viewExtents,
-                                                   parent: strides,
-                                                   steps: steps)
-        return view(at: viewPosition, extents: subExtents, strides: subStrides)
-    }
-}
-
-//==============================================================================
-/// Derivative registration
-extension VectorView where Self: DifferentiableTensorView {
-    // https://github.com/apple/swift/blob/37b507b31c77ef969151f385cd1902dd44fb3b7f/stdlib/public/core/Array.swift#L2091
-    @inlinable @inline(__always)
-    func _vjpSubscript<R>(r: R) -> (value: Self, pullback: (Self) -> Self) where
-        R: RangeExpression, R.Bound == Int
-    {
-        return (self[r], { v in
-            var result = self.filled(with: 0)
-            result[r] = v
-            return result
-        })
-    }
-}
-
-//==============================================================================
 // Vector
 public struct VectorT<Element>: VectorView {
     // properties
@@ -227,6 +177,11 @@ extension MatrixT: AdditiveArithmetic where Element: Numeric {
 //==============================================================================
 // MatrixView extensions
 public extension MatrixView {
+    //--------------------------------------------------------------------------
+    // TODO: probably move these off onto the TensorViewCollection
+    var startIndex: MatrixIndex { return MatrixIndex(view: self, at: (0, 0)) }
+    var endIndex: MatrixIndex { return MatrixIndex(endOf: self) }
+    
     //--------------------------------------------------------------------------
     /// reserved space
     init(extents: Shape.Array, layout: MatrixLayout = .rowMajor,
@@ -360,51 +315,6 @@ public extension MatrixView {
 }
 
 //==============================================================================
-// range subscripting
-public extension MatrixView {
-    //--------------------------------------------------------------------------
-    // TODO: probably move these off onto the TensorViewCollection
-    var startIndex: MatrixIndex { return MatrixIndex(view: self, at: (0, 0)) }
-    var endIndex: MatrixIndex { return MatrixIndex(endOf: self) }
-    
-    @inlinable @inline(__always)
-    subscript<R>(r: R, c: UnboundedRange) -> Self
-        where R: RangeExpression, R.Bound == Int { self[r, 0...] }
-
-    @inlinable @inline(__always)
-    subscript<R>(r: UnboundedRange, c: R) -> Self
-        where R: RangeExpression, R.Bound == Int { self[0..., c] }
-    
-    @inlinable @inline(__always)
-    subscript<R, C>(r: R, c: C) -> Self where
-        R: RangeExpression, R.Bound == Int,
-        C: RangeExpression, C.Bound == Int
-    {
-        let rRange = resolve(range: r, count: extents[0])
-        let cRange = resolve(range: c, count: extents[1])
-        let viewPosition = Shape.Array((rRange.lowerBound, cRange.lowerBound))
-        let viewExtents = Shape.Array((rRange.count, cRange.count))
-        return view(at: viewPosition, extents: viewExtents)
-    }
-    
-    @inlinable @inline(__always)
-    subscript<R, C>(r: (R, by: Int), c: (C, by: Int)) -> Self where
-        R: RangeExpression, R.Bound == Int,
-        C: RangeExpression, C.Bound == Int
-    {
-        let rRange = resolve(range: r.0, count: extents[0])
-        let cRange = resolve(range: c.0, count: extents[1])
-        let viewPosition = Shape.Array((rRange.lowerBound, cRange.lowerBound))
-        let viewExtents = Shape.Array((rRange.count, cRange.count))
-        let steps = Shape.Array((r.1, c.1))
-        let (subExtents, subStrides) = makeStepped(view: viewExtents,
-                                                   parent: strides,
-                                                   steps: steps)
-        return view(at: viewPosition, extents: subExtents, strides: subStrides)
-    }
-}
-
-//==============================================================================
 // Matrix
 public struct MatrixT<Element>: MatrixView {
     // properties
@@ -457,6 +367,11 @@ extension VolumeT: AdditiveArithmetic where Element: Numeric {
 //==============================================================================
 // VolumeView extensions
 public extension VolumeView {
+    //--------------------------------------------------------------------------
+    // TODO: probably move these off onto the TensorViewCollection
+    var startIndex: VolumeIndex { return VolumeIndex(view: self, at: (0, 0, 0))}
+    var endIndex: VolumeIndex { return VolumeIndex(endOf: self) }
+    
     //--------------------------------------------------------------------------
     /// reserved space
     init(extents: Shape.Array, name: String? = nil) {
@@ -563,45 +478,6 @@ public extension VolumeView {
     
     func createIndexTensor(with extents: Shape.Array) -> VolumeT<IndexT> {
         VolumeT<IndexT>(extents: extents)
-    }
-}
-
-//==============================================================================
-// range subscripting
-public extension VolumeView {
-    //--------------------------------------------------------------------------
-    // TODO: probably move these off onto the TensorViewCollection
-    var startIndex: VolumeIndex { return VolumeIndex(view: self, at: (0, 0, 0))}
-    var endIndex: VolumeIndex { return VolumeIndex(endOf: self) }
-    
-    @inlinable @inline(__always)
-    subscript<D, R, C>(d: D, r: R, c: C) -> Self where
-        D: RangeExpression, D.Bound == Int,
-        R: RangeExpression, R.Bound == Int,
-        C: RangeExpression, C.Bound == Int
-    {
-        let dRange = resolve(range: d, count: extents[0])
-        let rRange = resolve(range: r, count: extents[1])
-        let cRange = resolve(range: c, count: extents[2])
-        let viewPosition = (dRange.lowerBound,
-                            rRange.lowerBound,
-                            cRange.lowerBound)
-        let viewExtents = (dRange.count, rRange.count, cRange.count)
-        return view(at: viewPosition, extents: viewExtents)
-    }
-    
-    @inlinable @inline(__always)
-    subscript(_ d: RangeInterval, r: RangeInterval, c: RangeInterval) -> Self {
-        let dRange = resolve(range: d, count: extents[0])
-        let rRange = resolve(range: r, count: extents[1])
-        let cRange = resolve(range: c, count: extents[2])
-        let viewPosition = Shape.Array((dRange.from, rRange.from, cRange.from))
-        let viewExtents = Shape.Array((dRange.to, rRange.to, cRange.to))
-        let steps = Shape.Array((dRange.step, rRange.step, cRange.step))
-        let (subExtents, subStrides) = makeStepped(view: viewExtents,
-                                                   parent: shape.strides,
-                                                   steps: steps)
-        return view(at: viewPosition, extents: subExtents, strides: subStrides)
     }
 }
 
