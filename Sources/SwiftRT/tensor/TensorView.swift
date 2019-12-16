@@ -346,20 +346,6 @@ public extension TensorView {
 //                    viewOffset: viewOffset,
 //                    isShared: isShared)
 //    }
-
-    //--------------------------------------------------------------------------
-    /// realized
-    /// create a dense view where the elements are coalesced
-    /// if it is already of the correct form, then `self` is reaturned
-    func realized() throws -> Self {
-        if shape.isContiguous {
-            return self
-        } else {
-            var result = createDense()
-            DeviceContext.currentQueue.copy(from: self, to: &result)
-            return result
-        }
-    }
     
     //--------------------------------------------------------------------------
     /// an array of viewed elements
