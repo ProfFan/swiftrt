@@ -18,17 +18,22 @@ import Foundation
 
 public extension TensorView {
     @inlinable @inline(__always)
-    func resolve(index array: Shape.Array) -> Shape.Array {
-        var result = array
-        for i in 0..<rank where array[i] < 0 { result[i] += extents[i] }
+    func resolve(_ position: Shape.Tuple) -> Shape.Array {
+        var result = Shape.Array(position)
+        for i in 0..<rank where result[i] < 0 { result[i] += extents[i] }
         return result
     }
-    
+
     @inlinable @inline(__always)
-    func resolve(extents array: Shape.Array) -> Shape.Array {
-        var result = array
-        for i in 0..<rank where array[i] < 1 { result[i] += extents[i] }
-        return result
+    func viewExtents(from lower: Shape.Array, to upper: Shape.Array)
+        -> Shape.Array
+    {
+        var extents = upper
+        for i in 0..<rank {
+            assert(upper[i] >= lower[i])
+            extents[i] = upper[i] - lower[i] + 1
+        }
+        return extents
     }
 
     //--------------------------------------------------------------------------
@@ -37,11 +42,12 @@ public extension TensorView {
     /// - Parameter view: the extents of the desired view in parent coordinates
     /// - Parameter steps: the step interval along each dimension
     /// - Returns: the extents and strides to be used to create a subview
-    func makeStepped(view extents: Shape.Array, steps: Shape.Array) ->
+    func makeStepped(_ lower: Shape.Array, _ upper: Shape.Array,
+                     _ steps: Shape.Array) ->
         (extents: Shape.Array, strides: Shape.Array)
     {
-        var subExtents = extents
-        zip(extents, steps).enumerated().forEach {
+        var subExtents = viewExtents(from: lower, to: upper)
+        zip(subExtents, steps).enumerated().forEach {
             subExtents[$0] = $1.0 / $1.1 + ($1.0 % $1.1 == 0 ? 0 : 1)
         }
 
@@ -55,29 +61,24 @@ public extension TensorView {
     //--------------------------------------------------------------------------
     @inlinable @inline(__always)
 //    @differentiable(where Self: DifferentiableTensorView)
-    subscript(index: Shape.Tuple, extents: Shape.Tuple) -> Self {
-        get {
-            self[resolve(index: Shape.Array(index)),
-                 resolve(extents: Shape.Array(extents))]
-        }
-        
-        set {
-            self[resolve(index: Shape.Array(index)),
-                 resolve(extents: Shape.Array(extents))] = newValue
-        }
+    subscript(lower: Shape.Tuple, upper: Shape.Tuple) -> Self {
+        get { self[resolve(lower), resolve(upper)] }
+        set { self[resolve(lower), resolve(upper)] = newValue }
     }
 
     //--------------------------------------------------------------------------
     @inlinable @inline(__always)
     @differentiable(vjp: _vjpSubscript where Self: DifferentiableTensorView)
-    subscript(index: Shape.Array, extents: Shape.Array) -> Self {
+    subscript(lower: Shape.Array, upper: Shape.Array) -> Self {
         // views will have the same isShared state as the parent
         get {
-            createView(at: index, extents: extents, strides: strides,
-                       isReference: isShared)
+            let extents = viewExtents(from: lower, to: upper)
+            return createView(at: lower, extents: extents, strides: strides,
+                              isReference: isShared)
         }
         set {
-            var view = createView(at: index, extents: extents, strides: strides,
+            let extents = viewExtents(from: lower, to: upper)
+            var view = createView(at: lower, extents: extents, strides: strides,
                                   isReference: isShared)
             copy(from: newValue, to: &view)
         }
@@ -86,33 +87,29 @@ public extension TensorView {
     //--------------------------------------------------------------------------
     @inlinable @inline(__always)
     //    @differentiable(where Self: DifferentiableTensorView)
-    subscript(index: Shape.Tuple, extents: Shape.Tuple, steps: Shape.Tuple) -> Self {
-        get {
-            self[resolve(index: Shape.Array(index)),
-                 resolve(extents: Shape.Array(extents)),
-                 resolve(extents: Shape.Array(steps))]
-        }
-        
+    subscript(lower: Shape.Tuple, upper: Shape.Tuple, steps: Shape.Tuple)
+        -> Self {
+        get { self[resolve(lower), resolve(upper), Shape.Array(steps)] }
         set {
-            self[resolve(index: Shape.Array(index)),
-                 resolve(extents: Shape.Array(extents)),
-                 resolve(extents: Shape.Array(steps))] = newValue
+            self[resolve(lower), resolve(upper), Shape.Array(steps)] = newValue
         }
     }
     
     //--------------------------------------------------------------------------
+    // views will have the same shared state as the parent
     @inlinable @inline(__always)
     @differentiable(vjp: _vjpSubscript where Self: DifferentiableTensorView)
-    subscript(index: Shape.Array, extents: Shape.Array, steps: Shape.Array) -> Self {
-        // views will have the same isShared state as the parent
+    subscript(lower: Shape.Array, upper: Shape.Array,
+              steps: Shape.Array) -> Self
+    {
         get {
-            let (extents, strides) = makeStepped(view: extents, steps: steps)
-            return createView(at: index, extents: extents, strides: strides,
+            let (extents, strides) = makeStepped(lower, upper, steps)
+            return createView(at: lower, extents: extents, strides: strides,
                               isReference: isShared)
         }
         set {
-            let (extents, strides) = makeStepped(view: extents, steps: steps)
-            var view = createView(at: index, extents: extents, strides: strides,
+            let (extents, strides) = makeStepped(lower, upper, steps)
+            var view = createView(at: lower, extents: extents, strides: strides,
                                   isReference: isShared)
             copy(from: newValue, to: &view)
         }
@@ -124,23 +121,23 @@ public extension TensorView {
 extension TensorView where Self: DifferentiableTensorView {
     // https://github.com/apple/swift/blob/37b507b31c77ef969151f385cd1902dd44fb3b7f/stdlib/public/core/Array.swift#L2091
     @inlinable @inline(__always)
-    func _vjpSubscript(index: Shape.Array, extents: Shape.Array)
+    func _vjpSubscript(lower: Shape.Array, upper: Shape.Array)
         -> (value: Self, pullback: (Self) -> Self)
     {
-        return (self[index, extents], { v in
+        return (self[lower, upper], { v in
             var result = self.filled(with: 0)
-            result[index, extents] = v
+            result[lower, upper] = v
             return result
         })
     }
     
     @inlinable @inline(__always)
-    func _vjpSubscript(index: Shape.Array, extents: Shape.Array, steps: Shape.Array)
+    func _vjpSubscript(lower: Shape.Array, upper: Shape.Array, steps: Shape.Array)
         -> (value: Self, pullback: (Self) -> Self)
     {
-        return (self[index, extents, steps], { v in
+        return (self[lower, upper, steps], { v in
             var result = self.filled(with: 0)
-            result[index, extents, steps] = v
+            result[lower, upper, steps] = v
             return result
         })
     }
