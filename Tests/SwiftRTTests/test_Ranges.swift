@@ -78,9 +78,9 @@ class test_Ranges: XCTestCase {
         let v1 = m1[(1, 0), (-1, 3)]
         XCTAssert(v1.flatArray == [Int32](4...6))
 
-        // negative values work back from the end
-        let v2 = m1[(-1, 1), (2, 4)]
-        XCTAssert(v2.flatArray == [Int32](5...7))
+//        // negative values work back from the end
+//        let v2 = m1[(-1, 1), (2, 4)]
+//        XCTAssert(v2.flatArray == [Int32](5...7))
 
         // range syntax
 //        XCTAssert(vector[...].flatArray == [Int32](0...9))
