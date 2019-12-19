@@ -15,6 +15,9 @@
 //
 import Foundation
 //==============================================================================
+//public struct <R> where R: RangeExpression {
+//
+//}
 
 public extension TensorView {
     @inlinable @inline(__always)
@@ -31,7 +34,7 @@ public extension TensorView {
         var extents = upper
         for i in 0..<rank {
             assert(upper[i] >= lower[i])
-            extents[i] = upper[i] - lower[i] + 1
+            extents[i] = upper[i] - lower[i]
         }
         return extents
     }

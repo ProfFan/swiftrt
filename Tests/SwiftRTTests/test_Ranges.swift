@@ -22,12 +22,74 @@ class test_Ranges: XCTestCase {
     //==========================================================================
     // support terminal test run
     static var allTests = [
-        ("test_vectorWriteRange", test_vectorWriteRange),
+        ("test_VectorRange", test_VectorRange),
+        ("test_VectorSteppedRange", test_VectorSteppedRange),
+        ("test_VectorWriteRange", test_VectorWriteRange),
+        ("test_MatrixRange", test_MatrixRange),
     ]
+    
+    //==========================================================================
+    // test_VectorRange
+    func test_VectorRange() {
+        let vector = IndexVector(with: 0..<10)
+        let values = vector[(0), (-1)].flatArray
+        XCTAssert(values == [Int32](0..<9))
+
+        // negative values work back from the end
+        let values2 = vector[(-4), (-2)].flatArray
+        XCTAssert(values2 == [Int32](6..<8))
+        
+        // range syntax
+        XCTAssert(vector[...].flatArray == [Int32](0..<10))
+        XCTAssert(vector[1...].flatArray == [Int32](1..<10))
+    }
+
+    //==========================================================================
+    // test_VectorSteppedRange
+    func test_VectorSteppedRange() {
+        let vector = IndexVector(with: 0...9)
+        let v1 = vector[(1), (2), (2)].flatArray
+        XCTAssert(v1.count == 1)
+        let v2 = vector[(1), (4), (2)].flatArray
+        XCTAssert(v2.count == 2)
+        let v3 = vector[(1), (4), (2)].flatArray
+        XCTAssert(v3.count == 2)
+
+        let v4 = vector[(1), (5), (3)].flatArray
+        XCTAssert(v4.count == 2)
+        let e4: [Int32] = [1, 4]
+        XCTAssert(v4 == e4)
+
+        let v5 = vector[(1), (6), (3)].flatArray
+        XCTAssert(v5.count == 2)
+        let e5: [Int32] = [1, 4]
+        XCTAssert(v5 == e5)
+
+        let v6 = vector[(1), (8), (3)].flatArray
+        XCTAssert(v6.count == 3)
+        let e6: [Int32] = [1, 4, 7]
+        XCTAssert(v6 == e6)
+    }
+
+    //==========================================================================
+    // test_MatrixRange
+    func test_MatrixRange() {
+        let m1 = IndexMatrix(3, 4, with: 0..<12)
+        let v1 = m1[(1, 0), (-1, 3)]
+        XCTAssert(v1.flatArray == [Int32](4...6))
+
+        // negative values work back from the end
+        let v2 = m1[(-1, 1), (2, 4)]
+        XCTAssert(v2.flatArray == [Int32](5...7))
+
+        // range syntax
+//        XCTAssert(vector[...].flatArray == [Int32](0...9))
+//        XCTAssert(vector[1...].flatArray == [Int32](1...9))
+    }
 
     //--------------------------------------------------------------------------
-    // test_vectorWriteRange
-    func test_vectorWriteRange() {
+    // test_VectorWriteRange
+    func test_VectorWriteRange() {
 //        Platform.local.servicePriority = [cpuSynchronousServiceName]
 //        Platform.log.level = .diagnostic
 //        Platform.log.categories = [.dataAlloc, .dataCopy, .dataMutation]

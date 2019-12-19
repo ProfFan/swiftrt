@@ -22,8 +22,6 @@ class test_IterateView: XCTestCase {
     // support terminal test run
     static var allTests = [
         ("test_Vector", test_Vector),
-        ("test_VectorRange", test_VectorRange),
-        ("test_VectorSteppedRange", test_VectorSteppedRange),
         ("test_Matrix", test_Matrix),
         ("test_MatrixRange", test_MatrixRange),
         ("test_MatrixSteppedRange", test_MatrixSteppedRange),
@@ -50,45 +48,6 @@ class test_IterateView: XCTestCase {
         let expected = [Int32](0..<count)
         let vector = IndexVector(elements: expected)
         XCTAssert(vector.flatArray == expected)
-    }
-
-    //==========================================================================
-    // test_VectorRange
-    func test_VectorRange() {
-        let vector = IndexVector(with: 0...9)
-        let values = vector[(0), (-1)].flatArray
-        XCTAssert(values == [Int32](0...9))
-
-        // negative values work back from the end
-        let values2 = vector[(-4), (-2)].flatArray
-        XCTAssert(values2 == [Int32](6...8))
-    }
-
-    //==========================================================================
-    // test_VectorSteppedRange
-    func test_VectorSteppedRange() {
-        let vector = IndexVector(with: 0...9)
-        let v1 = vector[(1), (2), (2)].flatArray
-        XCTAssert(v1.count == 1)
-        let v2 = vector[(1), (4), (2)].flatArray
-        XCTAssert(v2.count == 2)
-        let v3 = vector[(1), (4), (2)].flatArray
-        XCTAssert(v3.count == 2)
-
-        let v4 = vector[(1), (5), (3)].flatArray
-        XCTAssert(v4.count == 2)
-        let e4: [Int32] = [1, 4]
-        XCTAssert(v4 == e4)
-
-        let v5 = vector[(1), (6), (3)].flatArray
-        XCTAssert(v5.count == 2)
-        let e5: [Int32] = [1, 4]
-        XCTAssert(v5 == e5)
-
-        let v6 = vector[(1), (8), (3)].flatArray
-        XCTAssert(v6.count == 3)
-        let e6: [Int32] = [1, 4, 7]
-        XCTAssert(v6 == e6)
     }
     
     //==========================================================================

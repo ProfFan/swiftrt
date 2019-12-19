@@ -37,17 +37,6 @@ extension VectorT: AdditiveArithmetic where Element: Numeric {
 // MatrixView extensions
 public extension VectorView {
     //--------------------------------------------------------------------------
-    // TODO: probably move these off onto the TensorViewCollection
-    var startIndex: VectorIndex { return VectorIndex(view: self, at: (0)) }
-    var endIndex: VectorIndex { return VectorIndex(endOf: self) }
-
-    @inlinable @inline(__always)
-    subscript(index: Int) -> Self {
-        get { self[(index), (1)] }
-        set { self[(index), (1)] = newValue }
-    }
-
-    //--------------------------------------------------------------------------
     /// reserved space
     init(extents: Shape.Array, name: String? = nil) {
         self = Self.create(Shape(extents: extents), name)
@@ -123,6 +112,42 @@ public extension VectorView {
 }
 
 //==============================================================================
+// VectorView subscripting
+public extension VectorView {
+    //--------------------------------------------------------------------------
+    // TODO: probably move these off onto the TensorViewCollection
+    var startIndex: VectorIndex { return VectorIndex(view: self, at: (0)) }
+    var endIndex: VectorIndex { return VectorIndex(endOf: self) }
+
+    //--------------------------------------------------------------------------
+    @inlinable @inline(__always)
+    subscript(index: Int) -> Self {
+        get { self[(index), (index + 1)] }
+        set { self[(index), (index + 1)] = newValue }
+    }
+    
+    subscript(r: UnboundedRange) -> Self { self }
+
+    // TODO
+//    @differentiable(vjp: vjpSubscript where Self: DifferentiableTensorView)
+    @inlinable @inline(__always)
+    subscript<R>(range: R) -> Self where
+        R: RangeExpression, R.Bound == Int
+    {
+        get {
+            let r = range.relative(to: 0..<extents[0])
+            return self[Shape.Array(r.lowerBound),
+                        Shape.Array(r.upperBound)]
+        }
+        set {
+            let r = range.relative(to: 0..<extents[0])
+            self[Shape.Array(r.lowerBound),
+                 Shape.Array(r.upperBound)] = newValue
+        }
+    }
+}
+
+//==============================================================================
 // Vector
 public struct VectorT<Element>: VectorView {
     // properties
@@ -177,11 +202,6 @@ extension MatrixT: AdditiveArithmetic where Element: Numeric {
 //==============================================================================
 // MatrixView extensions
 public extension MatrixView {
-    //--------------------------------------------------------------------------
-    // TODO: probably move these off onto the TensorViewCollection
-    var startIndex: MatrixIndex { return MatrixIndex(view: self, at: (0, 0)) }
-    var endIndex: MatrixIndex { return MatrixIndex(endOf: self) }
-    
     //--------------------------------------------------------------------------
     /// reserved space
     init(extents: Shape.Array, layout: MatrixLayout = .rowMajor,
@@ -311,6 +331,61 @@ public extension MatrixView {
     {
         let shape = Shape(extents: extents)
         return layout == .rowMajor ? shape : shape.columnMajor
+    }
+}
+
+//==============================================================================
+// MatrixView extensions
+public extension MatrixView {
+    //--------------------------------------------------------------------------
+    // TODO: probably move these off onto the TensorViewCollection
+    var startIndex: MatrixIndex { return MatrixIndex(view: self, at: (0, 0)) }
+    var endIndex: MatrixIndex { return MatrixIndex(endOf: self) }
+    
+    //--------------------------------------------------------------------------
+    // single element
+    @inlinable @inline(__always)
+    subscript(r: Int, c: Int) -> Self {
+        get { self[(r, c), (r + 1, c + 1)] }
+        set { self[(r, c), (r + 1, c + 1)] = newValue }
+    }
+
+    // TODO(TF-281): Rewrite `@differentiable` attribute as a `@differentiating`
+    // attribute when `@differentiating` supports subscript declaration
+    // references.
+    //    @differentiable(vjp: vjpSubscript where Self: DifferentiableTensorView)
+    @inlinable @inline(__always)
+    subscript<R, C>(r: R, c: C) -> Self where
+        R: RangeExpression, R.Bound == Int,
+        C: RangeExpression, C.Bound == Int
+    {
+        get {
+            let r = r.relative(to: 0..<extents[0])
+            let c = c.relative(to: 0..<extents[1])
+            return self[(r.lowerBound, c.lowerBound),
+                        (r.upperBound, c.upperBound)]
+        }
+        
+        set {
+            let r = r.relative(to: 0..<extents[0])
+            let c = c.relative(to: 0..<extents[1])
+            self[(r.lowerBound, c.lowerBound),
+                 (r.upperBound, c.upperBound)] = newValue
+        }
+    }
+    
+    subscript<R>(r: R, c: UnboundedRange) -> Self where
+        R: RangeExpression, R.Bound == Int
+    {
+        get { self[r, 0...] }
+        set { self[r, 0...] = newValue }
+    }
+    
+    subscript<C>(r: UnboundedRange, c: C) -> Self where
+        C: RangeExpression, C.Bound == Int
+    {
+        get { self[0..., c] }
+        set { self[0..., c] = newValue }
     }
 }
 
