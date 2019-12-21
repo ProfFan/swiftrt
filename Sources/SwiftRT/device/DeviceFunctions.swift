@@ -280,7 +280,7 @@ public extension DeviceFunctions where Self: DeviceQueue {
         T: TensorView, T.Element: AnyNumeric
     {
         var elements = result.mutableElements()
-        zip(elements.indices, startAt..<startAt + elements.count).forEach {
+        zip(elements.indices, startAt..<(startAt + elements.count)).forEach {
             elements[$0] = T.Element(any: $1)
         }
     }

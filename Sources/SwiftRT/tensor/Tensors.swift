@@ -131,18 +131,18 @@ public extension VectorView {
     // TODO
 //    @differentiable(vjp: vjpSubscript where Self: DifferentiableTensorView)
     @inlinable @inline(__always)
-    subscript<R>(range: R) -> Self where
-        R: RangeExpression, R.Bound == Int
+    subscript<R>(range: R) -> Self
+        where R: StridedRangeExpression, R.Bound == Int
     {
         get {
-            let r = range.relative(to: 0..<extents[0])
-            return self[Shape.Array(r.lowerBound),
-                        Shape.Array(r.upperBound)]
+            let r = range.tensorRangeRelative(to: 0..<extents[0])
+            return self[Shape.Array(r.start),
+                        Shape.Array(r.end)]
         }
         set {
-            let r = range.relative(to: 0..<extents[0])
-            self[Shape.Array(r.lowerBound),
-                 Shape.Array(r.upperBound)] = newValue
+            let r = range.tensorRangeRelative(to: 0..<extents[0])
+            self[Shape.Array(r.start),
+                 Shape.Array(r.end)] = newValue
         }
     }
 }

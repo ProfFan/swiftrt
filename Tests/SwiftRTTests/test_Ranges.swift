@@ -40,8 +40,12 @@ class test_Ranges: XCTestCase {
         XCTAssert(values2 == [Int32](6..<8))
         
         // range syntax
-        XCTAssert(vector[...].flatArray == [Int32](0..<10))
+        XCTAssert(vector[(...)..2].flatArray ==
+            [Int32](stride(from: 0, to: 10, by: 2)))
         XCTAssert(vector[1...].flatArray == [Int32](1..<10))
+        
+        // relative window starting at 2 and extending 3 (i.e 2 + 3)
+        XCTAssert(vector[2..|3].flatArray == [Int32](2...4))
     }
 
     //==========================================================================
