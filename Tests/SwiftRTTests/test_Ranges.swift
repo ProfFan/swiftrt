@@ -32,20 +32,34 @@ class test_Ranges: XCTestCase {
     // test_VectorRange
     func test_VectorRange() {
         let vector = IndexVector(with: 0..<10)
-        let values = vector[(0), (-1)].flatArray
-        XCTAssert(values == [Int32](0..<9))
+        
+        // from index 1 through the end
+        XCTAssert(vector[1...].array == [Int32](1...9))
+        
+        // through last element
+        XCTAssert(vector[...-1].array == [Int32](0...9))
+        
+        // up to the second to last element
+        XCTAssert(vector[..<-2].array == [Int32](0...7))
 
-        // negative values work back from the end
-        let values2 = vector[(-4), (-2)].flatArray
-        XCTAssert(values2 == [Int32](6..<8))
+        // between 4 and 2 back from the end
+        XCTAssert(vector[-4..<-2].array == [Int32](6...7))
         
-        // range syntax
-        XCTAssert(vector[(...)..2].flatArray ==
-            [Int32](stride(from: 0, to: 10, by: 2)))
-        XCTAssert(vector[1...].flatArray == [Int32](1..<10))
-        
-        // relative window starting at 2 and extending 3 (i.e 2 + 3)
-        XCTAssert(vector[2..|3].flatArray == [Int32](2...4))
+        // the whole range stepping by 2
+        let stridedValues = [Int32](stride(from: 0, to: 10, by: 2))
+        XCTAssert(vector[(...)..2].array == stridedValues)
+        XCTAssert(vector[.....2].array == stridedValues)
+
+        // the whole range stepping backwards by 2
+        let reversed = [Int32](stride(from: 0, to: 10, by: 2).reversed())
+        XCTAssert(vector[(...)..-2].array == reversed)
+        XCTAssert(vector[.....-2].array == reversed)
+
+        // sliding window starting at 2 and extending 3 (i.e 2 + 3)
+        XCTAssert(vector[2..|3].array == [Int32](2...4))
+
+        // sliding window starting at 2 and extending 5, stepped
+        XCTAssert(vector[2..|5..2].array == [Int32](arrayLiteral: 2, 4))
     }
 
     //==========================================================================

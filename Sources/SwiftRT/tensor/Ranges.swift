@@ -53,6 +53,8 @@ public extension StridedRangeExpression {
 /// .. stride operator
 ///
 infix operator ..: StridedRangeFormationPrecedence
+infix operator ..-: StridedRangeFormationPrecedence
+
 precedencegroup StridedRangeFormationPrecedence {
     associativity: left
     higherThan: CastingPrecedence
@@ -63,12 +65,67 @@ extension RangeExpression where Bound == Int {
     static func .. (range: Self, stride: Bound) -> PartialStridedRange<Self> {
         PartialStridedRange(partial: range, with: stride)
     }
+    static func ..- (range: Self, stride: Bound) -> PartialStridedRange<Self> {
+        PartialStridedRange(partial: range, with: -stride)
+    }
 }
 
 public func .. (range: UnboundedRange, stride: Int)
     -> PartialStridedRange<PartialRangeFrom<Int>>
 {
     PartialStridedRange(partial: 0..., with: stride)
+}
+
+public func ..- (range: UnboundedRange, stride: Int)
+    -> PartialStridedRange<PartialRangeFrom<Int>>
+{
+    PartialStridedRange(partial: 0..., with: -stride)
+}
+
+//==============================================================================
+/// negative range support
+// Range to negative
+infix operator ..<-: RangeFormationPrecedence
+public func ..<- (lower: Int, upper: Int) -> Range<Int> {
+    Range(uncheckedBounds: (lower, -upper))
+}
+
+// Range through negative
+infix operator ...-: RangeFormationPrecedence
+public func ...- (lower: Int, upper: Int) -> ClosedRange<Int> {
+    ClosedRange(uncheckedBounds: (lower, -upper))
+}
+
+// PartialRangeUpTo/PartialRangeThrough negative
+prefix operator ..<-
+prefix operator ...-
+
+extension Int {
+    prefix public static func ..<- (maximum: Int) -> PartialRangeUpTo<Int> {
+        ..<(-maximum)
+    }
+    
+    prefix public static func ...- (maximum: Int) -> PartialRangeThrough<Int> {
+        ...(-maximum)
+    }
+}
+
+// whole range stepped
+prefix operator .....
+prefix operator .....-
+
+extension Int {
+    prefix public static func ..... (stride: Int) ->
+        PartialStridedRange<PartialRangeFrom<Int>>
+    {
+        PartialStridedRange(partial: 0..., with: stride)
+    }
+    
+    prefix public static func .....- (stride: Int) ->
+        PartialStridedRange<PartialRangeFrom<Int>>
+    {
+        PartialStridedRange(partial: 0..., with: -stride)
+    }
 }
 
 //==============================================================================
