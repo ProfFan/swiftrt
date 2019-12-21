@@ -168,19 +168,17 @@ public extension TensorIndexing {
     // Equatable
     @inlinable @inline(__always)
     static func == (lhs: Self, rhs: Self) -> Bool {
-        return lhs.viewIndex == rhs.viewIndex
+        lhs.viewIndex == rhs.viewIndex
     }
     
     // Comparable
     @inlinable @inline(__always)
     static func < (lhs: Self, rhs: Self) -> Bool {
-        return lhs.viewIndex < rhs.viewIndex
+        lhs.viewIndex < rhs.viewIndex
     }
     
     @inlinable @inline(__always)
-    func distance(to other: Self) -> Int {
-        return other.viewIndex - viewIndex
-    }
+    func distance(to other: Self) -> Int { other.viewIndex - viewIndex }
 }
 
 //==============================================================================
@@ -214,18 +212,14 @@ public struct TensorValueCollection<View>: RandomAccessCollection
     //--------------------------------------------------------------------------
     // Collection
     @inlinable @inline(__always)
-    public func index(before i: View.Index) -> View.Index {
-        return i.advanced(by: -1)
-    }
+    public func index(before i: View.Index) -> View.Index { i.advanced(by: -1) }
     
     @inlinable @inline(__always)
-    public func index(after i: View.Index) -> View.Index {
-        return i.increment()
-    }
+    public func index(after i: View.Index) -> View.Index { i.increment() }
     
     @inlinable @inline(__always)
     public subscript(index: View.Index) -> View.Element {
-        return buffer[index.dataIndex]
+        buffer[index.dataIndex]
     }
 }
 

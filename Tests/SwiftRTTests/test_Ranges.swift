@@ -38,7 +38,8 @@ class test_Ranges: XCTestCase {
         
         // through last element
         XCTAssert(vector[...-1].array == [Int32](0...9))
-        
+        XCTAssert(vector[...].array == [Int32](0...9))
+
         // up to the second to last element
         XCTAssert(vector[..<-2].array == [Int32](0...7))
 
