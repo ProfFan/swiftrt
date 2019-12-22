@@ -52,14 +52,14 @@ public func exp<T>(_ x: T) -> T
 }
 
 public extension TensorView where Element: Real {
+    // make glboal function visible for extension implementations
     @differentiable(where Self: DifferentiableTensorView)
     @inlinable @inline(__always)
-    func exp() -> Self { SwiftRT.exp(self) }
-    
-    @differentiable(where T: DifferentiableTensorView)
+    func exp(_ x: Self) -> Self { SwiftRT.exp(x) }
+
+    @differentiable(where Self: DifferentiableTensorView)
     @inlinable @inline(__always)
-    func exp<T>(_ x: T) -> T
-        where T: TensorView, T.Element: Real { SwiftRT.exp(x) }
+    func exp() -> Self { exp(self) }
 }
 
 //--------------------------------------
@@ -89,14 +89,14 @@ public func log<T>(_ x: T) -> T
 }
 
 public extension TensorView where Element: Real {
+    // make glboal function visible for extension implementations
     @differentiable(where Self: DifferentiableTensorView)
     @inlinable @inline(__always)
-    func log() -> Self { SwiftRT.log(self) }
-    
-    @differentiable(where T: DifferentiableTensorView)
+    func log(_ x: Self) -> Self { SwiftRT.log(x) }
+
+    @differentiable(where Self: DifferentiableTensorView)
     @inlinable @inline(__always)
-    func log<T>(_ x: T) -> T
-        where T: TensorView, T.Element: Real { SwiftRT.log(x) }
+    func log() -> Self { log(self) }
 }
 
 //--------------------------------------
@@ -126,13 +126,14 @@ public func neg<T>(_ x: T) -> T
 }
 
 public extension TensorView where Element: SignedNumeric {
+    // make glboal function visible for extension implementations
+    @differentiable(where Self: DifferentiableTensorView)
+    @inlinable @inline(__always)
+    static prefix func - (x: Self) -> Self { SwiftRT.neg(x) }
+
     @differentiable(where Self: DifferentiableTensorView)
     @inlinable @inline(__always)
     func neg() -> Self { SwiftRT.neg(self) }
-    
-    @differentiable(where Self: DifferentiableTensorView)
-    @inlinable @inline(__always)
-    static prefix func - (x: Self) -> Self { x.neg() }
 }
 
 //--------------------------------------
@@ -161,9 +162,14 @@ public func squared<T>(_ x: T) -> T
 }
 
 public extension TensorView where Element: Numeric {
+    // make glboal function visible for extension implementations
     @differentiable(where Self: DifferentiableTensorView)
     @inlinable @inline(__always)
-    func squared() -> Self { SwiftRT.squared(self) }
+    func squared(_ x: Self) -> Self { SwiftRT.squared(x) }
+
+    @differentiable(where Self: DifferentiableTensorView)
+    @inlinable @inline(__always)
+    func squared() -> Self { squared(self) }
 }
 
 //--------------------------------------
@@ -194,6 +200,11 @@ public func pow<T>(_ x: T, _ y: T) -> T
 }
 
 public extension TensorView where Element: Real {
+    // make glboal function visible for extension implementations
+    @differentiable(where Self: DifferentiableTensorView)
+    @inlinable @inline(__always)
+    func pow(_ x: Self, _ y: Self) -> Self { SwiftRT.pow(x, y) }
+
     @differentiable(where Self: DifferentiableTensorView)
     @inlinable @inline(__always)
     static func **(_ x: Self, _ y: Self) -> Self { SwiftRT.pow(x, y) }
@@ -245,9 +256,14 @@ public func sqrt<T>(_ x: T) -> T
 }
 
 public extension TensorView where Element: Real {
+    // make glboal function visible for extension implementations
     @differentiable(where Self: DifferentiableTensorView)
     @inlinable @inline(__always)
-    func sqrt() -> Self { SwiftRT.sqrt(self) }
+    func sqrt(_ x: Self) -> Self { SwiftRT.sqrt(x) }
+
+    @differentiable(where Self: DifferentiableTensorView)
+    @inlinable @inline(__always)
+    func sqrt() -> Self { sqrt(self) }
 }
 
 //--------------------------------------
