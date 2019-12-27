@@ -74,7 +74,7 @@ public extension TensorView {
     
     //--------------------------------------------------------------------------
     /// repeating element
-    @differentiable(vjp: _vjpInit where Self: DifferentiableTensorView)
+    @differentiable(where Self: DifferentiableTensorView)
     init(repeating value: Element, to extents: Shape.Array, name: String? = nil)
     {
         let shape = Shape(extents: extents, strides: Shape.zeros)
@@ -175,6 +175,7 @@ public extension TensorView {
 //
 
 public extension TensorView where Self: DifferentiableTensorView {
+    @derivative(of: init(repeating:to:name:))
     static func _vjpInit(repeating value: Element, to extents: Shape.Array,
                          name: String?) ->
         (value: Self, pullback: (Self) -> (Element))

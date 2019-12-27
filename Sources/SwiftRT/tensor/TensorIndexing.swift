@@ -71,7 +71,7 @@ public extension TensorView {
 
     //--------------------------------------------------------------------------
     @inlinable @inline(__always)
-    @differentiable(vjp: _vjpSubscript where Self: DifferentiableTensorView)
+    @differentiable(where Self: DifferentiableTensorView)
     subscript(lower: Shape.Array, upper: Shape.Array) -> Self {
         // views will have the same isShared state as the parent
         get {
@@ -101,7 +101,7 @@ public extension TensorView {
     //--------------------------------------------------------------------------
     // views will have the same shared state as the parent
     @inlinable @inline(__always)
-    @differentiable(vjp: _vjpSubscript where Self: DifferentiableTensorView)
+    @differentiable(where Self: DifferentiableTensorView)
     subscript(lower: Shape.Array, upper: Shape.Array,
               steps: Shape.Array) -> Self
     {
@@ -124,6 +124,7 @@ public extension TensorView {
 extension TensorView where Self: DifferentiableTensorView {
     // https://github.com/apple/swift/blob/37b507b31c77ef969151f385cd1902dd44fb3b7f/stdlib/public/core/Array.swift#L2091
     @inlinable @inline(__always)
+    @derivative(of: subscript)
     func _vjpSubscript(lower: Shape.Array, upper: Shape.Array)
         -> (value: Self, pullback: (Self) -> Self)
     {

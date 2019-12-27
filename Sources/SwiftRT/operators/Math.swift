@@ -64,7 +64,7 @@ public extension TensorView where Element: Real {
 
 //--------------------------------------
 // derivative functions
-@differentiating(exp)
+@derivative(of: exp)
 @inlinable @inline(__always)
 internal func _vjpExp<T>(_ x: T) -> (value: T, pullback: (T) -> T)
     where T: DifferentiableTensorView, T.Element: Real
@@ -101,7 +101,7 @@ public extension TensorView where Element: Real {
 
 //--------------------------------------
 // derivative functions
-@differentiating(log)
+@derivative(of: log)
 @inlinable @inline(__always)
 internal func _vjpLog<T>(_ x: T) -> (value: T, pullback: (T) -> T)
     where T: DifferentiableTensorView, T.Element: Real
@@ -139,7 +139,7 @@ public extension TensorView where Element: SignedNumeric {
 //--------------------------------------
 // derivative functions
 @inlinable
-@differentiating(neg)
+@derivative(of: neg)
 internal func _vjpNeg<T>(_ x: T) -> (value: T, pullback: (T) -> T)
     where T: DifferentiableTensorView
 {
@@ -175,7 +175,7 @@ public extension TensorView where Element: Numeric {
 //--------------------------------------
 // derivative functions
 @inlinable
-@differentiating(squared)
+@derivative(of: squared)
 internal func _vjpSquared<T>(_ x: T) -> (value: T, pullback: (T) -> (T))
     where T: DifferentiableTensorView
 {
@@ -225,7 +225,7 @@ public extension TensorView where Element: Real {
 //--------------------------------------
 // derivative functions
 @inlinable
-@differentiating(pow)
+@derivative(of: pow)
 internal func _vjpPow<T>(_ x: T, _ y: T) -> (value: T, pullback: (T) -> (T, T))
     where T: DifferentiableTensorView, T.Element: Real
 {
@@ -268,7 +268,7 @@ public extension TensorView where Element: Real {
 
 //--------------------------------------
 // derivative functions
-@differentiating(sqrt)
+@derivative(of: sqrt)
 @inlinable @inline(__always)
 internal func _vjpSqrt<T>(_ x: T) -> (value: T, pullback: (T) -> T)
     where T: DifferentiableTensorView, T.Element: Real

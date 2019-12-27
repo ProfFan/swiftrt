@@ -49,7 +49,7 @@ public extension TensorView where Element: AdditiveArithmetic {
 
 //--------------------------------------
 // derivative functions
-@differentiating(add)
+@derivative(of: add)
 @inlinable @inline(__always)
 public func _vjpAdd<T>(lhs: T, rhs: T) -> (value: T, pullback: (T) -> (T, T))
     where T: DifferentiableTensorView
@@ -58,7 +58,7 @@ public func _vjpAdd<T>(lhs: T, rhs: T) -> (value: T, pullback: (T) -> (T, T))
 }
 
 public extension TensorView where Self: DifferentiableTensorView {
-    @differentiating(+)
+    @derivative(of: +)
     @inlinable @inline(__always)
     static func _vjpAdd(lhs: Self, rhs: Self) ->
         (value: Self, pullback: (Self) -> (Self, Self))
@@ -66,7 +66,7 @@ public extension TensorView where Self: DifferentiableTensorView {
         SwiftRT._vjpAdd(lhs: lhs, rhs: rhs)
     }
     
-    @differentiating(+)
+    @derivative(of: +)
     @inlinable @inline(__always)
     static func _vjpAdd(lhs: Self, rhs: Element) ->
         (value: Self, pullback: (Self) -> (Self, Element))
@@ -74,7 +74,7 @@ public extension TensorView where Self: DifferentiableTensorView {
         return (lhs + rhs, { v in (v, v.sum().element) })
     }
     
-    @differentiating(+)
+    @derivative(of: +)
     @inlinable @inline(__always)
     static func _vjpAdd(lhs: Element, rhs: Self) ->
         (value: Self, pullback: (Self) -> (Element, Self))
@@ -120,7 +120,7 @@ public extension TensorView where Element: AdditiveArithmetic {
 //--------------------------------------
 // derivative functions
 public extension TensorView where Self: DifferentiableTensorView {
-    @differentiating(-)
+    @derivative(of: -)
     @inlinable @inline(__always)
     static func vjpSubtract(lhs: Self, rhs: Self) ->
         (value: Self, pullback: (Self) -> (Self, Self))
@@ -128,7 +128,7 @@ public extension TensorView where Self: DifferentiableTensorView {
         return (lhs - rhs, { v in (v, -v) })
     }
     
-    @differentiating(-)
+    @derivative(of: -)
     @inlinable @inline(__always)
     static func vjpSubtract(lhs: Self, rhs: Element) ->
         (value: Self, pullback: (Self) -> (Self, Element))
@@ -179,7 +179,7 @@ public extension TensorView where Element: Numeric {
 
 //--------------------------------------
 // derivative functions
-@differentiating(mul)
+@derivative(of: mul)
 @inlinable @inline(__always)
 internal func _vjpMultiply<T>(_ lhs: T, _ rhs: T) ->
     (value: T, pullback: (T) -> (T, T)) where T: DifferentiableTensorView
@@ -188,7 +188,7 @@ internal func _vjpMultiply<T>(_ lhs: T, _ rhs: T) ->
 }
 
 public extension TensorView where Self: DifferentiableTensorView {
-    @differentiating(*)
+    @derivative(of: *)
     @inlinable @inline(__always)
     static func _vjpMultiply(lhs: Self, rhs: Self) ->
         (value: Self, pullback: (Self) -> (Self, Self))
@@ -196,7 +196,7 @@ public extension TensorView where Self: DifferentiableTensorView {
         SwiftRT._vjpMultiply(lhs, rhs)
     }
     
-    @differentiating(*)
+    @derivative(of: *)
     @inlinable @inline(__always)
     static func _vjpMultiply(lhs: Self, rhs: Element) ->
         (value: Self, pullback: (Self) -> (Self, Element))
@@ -204,7 +204,7 @@ public extension TensorView where Self: DifferentiableTensorView {
         return (lhs * rhs, { v in (v * rhs, (v * lhs).sum().element) })
     }
     
-    @differentiating(*)
+    @derivative(of: *)
     @inlinable @inline(__always)
     static func _vjpMultiply(lhs: Element, rhs: Self) ->
         (value: Self, pullback: (Self) -> (Element, Self))
@@ -252,7 +252,7 @@ public extension TensorView where Element: FloatingPoint {
 
 //--------------------------------------
 // derivative functions
-@differentiating(div)
+@derivative(of: div)
 @inlinable @inline(__always)
 internal func _vjpDivide<T>(_ lhs: T, _ rhs: T) ->
     (value: T, pullback: (T) -> (T, T)) where T: DifferentiableTensorView
@@ -261,7 +261,7 @@ internal func _vjpDivide<T>(_ lhs: T, _ rhs: T) ->
 }
 
 public extension TensorView where Self: DifferentiableTensorView {
-    @differentiating(/)
+    @derivative(of: /)
     @inlinable @inline(__always)
     static func _vjpDivide(lhs: Self, rhs: Self) ->
         (value: Self, pullback: (Self) -> (Self, Self))
@@ -269,7 +269,7 @@ public extension TensorView where Self: DifferentiableTensorView {
         SwiftRT._vjpDivide(lhs, rhs)
     }
     
-    @differentiating(/)
+    @derivative(of: /)
     @inlinable @inline(__always)
     static func _vjpDivide(lhs: Self, rhs: Element) ->
         (value: Self, pullback: (Self) -> (Self, Element))
@@ -279,7 +279,7 @@ public extension TensorView where Self: DifferentiableTensorView {
         })
     }
     
-    @differentiating(/)
+    @derivative(of: /)
     @inlinable @inline(__always)
     static func _vjpDivide(lhs: Element, rhs: Self) ->
         (value: Self, pullback: (Self) -> (Element, Self))

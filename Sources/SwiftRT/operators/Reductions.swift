@@ -147,7 +147,7 @@ public extension TensorView where Element: Numeric {
 
 //--------------------------------------
 // derivative functions
-@differentiating(sum)
+@derivative(of: sum)
 @inlinable @inline(__always)
 internal func _vjpSum<T>(_ x: T, alongAxes axes: Set<Int>? = nil)
     -> (value: T, pullback: (T) -> T) where T: DifferentiableTensorView
@@ -195,7 +195,7 @@ public extension TensorView where Element: FloatingPoint {
 
 //--------------------------------------
 // derivative functions
-@differentiating(mean)
+@derivative(of: mean)
 @inlinable @inline(__always)
 internal func _vjpMean<T>(_ x: T, alongAxes axes: Set<Int>? = nil)
     -> (value: T, pullback: (T) -> T) where T: DifferentiableTensorView
@@ -239,7 +239,7 @@ public extension TensorView where Element: Numeric {
 
 //--------------------------------------
 // derivative functions
-@differentiating(prod)
+@derivative(of: prod)
 @inlinable @inline(__always)
 internal func _vjpProd<T>(_ x: T, alongAxes axes: Set<Int>? = nil)
     -> (value: T, pullback: (T) -> T) where T: DifferentiableTensorView
@@ -284,7 +284,7 @@ public extension TensorView where Element: Numeric {
 
 //--------------------------------------
 // derivative functions
-@differentiating(prodNonZeros)
+@derivative(of: prodNonZeros)
 @inlinable @inline(__always)
 internal func _vjpProdNonZeros<T>(_ x: T, alongAxes axes: Set<Int>? = nil)
     -> (value: T, pullback: (T) -> T) where T: DifferentiableTensorView
@@ -302,7 +302,7 @@ internal func _vjpProdNonZeros<T>(_ x: T, alongAxes axes: Set<Int>? = nil)
 /// - Parameter x: value tensor
 /// - Parameter alongAxes: the axes to operate on
 @inlinable
-@differentiable(vjp: _vjpMinValue where T: DifferentiableTensorView)
+@differentiable(where T: DifferentiableTensorView)
 public func min<T>(_ x: T, alongAxes axes: Set<Int>? = nil) -> T
     where T: TensorView, T.Element: Numeric & Comparable & AnyElement
 {
@@ -332,8 +332,9 @@ public extension TensorView where
 
 //--------------------------------------
 // derivative functions
+@derivative(of: min)
 @inlinable @inline(__always)
-internal func _vjpMinValue<T>(_ x: T, alongAxes axes: Set<Int>? = nil)
+internal func _vjpMin<T>(_ x: T, alongAxes axes: Set<Int>? = nil)
     -> (value: T, pullback: (T) -> T) where
     T: DifferentiableTensorView
 {
@@ -347,7 +348,7 @@ internal func _vjpMinValue<T>(_ x: T, alongAxes axes: Set<Int>? = nil)
 /// - Parameter x: value tensor
 /// - Parameter alongAxes: the axes to operate on
 @inlinable
-@differentiable(vjp: _vjpMaxValue where T: DifferentiableTensorView)
+@differentiable(where T: DifferentiableTensorView)
 public func max<T>(_ x: T, alongAxes axes: Set<Int>? = nil) -> T
     where T: TensorView, T.Element: Numeric & Comparable & AnyElement
 {
@@ -377,8 +378,9 @@ public extension TensorView where
 
 //--------------------------------------
 // derivative functions
+@derivative(of: max)
 @inlinable @inline(__always)
-internal func _vjpMaxValue<T>(_ x: T, alongAxes axes: Set<Int>? = nil)
+internal func _vjpMax<T>(_ x: T, alongAxes axes: Set<Int>? = nil)
     -> (value: T, pullback: (T) -> T) where
     T: DifferentiableTensorView
 {
@@ -423,7 +425,7 @@ public extension TensorView where
 
 //--------------------------------------
 // derivative functions
-@differentiating(absmax)
+@derivative(of: absmax)
 @inlinable @inline(__always)
 internal func _vjpAbsmax<T>(_ x: T, alongAxes axes: Set<Int>? = nil)
     -> (value: T, pullback: (T) -> T) where T: DifferentiableTensorView
@@ -438,7 +440,7 @@ internal func _vjpAbsmax<T>(_ x: T, alongAxes axes: Set<Int>? = nil)
 /// - Parameter x: value tensor
 /// - Parameter alongAxes: the axes to operate on
 @inlinable
-@differentiable(vjp: _vjpSum where T: DifferentiableTensorView)
+@differentiable(where T: DifferentiableTensorView)
 public func abssum<T>(_ x: T, alongAxes axes: Set<Int>? = nil) -> T
     where T: TensorView, T.Element: FloatingPoint
 {
@@ -464,6 +466,15 @@ public extension TensorView where Element: FloatingPoint {
     func abssum(alongAxes axes: Int...) -> Self { abssum(alongAxes: Set(axes)) }
 }
 
+//--------------------------------------
+// derivative functions
+@derivative(of: abssum)
+@inlinable @inline(__always)
+internal func _vjpAbsSum<T>(_ x: T, alongAxes axes: Set<Int>? = nil)
+    -> (value: T, pullback: (T) -> T) where T: DifferentiableTensorView
+{
+    fatalError()
+}
 
 //==============================================================================
 /// sqrtSumSquares(x:alongAxes:
@@ -501,7 +512,7 @@ public extension TensorView where Element: Real {
 
 //--------------------------------------
 // derivative functions
-@differentiating(sqrtSumSquares)
+@derivative(of: sqrtSumSquares)
 @inlinable @inline(__always)
 internal func _vjpSqrtSumSquares<T>(_ x: T, alongAxes axes: Set<Int>? = nil)
     -> (value: T, pullback: (T) -> T)
