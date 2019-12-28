@@ -157,7 +157,7 @@ public struct VectorT<Element>: VectorView {
     public var tensorArray: TensorArray<Element>
     public let viewOffset: Int
     
-    public init(shape: Shape,
+    public init(shape: Shape1,
                 tensorArray: TensorArray<Element>,
                 viewOffset: Int,
                 isShared: Bool)
@@ -399,7 +399,7 @@ public struct MatrixT<Element>: MatrixView {
     public var tensorArray: TensorArray<Element>
     public let viewOffset: Int
 
-    public init(shape: Shape,
+    public init(shape: Shape2,
                 tensorArray: TensorArray<Element>,
                 viewOffset: Int,
                 isShared: Bool)
@@ -566,7 +566,7 @@ public struct VolumeT<Element>: VolumeView {
     public var tensorArray: TensorArray<Element>
     public let viewOffset: Int
     
-    public init(shape: Shape,
+    public init(shape: Shape3,
                 tensorArray: TensorArray<Element>,
                 viewOffset: Int,
                 isShared: Bool)

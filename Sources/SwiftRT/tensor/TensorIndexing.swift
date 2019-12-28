@@ -136,6 +136,7 @@ extension TensorView where Self: DifferentiableTensorView {
     }
     
     @inlinable @inline(__always)
+    @derivative(of: subscript)
     func _vjpSubscript(lower: Shape.Array, upper: Shape.Array, steps: Shape.Array)
         -> (value: Self, pullback: (Self) -> Self)
     {
