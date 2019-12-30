@@ -9,6 +9,7 @@
             "request": "launch",
             "name": "Debug tests on Linux",
             "program": "${workspaceFolder}/.build/debug/SwiftRTPackageTests.xctest",
+            "cwd": "${workspaceFolder}",
             "preLaunchTask": "swift-build-tests"
         }
     ]
