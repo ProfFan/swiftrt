@@ -659,8 +659,8 @@ public extension TensorView where Element: Comparable & AnyConvertable {
     static func == <U>(lhs: Self, rhs: [U]) -> Bool
         where U: Comparable & AnyConvertable
     {
-        for (i, element) in lhs.elements().enumerated() {
-            if element != Element(any: rhs[i]) { return false }
+        for (element, other) in zip(lhs.elements(), rhs) {
+            if element != Element(any: other) { return false }
         }
         return true
     }
@@ -669,8 +669,8 @@ public extension TensorView where Element: Comparable & AnyConvertable {
     static func == <R>(lhs: Self, rhs: R) -> Bool
         where R: StridedRangeExpression, R.Bound == Int
     {
-        let r = rhs.tensorRangeRelative(to: 0..<lhs.count)
-        let range = stride(from: r.start, to: r.end, by: r.stride)
+        let r = rhs.stridedRangeRelative(to: 0..<lhs.count + 1)
+        let range = stride(from: r.from, to: r.to, by: r.by)
         for (element, rangeIndex) in zip(lhs.elements(), range) {
             if element != Element(any: rangeIndex) { return false }
         }

@@ -122,8 +122,8 @@ public extension VectorView {
     //--------------------------------------------------------------------------
     @inlinable @inline(__always)
     subscript(index: Int) -> Self {
-        get { self[(index), (index + 1)] }
-        set { self[(index), (index + 1)] = newValue }
+        get { self[(index), (index + 1), (1)] }
+        set { self[(index), (index + 1), (1)] = newValue }
     }
     
     subscript(r: UnboundedRange) -> Self { self }
@@ -135,14 +135,12 @@ public extension VectorView {
         where R: StridedRangeExpression, R.Bound == Int
     {
         get {
-            let r = range.tensorRangeRelative(to: 0..<extents[0])
-            return self[Shape.Array(r.start),
-                        Shape.Array(r.end)]
+            let r = range.stridedRangeRelative(to: 0..<extents[0])
+            return self[(r.from), (r.to), (r.by)]
         }
         set {
-            let r = range.tensorRangeRelative(to: 0..<extents[0])
-            self[Shape.Array(r.start),
-                 Shape.Array(r.end)] = newValue
+            let r = range.stridedRangeRelative(to: 0..<extents[0])
+            self[(r.from), (r.to), (r.by)] = newValue
         }
     }
 }
@@ -346,8 +344,8 @@ public extension MatrixView {
     // single element
     @inlinable @inline(__always)
     subscript(r: Int, c: Int) -> Self {
-        get { self[(r, c), (r + 1, c + 1)] }
-        set { self[(r, c), (r + 1, c + 1)] = newValue }
+        get { self[(r, c), (r + 1, c + 1), (1, 1)] }
+        set { self[(r, c), (r + 1, c + 1), (1, 1)] = newValue }
     }
 
     // TODO(TF-281): Rewrite `@differentiable` attribute as a `@differentiating`
@@ -356,33 +354,31 @@ public extension MatrixView {
     //    @differentiable(vjp: vjpSubscript where Self: DifferentiableTensorView)
     @inlinable @inline(__always)
     subscript<R, C>(r: R, c: C) -> Self where
-        R: RangeExpression, R.Bound == Int,
-        C: RangeExpression, C.Bound == Int
+        R: StridedRangeExpression, R.Bound == Int,
+        C: StridedRangeExpression, C.Bound == Int
     {
         get {
-            let r = r.relative(to: 0..<extents[0])
-            let c = c.relative(to: 0..<extents[1])
-            return self[(r.lowerBound, c.lowerBound),
-                        (r.upperBound, c.upperBound)]
+            let r = r.stridedRangeRelative(to: 0..<extents[0])
+            let c = c.stridedRangeRelative(to: 0..<extents[1])
+            return self[(r.from, c.from), (r.to, c.to), (r.by, c.by)]
         }
         
         set {
-            let r = r.relative(to: 0..<extents[0])
-            let c = c.relative(to: 0..<extents[1])
-            self[(r.lowerBound, c.lowerBound),
-                 (r.upperBound, c.upperBound)] = newValue
+            let r = r.stridedRangeRelative(to: 0..<extents[0])
+            let c = c.stridedRangeRelative(to: 0..<extents[1])
+            return self[(r.from, c.from), (r.to, c.to), (r.by, c.by)] = newValue
         }
     }
     
     subscript<R>(r: R, c: UnboundedRange) -> Self where
-        R: RangeExpression, R.Bound == Int
+        R: StridedRangeExpression, R.Bound == Int
     {
         get { self[r, 0...] }
         set { self[r, 0...] = newValue }
     }
     
     subscript<C>(r: UnboundedRange, c: C) -> Self where
-        C: RangeExpression, C.Bound == Int
+        C: StridedRangeExpression, C.Bound == Int
     {
         get { self[0..., c] }
         set { self[0..., c] = newValue }

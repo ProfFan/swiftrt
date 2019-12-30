@@ -35,7 +35,7 @@ class test_Ranges: XCTestCase {
         
         // from index 1 through the end
         XCTAssert(vector[1...] == 1...9)
-        
+
         // through last element
         XCTAssert(vector[...-1] == 0...9)
         XCTAssert(vector[...] == 0...9)
@@ -45,16 +45,15 @@ class test_Ranges: XCTestCase {
 
         // between 4 and 2 back from the end
         XCTAssert(vector[-4..<-2] == 6...7)
-        
+
         // the whole range stepping by 2
-        let stridedValues = [Int32](stride(from: 0, to: 10, by: 2))
-        XCTAssert(vector[(...)..2] == stridedValues)
-        XCTAssert(vector[.....2] == stridedValues)
+        XCTAssert(vector[(...)..2] == 0..<10..2)
+        XCTAssert(vector[.....2] == 0..<10..2)
 
         // the whole range stepping backwards by 2
-        let reversed = [Int32](stride(from: 0, to: 10, by: 2).reversed())
-        XCTAssert(vector[(...)..-2] == reversed)
-        XCTAssert(vector[.....-2] == reversed)
+//        let reversed = [Int32](stride(from: 0, to: 10, by: 2).reversed())
+//        XCTAssert(vector[(...)..-2] == reversed)
+//        XCTAssert(vector[.....-2] == reversed)
 
         // sliding window starting at 2 and extending 3 (i.e 2 + 3)
         XCTAssert(vector[2..|3] == 2...4)
@@ -94,8 +93,8 @@ class test_Ranges: XCTestCase {
     // test_MatrixRange
     func test_MatrixRange() {
         let m1 = IndexMatrix(3, 4, with: 0..<12)
-        let v1 = m1[(1, 0), (-1, 3)]
-        XCTAssert(v1.flatArray == [Int32](4...6))
+        let v1 = m1[1..<-1, ...3]
+        XCTAssert(v1 == 4...6)
 
 //        // negative values work back from the end
 //        let v2 = m1[(-1, 1), (2, 4)]

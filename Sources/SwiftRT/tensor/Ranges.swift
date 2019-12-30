@@ -16,11 +16,11 @@
 
 
 //==============================================================================
-/// TensorRange
-public struct TensorRange<T> {
-    public var start: T
-    public var end: T
-    public var stride: T
+/// StridedRange
+public struct StridedRange<T> {
+    public var from: T
+    public var to: T
+    public var by: T
 }
 
 //==============================================================================
@@ -28,7 +28,7 @@ public struct TensorRange<T> {
 public protocol StridedRangeExpression: RangeExpression {
     var stride: Bound { get }
     
-    func tensorRangeRelative<C>(to collection: C) -> TensorRange<Bound>
+    func stridedRangeRelative<C>(to collection: C) -> StridedRange<Bound>
         where C : Collection, Self.Bound == C.Index
 }
 
@@ -37,15 +37,15 @@ public extension StridedRangeExpression where Bound == Int {
 }
 
 public extension StridedRangeExpression {
-    /// tensorRangeRelative
+    /// stridedRangeRelative
     /// this is the default implementation adopted by Swift standard ranges
-    func tensorRangeRelative<C>(to collection: C) -> TensorRange<Bound>
+    func stridedRangeRelative<C>(to collection: C) -> StridedRange<Bound>
         where C : Collection, Self.Bound == C.Index
     {
         let range = self.relative(to: collection.indices)
-        return TensorRange(start: range.lowerBound,
-                           end: range.upperBound,
-                           stride: stride)
+        return StridedRange(from: range.lowerBound,
+                            to: range.upperBound,
+                            by: stride)
     }
 }
 
@@ -140,16 +140,65 @@ extension Int {
 }
 
 //==============================================================================
-/// StridedRangeExpression
-extension Range: StridedRangeExpression where Bound == Int { }
-extension ClosedRange: StridedRangeExpression where Bound == Int { }
-extension PartialRangeFrom: StridedRangeExpression where Bound == Int { }
-extension PartialRangeUpTo: StridedRangeExpression where Bound == Int { }
-extension PartialRangeThrough: StridedRangeExpression where Bound == Int { }
+/// StridedRangeExpression extensions
+extension Range: StridedRangeExpression where Bound == Int {
+    public func stridedRangeRelative<C>(to collection: C) -> StridedRange<Bound>
+        where C : Collection, Self.Bound == C.Index
+    {
+        StridedRange(
+            from: lowerBound < 0 ? lowerBound + collection.count : lowerBound,
+            to: (upperBound < 0 ? upperBound + collection.count : upperBound),
+            by: stride)
+    }
+}
+
+extension ClosedRange: StridedRangeExpression where Bound == Int {
+    public func stridedRangeRelative<C>(to collection: C) -> StridedRange<Bound>
+        where C : Collection, Self.Bound == C.Index
+    {
+        StridedRange(
+            from: lowerBound < 0 ? lowerBound + collection.count : lowerBound,
+            to: (upperBound < 0 ? upperBound + collection.count : upperBound) + 1,
+            by: stride)
+    }
+}
+
+extension PartialRangeFrom: StridedRangeExpression where Bound == Int {
+    public func stridedRangeRelative<C>(to collection: C) -> StridedRange<Bound>
+        where C : Collection, Self.Bound == C.Index
+    {
+        StridedRange(
+            from: lowerBound < 0 ? lowerBound + collection.count : lowerBound,
+            to: collection.count,
+            by: stride)
+    }
+}
+
+extension PartialRangeUpTo: StridedRangeExpression where Bound == Int {
+    public func stridedRangeRelative<C>(to collection: C) -> StridedRange<Bound>
+        where C : Collection, Self.Bound == C.Index
+    {
+        StridedRange(
+            from: 0,
+            to: upperBound < 0 ? upperBound + collection.count : upperBound,
+            by: stride)
+    }
+}
+
+extension PartialRangeThrough: StridedRangeExpression where Bound == Int {
+    public func stridedRangeRelative<C>(to collection: C) -> StridedRange<Bound>
+        where C : Collection, Self.Bound == C.Index
+    {
+        StridedRange(
+            from: 0,
+            to: upperBound < 0 ? upperBound + collection.count : upperBound,
+            by: stride)
+    }
+}
 
 extension Int: StridedRangeExpression {
     public typealias Bound = Int
-
+    
     public func relative<C>(to collection: C) -> Range<Int>
         where C : Collection, Self.Bound == C.Index {
             Range(uncheckedBounds: (self, self + 1))
@@ -172,12 +221,12 @@ public struct PartialStridedRange<Partial>: StridedRangeExpression
         self.stride = stride
     }
     
-    public func tensorRangeRelative<C>(to collection: C) -> TensorRange<Bound>
+    public func stridedRangeRelative<C>(to collection: C) -> StridedRange<Bound>
         where C : Collection, Self.Bound == C.Index
     {
         let partial = partialRange.relative(to: collection.indices)
-        return TensorRange(start: partial.lowerBound,
-                           end: partial.upperBound, stride: stride)
+        return StridedRange(from: partial.lowerBound,
+                            to: partial.upperBound, by: stride)
     }
     
     public func relative<C>(to collection: C) -> Range<Bound>
