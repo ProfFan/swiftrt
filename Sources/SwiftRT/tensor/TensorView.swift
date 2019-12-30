@@ -641,3 +641,39 @@ public extension TensorView where Element: FloatingPoint {
         return true
     }
 }
+
+//==============================================================================
+//
+public extension TensorView where Element: Comparable {
+    /// compares the flat elements of self with a Swift array of elements
+    static func == (lhs: Self, rhs: [Element]) -> Bool {
+        for (i, element) in lhs.elements().enumerated() {
+            if element != rhs[i] { return false }
+        }
+        return true
+    }
+}
+
+public extension TensorView where Element: Comparable & AnyConvertable {
+    /// compares the flat elements of self with a Swift array of elements
+    static func == <U>(lhs: Self, rhs: [U]) -> Bool
+        where U: Comparable & AnyConvertable
+    {
+        for (i, element) in lhs.elements().enumerated() {
+            if element != Element(any: rhs[i]) { return false }
+        }
+        return true
+    }
+
+    /// compares the flat elements of self with a Swift array of elements
+    static func == <R>(lhs: Self, rhs: R) -> Bool
+        where R: StridedRangeExpression, R.Bound == Int
+    {
+        let r = rhs.tensorRangeRelative(to: 0..<lhs.count)
+        let range = stride(from: r.start, to: r.end, by: r.stride)
+        for (element, rangeIndex) in zip(lhs.elements(), range) {
+            if element != Element(any: rangeIndex) { return false }
+        }
+        return true
+    }
+}
