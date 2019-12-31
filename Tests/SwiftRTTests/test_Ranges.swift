@@ -33,60 +33,49 @@ class test_Ranges: XCTestCase {
     func test_VectorRange() {
         let vector = IndexVector(with: 0..<10)
         
-        // from index 1 through the end
-        XCTAssert(vector[1...] == 1...9)
-
-        // through last element
-        XCTAssert(vector[...-1] == 0...9)
-        XCTAssert(vector[...] == 0...9)
-
-        // up to the second to last element
-        XCTAssert(vector[..<-2] == 0...7)
-
-        // between 4 and 2 back from the end
-        XCTAssert(vector[-4..<-2] == 6...7)
-
-        // the whole range stepping by 2
-        XCTAssert(vector[(...)..2] == 0..<10..2)
-        XCTAssert(vector[.....2] == 0..<10..2)
+//        // from index 1 through the end
+//        XCTAssert(vector[1...] == 1...9)
+//
+//        // through last element
+//        XCTAssert(vector[...-1] == 0...9)
+//        XCTAssert(vector[...] == 0...9)
+//
+//        // up to the second to last element
+//        XCTAssert(vector[..<-2] == 0...7)
+//
+//        // between 4 and 2 back from the end
+//        XCTAssert(vector[-4..<-2] == 6...7)
+//
+//        // the whole range stepping by 2
+//        XCTAssert(vector[(...)..2] == 0..<10..2)
+//        XCTAssert(vector[.....2] == 0..<10..2)
 
         // the whole range stepping backwards by 2
-//        let reversed = [Int32](stride(from: 0, to: 10, by: 2).reversed())
-//        XCTAssert(vector[(...)..-2] == reversed)
-//        XCTAssert(vector[.....-2] == reversed)
+        let reversed = [Int32](stride(from: 0, to: 10, by: 2).reversed())
+        XCTAssert(vector[(...)..-2] == reversed)
+        XCTAssert(vector[.....-2] == reversed)
 
-        // sliding window starting at 2 and extending 3 (i.e 2 + 3)
-        XCTAssert(vector[2..|3] == 2...4)
-
-        // sliding window starting at 2 and extending 5, stepped
-        XCTAssert(vector[2..|5..2] == [2, 4])
+//        // sliding window starting at 2 and extending 3 (i.e 2 + 3)
+//        XCTAssert(vector[2..|3] == 2...4)
+//
+//        // sliding window starting at 2 and extending 5, stepped
+//        XCTAssert(vector[2..|5..2] == [2, 4])
     }
 
     //==========================================================================
     // test_VectorSteppedRange
     func test_VectorSteppedRange() {
         let vector = IndexVector(with: 0...9)
-        let v1 = vector[(1), (2), (2)].flatArray
-        XCTAssert(v1.count == 1)
-        let v2 = vector[(1), (4), (2)].flatArray
-        XCTAssert(v2.count == 2)
-        let v3 = vector[(1), (4), (2)].flatArray
-        XCTAssert(v3.count == 2)
-
-        let v4 = vector[(1), (5), (3)].flatArray
-        XCTAssert(v4.count == 2)
-        let e4: [Int32] = [1, 4]
-        XCTAssert(v4 == e4)
-
-        let v5 = vector[(1), (6), (3)].flatArray
-        XCTAssert(v5.count == 2)
-        let e5: [Int32] = [1, 4]
-        XCTAssert(v5 == e5)
-
-        let v6 = vector[(1), (8), (3)].flatArray
-        XCTAssert(v6.count == 3)
-        let e6: [Int32] = [1, 4, 7]
-        XCTAssert(v6 == e6)
+        XCTAssert(vector[1..<2..2] == [1])
+        XCTAssert(vector[1..<4..2] == [1, 3])
+        XCTAssert(vector[..<4..2] == [0, 2])
+        XCTAssert(vector[1...4..2] == [1, 3])
+        XCTAssert(vector[1..<5..3] == [1, 4])
+        XCTAssert(vector[1..<6..3] == [1, 4])
+        XCTAssert(vector[..<8..3] == [0, 3, 6])
+        XCTAssert(vector[1..<8..3] == [1, 4, 7])
+        XCTAssert(vector[(...)..3] == [0, 3, 6, 9])
+        XCTAssert(vector[(1...)..3] == [1, 4, 7])
     }
 
     //==========================================================================
@@ -96,13 +85,8 @@ class test_Ranges: XCTestCase {
         let v1 = m1[1..<-1, ...3]
         XCTAssert(v1 == 4...6)
 
-//        // negative values work back from the end
-//        let v2 = m1[(-1, 1), (2, 4)]
-//        XCTAssert(v2.flatArray == [Int32](5...7))
-
-        // range syntax
-//        XCTAssert(vector[...].flatArray == [Int32](0...9))
-//        XCTAssert(vector[1...].flatArray == [Int32](1...9))
+        // negative values
+        XCTAssert(m1[-1..<2, 1..<4] == 5...7)
     }
 
     //--------------------------------------------------------------------------
