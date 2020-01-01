@@ -87,8 +87,7 @@ class test_BinaryFunctions: XCTestCase {
     func test_addAndAssign() {
         var m1 = Matrix(3, 2, with: 0...5)
         m1 += 2
-        let expected: [Float] = [2, 3, 4, 5, 6, 7]
-        XCTAssert(m1.flatArray == expected)
+        XCTAssert(m1 == [2, 3, 4, 5, 6, 7])
     }
 
     //--------------------------------------------------------------------------

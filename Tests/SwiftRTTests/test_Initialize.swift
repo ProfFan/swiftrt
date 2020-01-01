@@ -28,11 +28,6 @@ class test_Initialize: XCTestCase {
         ("test_repeatElement", test_repeatElement),
         ("test_repeatRowVector", test_repeatRowVector),
         ("test_repeatColVector", test_repeatColVector),
-//        ("test_add", test_add),
-//        ("test_add", test_add),
-//        ("test_add", test_add),
-//        ("test_add", test_add),
-//        ("test_add", test_add),
     ]
     
     //--------------------------------------------------------------------------
@@ -40,8 +35,7 @@ class test_Initialize: XCTestCase {
     func test_cast() {
         let fMatrix = Matrix(3, 2, with: 0..<6)
         let iMatrix = IndexMatrix(fMatrix)
-        let expected = [Int32](0..<6)
-        XCTAssert(iMatrix.flatArray == expected)
+        XCTAssert(iMatrix == 0..<6)
     }
 
     //--------------------------------------------------------------------------
@@ -50,37 +44,33 @@ class test_Initialize: XCTestCase {
         let value: Int32 = 42
         let volume = IndexVolume(element: value).repeated(to: (2, 3, 10))
         let expected = [Int32](repeating: value, count: volume.count)
-        XCTAssert(volume.flatArray == expected)
+        XCTAssert(volume == expected)
     }
     
     //--------------------------------------------------------------------------
     // test_repeatRowVector
     func test_repeatRowVector() {
         let matrix = IndexMatrix(1, 5, with: 0...4).repeated(to: (5, 5))
-        let expected: [Int32] = [
+        XCTAssert(matrix == [
             0, 1, 2, 3, 4,
             0, 1, 2, 3, 4,
             0, 1, 2, 3, 4,
             0, 1, 2, 3, 4,
             0, 1, 2, 3, 4,
-        ]
-        let values = matrix.flatArray
-        XCTAssert(values == expected)
+        ])
     }
     
     //--------------------------------------------------------------------------
     // test_repeatColVector
     func test_repeatColVector() {
         let matrix = IndexMatrix(5, 1, with: 0...4).repeated(to: (5, 5))
-        let expected: [Int32] = [
+        XCTAssert(matrix == [
             0, 0, 0, 0, 0,
             1, 1, 1, 1, 1,
             2, 2, 2, 2, 2,
             3, 3, 3, 3, 3,
             4, 4, 4, 4, 4,
-        ]
-        let values = matrix.flatArray
-        XCTAssert(values == expected)
+        ])
     }
     
     //--------------------------------------------------------------------------
@@ -90,13 +80,12 @@ class test_Initialize: XCTestCase {
         let t2 = Matrix(2, 3, with: 7...12)
         let c3 = Matrix(concatenating: t1, t2)
         XCTAssert(c3.extents == [4, 3])
-        let c1Expected: [Float] = [
+        XCTAssert(c3 == [
             1,  2,  3,
             4,  5,  6,
             7,  8,  9,
             10, 11, 12,
-        ]
-        XCTAssert(c3.flatArray == c1Expected)
+        ])
     }
 
     //--------------------------------------------------------------------------
@@ -106,10 +95,9 @@ class test_Initialize: XCTestCase {
         let t2 = Matrix(2, 3, with: 7...12)
         let c3 = Matrix(concatenating: t1, t2, alongAxis: 1)
         XCTAssert(c3.extents == [2, 6])
-        let c1Expected: [Float] = [
+        XCTAssert(c3 == [
             1,  2,  3, 7,  8,  9,
             4,  5,  6, 10, 11, 12,
-        ]
-        XCTAssert(c3.flatArray == c1Expected)
+        ])
     }
 }

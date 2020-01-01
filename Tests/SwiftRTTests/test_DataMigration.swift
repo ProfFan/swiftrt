@@ -40,7 +40,7 @@ class test_DataMigration: XCTestCase {
         let v1 = IndexVector(with: 1...3)
         var v2 = IndexVector(with: repeatElement(0, count: 3))
         SwiftRT.copy(from: v1, to: &v2)
-        XCTAssert(v1.flatArray == [1, 2, 3])
+        XCTAssert(v1 == [1, 2, 3])
     }
     
     //--------------------------------------------------------------------------
