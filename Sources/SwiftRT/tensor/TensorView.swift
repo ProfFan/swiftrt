@@ -237,10 +237,10 @@ public extension TensorView {
         assert(shape.contains(offset: offset, extents: extents))
 
         // the subview offset is the current plus the offset of index
-        let dataOffset = viewOffset + shape.linearIndex(of: offset)
+        let subViewOffset = viewOffset + shape.linearIndex(of: offset)
         return Self(shape: Shape(extents: extents, strides: strides),
                     tensorArray: tensorArray,
-                    viewOffset: dataOffset,
+                    viewOffset: subViewOffset,
                     isShared: isReference)
     }
     

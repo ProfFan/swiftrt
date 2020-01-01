@@ -14,10 +14,6 @@
 // limitations under the License.
 //
 import Foundation
-//==============================================================================
-//public struct <R> where R: RangeExpression {
-//
-//}
 
 public extension TensorView {
     //--------------------------------------------------------------------------

@@ -17,10 +17,16 @@
 
 //==============================================================================
 /// StridedRange
-public struct StridedRange<T> {
+public struct StridedRange<T: Comparable> {
     public var from: T
     public var to: T
     public var by: T
+    public init(from: T, to: T, by: T) {
+        assert(from < to, "Empty range: `to` must be greater than `from`")
+        self.from = from
+        self.to = to
+        self.by = by
+    }
 }
 
 //==============================================================================
@@ -53,7 +59,7 @@ public extension StridedRangeExpression {
 /// .. stride operator
 ///
 infix operator ..: StridedRangeFormationPrecedence
-infix operator ..-: StridedRangeFormationPrecedence
+//infix operator ..-: StridedRangeFormationPrecedence
 
 precedencegroup StridedRangeFormationPrecedence {
     associativity: left
@@ -65,9 +71,11 @@ extension RangeExpression where Bound == Int {
     static func .. (range: Self, stride: Bound) -> PartialStridedRange<Self> {
         PartialStridedRange(partial: range, with: stride)
     }
-    static func ..- (range: Self, stride: Bound) -> PartialStridedRange<Self> {
-        PartialStridedRange(partial: range, with: -stride)
-    }
+    
+// TODO: do want to support reverse stepping through ranges?
+//    static func ..- (range: Self, stride: Bound) -> PartialStridedRange<Self> {
+//        PartialStridedRange(partial: range, with: -stride)
+//    }
 }
 
 public func .. (range: UnboundedRange, stride: Int)
@@ -76,11 +84,12 @@ public func .. (range: UnboundedRange, stride: Int)
     PartialStridedRange(partial: 0..., with: stride)
 }
 
-public func ..- (range: UnboundedRange, stride: Int)
-    -> PartialStridedRange<PartialRangeFrom<Int>>
-{
-    PartialStridedRange(partial: 0..., with: -stride)
-}
+// TODO: do want to support reverse stepping through ranges?
+//public func ..- (range: UnboundedRange, stride: Int)
+//    -> PartialStridedRange<PartialRangeFrom<Int>>
+//{
+//    PartialStridedRange(partial: 0..., with: -stride)
+//}
 
 //==============================================================================
 /// negative range support
@@ -112,7 +121,7 @@ extension Int {
 
 // whole range stepped
 prefix operator .....
-prefix operator .....-
+//prefix operator .....-
 
 extension Int {
     prefix public static func ..... (stride: Int) ->
@@ -120,17 +129,18 @@ extension Int {
     {
         PartialStridedRange(partial: 0..., with: stride)
     }
-    
-    prefix public static func .....- (stride: Int) ->
-        PartialStridedRange<PartialRangeFrom<Int>>
-    {
-        PartialStridedRange(partial: 0..., with: -stride)
-    }
+
+// TODO: do want to support reverse stepping through ranges?
+//    prefix public static func .....- (stride: Int) ->
+//        PartialStridedRange<PartialRangeFrom<Int>>
+//    {
+//        PartialStridedRange(partial: 0..., with: -stride)
+//    }
 }
 
 //==============================================================================
-/// .. stride operator
-///
+/// ..| operator
+/// specifies range and relative extent to do windowed operations
 infix operator ..|: RangeFormationPrecedence
 
 extension Int {

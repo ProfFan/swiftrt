@@ -353,35 +353,35 @@ public extension MatrixView {
     // references.
     //    @differentiable(vjp: vjpSubscript where Self: DifferentiableTensorView)
     @inlinable @inline(__always)
-    subscript<R, C>(r: R, c: C) -> Self where
+    subscript<R, C>(rows: R, cols: C) -> Self where
         R: StridedRangeExpression, R.Bound == Int,
         C: StridedRangeExpression, C.Bound == Int
     {
         get {
-            let r = r.stridedRangeRelative(to: 0..<extents[0])
-            let c = c.stridedRangeRelative(to: 0..<extents[1])
+            let r = rows.stridedRangeRelative(to: 0..<extents[0])
+            let c = cols.stridedRangeRelative(to: 0..<extents[1])
             return self[(r.from, c.from), (r.to, c.to), (r.by, c.by)]
         }
         
         set {
-            let r = r.stridedRangeRelative(to: 0..<extents[0])
-            let c = c.stridedRangeRelative(to: 0..<extents[1])
+            let r = rows.stridedRangeRelative(to: 0..<extents[0])
+            let c = cols.stridedRangeRelative(to: 0..<extents[1])
             return self[(r.from, c.from), (r.to, c.to), (r.by, c.by)] = newValue
         }
     }
     
-    subscript<R>(r: R, c: UnboundedRange) -> Self where
+    subscript<R>(rows: R, cols: UnboundedRange) -> Self where
         R: StridedRangeExpression, R.Bound == Int
     {
-        get { self[r, 0...] }
-        set { self[r, 0...] = newValue }
+        get { self[rows, 0...] }
+        set { self[rows, 0...] = newValue }
     }
     
-    subscript<C>(r: UnboundedRange, c: C) -> Self where
+    subscript<C>(rows: UnboundedRange, cols: C) -> Self where
         C: StridedRangeExpression, C.Bound == Int
     {
-        get { self[0..., c] }
-        set { self[0..., c] = newValue }
+        get { self[0..., cols] }
+        set { self[0..., cols] = newValue }
     }
 }
 

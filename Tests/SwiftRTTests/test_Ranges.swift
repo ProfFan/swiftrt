@@ -50,9 +50,10 @@ class test_Ranges: XCTestCase {
         XCTAssert(vector[(...)..2] == 0..<10..2)
         XCTAssert(vector[.....2] == 0..<10..2)
 
-        // the whole range stepping backwards by 2
-        let reversed = [Int32](stride(from: 0, to: 10, by: 2).reversed())
-        XCTAssert(vector[(...)..-2] == reversed)
+        // TODO: do want to support reverse stepping through ranges?
+        // the whole range stepping in reverse by 2
+//        let reversed = [Int32](stride(from: 0, to: 10, by: 2).reversed())
+//        XCTAssert(vector[(...)..-2] == reversed)
 //        XCTAssert(vector[.....-2] == reversed)
 
         // sliding window starting at 2 and extending 3 (i.e 2 + 3)
@@ -85,21 +86,22 @@ class test_Ranges: XCTestCase {
         let v1 = m1[1..<-1, ...3]
         XCTAssert(v1 == 4...6)
 
-        // negative values
-        XCTAssert(m1[-1..<2, 1..<4] == 5...7)
+        // use negative row value to work from end and select row 1
+        XCTAssert(m1[-2..<2, 1..<4] == 5...7)
     }
 
     //--------------------------------------------------------------------------
     // test_VectorWriteRange
     func test_VectorWriteRange() {
-//        Platform.local.servicePriority = [cpuSynchronousServiceName]
-//        Platform.log.level = .diagnostic
-//        Platform.log.categories = [.dataAlloc, .dataCopy, .dataMutation]
-//        var v1 = Vector(with: 0...6)
-//        let sevens = Vector(with: repeatElement(7, count: 3))
-//        v1[0..<2] = sevens
-//        XCTAssert(v1.flatArray == [0, 1, 7, 7, 7, 5])
-//        let m2 = Vector(with: 1...6)
-//        XCTAssert(gradientIsValid(at: m2, tolerance: 0.7, in: { exp($0) }))
+        Platform.local.servicePriority = [cpuSynchronousServiceName]
+        Platform.log.level = .diagnostic
+        Platform.log.categories = [.dataAlloc, .dataCopy, .dataMutation]
+        var v1 = Vector(with: 0...6)
+        let sevens = Vector(with: repeatElement(7, count: 3))
+        v1[2..4] = sevens
+        XCTAssert(v1 == [0, 1, 7, 7, 7, 5])
+        
+        let m2 = Vector(with: 1...6)
+        XCTAssert(gradientIsValid(at: m2, tolerance: 0.7, in: { exp($0) }))
     }
 }
