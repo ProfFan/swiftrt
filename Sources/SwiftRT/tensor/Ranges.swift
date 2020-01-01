@@ -78,6 +78,14 @@ extension RangeExpression where Bound == Int {
 //    }
 }
 
+extension Int {
+    static func .. (range: Int, stride: Int) -> PartialStridedRange<Int> {
+        assert(stride == 1, "strides are invalid for Integer indexes." +
+            " Did you mean to specifiy a closed range with `...`?")
+        return PartialStridedRange(partial: range, with: 1)
+    }
+}
+
 public func .. (range: UnboundedRange, stride: Int)
     -> PartialStridedRange<PartialRangeFrom<Int>>
 {

@@ -93,13 +93,10 @@ class test_Ranges: XCTestCase {
     //--------------------------------------------------------------------------
     // test_VectorWriteRange
     func test_VectorWriteRange() {
-        Platform.local.servicePriority = [cpuSynchronousServiceName]
-        Platform.log.level = .diagnostic
-        Platform.log.categories = [.dataAlloc, .dataCopy, .dataMutation]
         var v1 = Vector(with: 0...6)
         let sevens = Vector(with: repeatElement(7, count: 3))
-        v1[2..4] = sevens
-        XCTAssert(v1 == [0, 1, 7, 7, 7, 5])
+        v1[2...4] = sevens
+        XCTAssert(v1 == [0, 1, 7, 7, 7, 5, 6])
         
         let m2 = Vector(with: 1...6)
         XCTAssert(gradientIsValid(at: m2, tolerance: 0.7, in: { exp($0) }))

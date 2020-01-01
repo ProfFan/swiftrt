@@ -98,7 +98,7 @@ public extension TensorView {
         set {
             let (extents, strides) = getExtents(lower, upper, steps)
             var view = createView(at: lower, extents: extents, strides: strides,
-                                  isReference: isShared)
+                                  isReference: true)
             copy(from: newValue, to: &view)
         }
     }
