@@ -47,6 +47,10 @@ class test_Comparative: XCTestCase {
         let m1 = Matrix(3, 2, with: 0..<6)
         let m2 = Matrix(3, 2, with: 0..<6)
         XCTAssert(m1 == m2)
+
+        // compare by value not equal
+        let other = Matrix(3, 2, with: 1..<7)
+        XCTAssert(m1 != other)
         
         // compare via alias detection
         let m3 = m2
