@@ -218,13 +218,13 @@ public extension ShapeProtocol {
     var dense: Self { isContiguous ? self : Self(extents: extents) }
 
     //--------------------------------------------------------------------------
-    // spanCount
+    // computeSpanCount
     // A sub view may cover a wider range of parent element indexes
     // than the number of dense elements defined by the extents of the view
     // due to striding.
     // The span of the extent is the linear index of the last index + 1
     @inlinable @inline(__always)
-    var spanCount: Int {
+    static func computeSpanCount(_ extents: Array, _ strides: Array) -> Int {
         (zip(extents, strides).reduce(0) { $0 + ($1.0 - 1) * $1.1 }) + 1
     }
     
@@ -385,6 +385,7 @@ public struct Shape1: ShapeProtocol {
 
     // properties
     public let count: Int
+    public let spanCount: Int
     public let extents: Array
     public let strides: Array
 
@@ -393,6 +394,7 @@ public struct Shape1: ShapeProtocol {
         self.extents = extents
         self.strides = strides ?? Self.denseStrides(extents)
         count = extents[0]
+        spanCount = Self.computeSpanCount(self.extents, self.strides)
     }
 }
 
@@ -406,6 +408,7 @@ public struct Shape2: ShapeProtocol {
 
     // properties
     public let count: Int
+    public let spanCount: Int
     public let extents: Array
     public let strides: Array
 
@@ -414,6 +417,7 @@ public struct Shape2: ShapeProtocol {
         self.extents = extents
         self.strides = strides ?? Self.denseStrides(extents)
         count = extents.reduce(1, *)
+        spanCount = Self.computeSpanCount(self.extents, self.strides)
     }
 }
 //==============================================================================
@@ -426,6 +430,7 @@ public struct Shape3: ShapeProtocol {
 
     // properties
     public let count: Int
+    public let spanCount: Int
     public let extents: Array
     public let strides: Array
 
@@ -434,5 +439,6 @@ public struct Shape3: ShapeProtocol {
         self.extents = extents
         self.strides = strides ?? Self.denseStrides(extents)
         count = extents.reduce(1, *)
+        spanCount = Self.computeSpanCount(self.extents, self.strides)
     }
 }

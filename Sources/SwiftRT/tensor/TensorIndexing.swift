@@ -20,38 +20,59 @@ import Foundation
 //}
 
 public extension TensorView {
+    //--------------------------------------------------------------------------
+    /// getExtents(from:to:
+    /// computes the extents and strides from the specified bounds and steps
+    /// - Parameter lower: the lower bound of the subview
+    /// - Parameter upper: the upper bound of the subview
+    /// - Returns: the extents to be used to create a subview
     @inlinable @inline(__always)
-    func viewExtents(from lower: Shape.Array, to upper: Shape.Array)
+    func getExtents(from lower: Shape.Array, to upper: Shape.Array)
         -> Shape.Array
     {
+        // bounds should be in the correct order by the time they reach here
+        assert({
+            for (l, u) in zip(lower, upper) { if l > u { return false } }
+            return true
+        }(), "lower must be less than or equal to upper")
+
         var extents = upper
-        for i in 0..<rank {
-            assert(upper[i] >= lower[i])
-            extents[i] = upper[i] - lower[i]
-        }
+        zip(upper, lower).map(into: &extents, -)
         return extents
     }
 
     //--------------------------------------------------------------------------
-    /// makeStepped(view:parent:steps:
-    /// computes the extents and strides for creating a stepped subview
-    /// - Parameter view: the extents of the desired view in parent coordinates
-    /// - Parameter steps: the step interval along each dimension
+    /// getExtents(_:_:_
+    /// computes the extents and strides from the specified bounds and steps
+    /// - Parameter lower: the lower bound of the subview
+    /// - Parameter upper: the upper bound of the subview
+    /// - Parameter steps: the step interval along each dimension. This
+    ///                    value can be negative to perform reverse traversal
     /// - Returns: the extents and strides to be used to create a subview
-    func makeStepped(_ lower: Shape.Array, _ upper: Shape.Array,
-                     _ steps: Shape.Array) ->
+    @inlinable
+    func getExtents(_ lower: Shape.Array,
+                    _ upper: Shape.Array,
+                    _ steps: Shape.Array) ->
         (extents: Shape.Array, strides: Shape.Array)
     {
-        var subExtents = viewExtents(from: lower, to: upper)
-        zip(subExtents, steps).enumerated().forEach {
-            subExtents[$0] = $1.0 / $1.1 + ($1.0 % $1.1 == 0 ? 0 : 1)
-        }
+        // if all the steps are 1, then just reuse the parent strides
+        if steps.first(where: { $0 != 1 }) == nil {
+            return (getExtents(from: lower, to: upper), self.strides)
 
-        var subStrides = strides
-        zip(strides, steps).enumerated().forEach {
-            subStrides[$0] = $1.0 * $1.1
+        } else {
+            // if one or more steps are not 1,
+            // then recompute the subview extents and strides
+
+            // y must be positive for this to work correctly
+            func divceil(_ x: Int, _ y: Int) -> Int { (x - 1 + y) / y }
+            
+            var subExtents = getExtents(from: lower, to: upper)
+            zip(subExtents, steps).map(into: &subExtents) { divceil($0, abs($1)) }
+            
+            var subStrides = strides
+            zip(strides, steps).map(into: &subStrides, *)
+            return (subExtents, subStrides)
         }
-        return (subExtents, subStrides)
     }
 
     //--------------------------------------------------------------------------
@@ -74,12 +95,12 @@ public extension TensorView {
               steps: Shape.Array) -> Self
     {
         get {
-            let (extents, strides) = makeStepped(lower, upper, steps)
+            let (extents, strides) = getExtents(lower, upper, steps)
             return createView(at: lower, extents: extents, strides: strides,
                               isReference: isShared)
         }
         set {
-            let (extents, strides) = makeStepped(lower, upper, steps)
+            let (extents, strides) = getExtents(lower, upper, steps)
             var view = createView(at: lower, extents: extents, strides: strides,
                                   isReference: isShared)
             copy(from: newValue, to: &view)
