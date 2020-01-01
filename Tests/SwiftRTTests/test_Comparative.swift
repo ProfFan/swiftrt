@@ -24,10 +24,10 @@ class test_Comparative: XCTestCase {
     static var allTests = [
         ("test_elementsAlmostEqual", test_elementsAlmostEqual),
         ("test_equality", test_equality),
-        ("test_maximum", test_maximum),
-        ("test_maximumScalar", test_maximumScalar),
-        ("test_minimum", test_minimum),
-        ("test_minimumScalar", test_minimumScalar),
+        ("test_max", test_max),
+        ("test_maxScalar", test_maxScalar),
+        ("test_min", test_min),
+        ("test_minScalar", test_minScalar),
     ]
 
     //--------------------------------------------------------------------------
@@ -60,39 +60,35 @@ class test_Comparative: XCTestCase {
 
     //--------------------------------------------------------------------------
     // test_maximum
-    func test_maximum() {
+    func test_max() {
         let m1 = Matrix(3, 2, with: [0, 1, -2, -3, -4, 5])
         let m2 = Matrix(3, 2, with: [0, -7, 2, 3, 4, 5])
         let result = max(m1, m2)
-        let expected: [Float] = [0, 1, 2, 3, 4, 5]
-        XCTAssert(result.flatArray == expected)
+        XCTAssert(result == [0, 1, 2, 3, 4, 5])
     }
     
     //--------------------------------------------------------------------------
-    // test_maximumScalar
-    func test_maximumScalar() {
+    // test_maxScalar
+    func test_maxScalar() {
         let m1 = Matrix(3, 2, with: 0...5)
         let result = max(m1, 2)
-        let expected: [Float] = [2, 2, 2, 3, 4, 5]
-        XCTAssert(result.flatArray == expected)
+        XCTAssert(result == [2, 2, 2, 3, 4, 5])
     }
     
     //--------------------------------------------------------------------------
-    // test_minimum
-    func test_minimum() {
+    // test_min
+    func test_min() {
         let m1 = Matrix(3, 2, with: [0, 1, 2, -3, 4, -5])
         let m2 = Matrix(3, 2, with: [0, -1, -2, 3, -4, 5])
         let result = min(m1, m2)
-        let expected: [Float] = [0, -1, -2, -3, -4, -5]
-        XCTAssert(result.flatArray == expected)
+        XCTAssert(result == [0, -1, -2, -3, -4, -5])
     }
     
     //--------------------------------------------------------------------------
-    // test_minimumScalar
-    func test_minimumScalar() {
+    // test_minScalar
+    func test_minScalar() {
         let m1 = Matrix(3, 2, with: 0...5)
         let result = min(m1, 3)
-        let expected: [Float] = [0, 1, 2, 3, 3, 3]
-        XCTAssert(result.flatArray == expected)
+        XCTAssert(result == [0, 1, 2, 3, 3, 3])
     }
 }
