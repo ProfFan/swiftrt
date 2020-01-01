@@ -48,8 +48,7 @@ class test_BinaryFunctions: XCTestCase {
         let m1 = Matrix(3, 2, with: 0..<6)
         let m2 = Matrix(3, 2, with: 0..<6)
         let result = m1 + m2
-        let expected: [Float] = [0, 2, 4, 6, 8, 10]
-        XCTAssert(result.flatArray == expected)
+        XCTAssert(result == [0, 2, 4, 6, 8, 10])
         XCTAssert(gradientIsValid(at: m1, m2, tolerance: 0.002, in: { $0 + $1 }))
     }
 
@@ -59,8 +58,7 @@ class test_BinaryFunctions: XCTestCase {
         let m1 = IndexMatrix(3, 2, with: 0..<6)
         let m2 = IndexMatrix(3, 2, with: 0..<6)
         let result = m1 + m2
-        let expected: [Int32] = [0, 2, 4, 6, 8, 10]
-        XCTAssert(result.flatArray == expected)
+        XCTAssert(result == [0, 2, 4, 6, 8, 10])
     }
     
     //--------------------------------------------------------------------------
@@ -69,8 +67,7 @@ class test_BinaryFunctions: XCTestCase {
         let m1 = MatrixT<UInt8>(3, 2, with: 0..<6)
         let m2 = MatrixT<UInt8>(3, 2, with: 0..<6)
         let result = m1 + m2
-        let expected: [UInt8] = [0, 2, 4, 6, 8, 10]
-        XCTAssert(result.flatArray == expected)
+        XCTAssert(result == [0, 2, 4, 6, 8, 10])
     }
     
     //--------------------------------------------------------------------------
@@ -79,10 +76,10 @@ class test_BinaryFunctions: XCTestCase {
         let m1 = Matrix(3, 2, with: 1...6)
         let result = m1 + 1
         let expected: [Float] = [2, 3, 4, 5, 6, 7]
-        XCTAssert(result.flatArray == expected)
+        XCTAssert(result == expected)
 
         let result2 = 1 + m1
-        XCTAssert(result2.flatArray == expected)
+        XCTAssert(result2 == expected)
     }
     
     //--------------------------------------------------------------------------
@@ -100,8 +97,7 @@ class test_BinaryFunctions: XCTestCase {
         let m1 = Matrix(3, 2, with: 1..<7)
         let m2 = Matrix(3, 2, with: 0..<6)
         let result = m1 - m2
-        let expected: [Float] = [1, 1, 1, 1, 1, 1]
-        XCTAssert(result.flatArray == expected)
+        XCTAssert(result == [1, 1, 1, 1, 1, 1])
         XCTAssert(gradientIsValid(at: m1, m2, tolerance: 0.002, in: { $0 - $1 }))
     }
 
@@ -110,12 +106,10 @@ class test_BinaryFunctions: XCTestCase {
     func test_subtractScalar() {
         let m1 = Matrix(3, 2, with: 1...6)
         let result = m1 - 1
-        let expected: [Float] = [0, 1, 2, 3, 4, 5]
-        XCTAssert(result.flatArray == expected)
+        XCTAssert(result == [0, 1, 2, 3, 4, 5])
 
         let result2 = 1 - m1
-        let expected2: [Float] = [0, -1, -2, -3, -4, -5]
-        XCTAssert(result2.flatArray == expected2)
+        XCTAssert(result2 == [0, -1, -2, -3, -4, -5])
     }
     
     //--------------------------------------------------------------------------
@@ -134,7 +128,7 @@ class test_BinaryFunctions: XCTestCase {
             2, 3,
             3, 4
         ]
-        XCTAssert(result.flatArray == expected)
+        XCTAssert(result == expected)
         
         let result2 = col - m1
         let expected2: [Float] = [
@@ -142,7 +136,7 @@ class test_BinaryFunctions: XCTestCase {
             -2, -3,
             -3, -4
         ]
-        XCTAssert(result2.flatArray == expected2)
+        XCTAssert(result2 == expected2)
     }
     
     //--------------------------------------------------------------------------
@@ -150,8 +144,7 @@ class test_BinaryFunctions: XCTestCase {
     func test_subtractAndAssign() {
         var m1 = Matrix(3, 2, with: 1...6)
         m1 -= 1
-        let expected: [Float] = [0, 1, 2, 3, 4, 5]
-        XCTAssert(m1.flatArray == expected)
+        XCTAssert(m1 == [0, 1, 2, 3, 4, 5])
     }
 
     //--------------------------------------------------------------------------
@@ -160,8 +153,7 @@ class test_BinaryFunctions: XCTestCase {
         let m1 = Matrix(3, 2, with: 0..<6)
         let m2 = Matrix(3, 2, with: 0..<6)
         let result = m1 * m2
-        let expected: [Float] = [0, 1, 4, 9, 16, 25]
-        XCTAssert(result.flatArray == expected)
+        XCTAssert(result == [0, 1, 4, 9, 16, 25])
         XCTAssert(gradientIsValid(at: m1, m2, tolerance: 0.006, in: { $0 * $1 }))
     }
 
@@ -170,8 +162,7 @@ class test_BinaryFunctions: XCTestCase {
     func test_mulScalar() {
         let m1 = Matrix(3, 2, with: 1...6)
         let result = m1 * 2
-        let expected: [Float] = [2, 4, 6, 8, 10, 12]
-        XCTAssert(result.flatArray == expected)
+        XCTAssert(result == [2, 4, 6, 8, 10, 12])
     }
     
     //--------------------------------------------------------------------------
@@ -179,8 +170,7 @@ class test_BinaryFunctions: XCTestCase {
     func test_mulAndAssign() {
         var m1 = Matrix(3, 2, with: 1...6)
         m1 *= 2
-        let expected: [Float] = [2, 4, 6, 8, 10, 12]
-        XCTAssert(m1.flatArray == expected)
+        XCTAssert(m1 == [2, 4, 6, 8, 10, 12])
     }
 
     //--------------------------------------------------------------------------
@@ -189,8 +179,7 @@ class test_BinaryFunctions: XCTestCase {
         let m1 = Matrix(3, 2, with: [1, 4, 9, 16, 25, 36])
         let m2 = Matrix(3, 2, with: 1...6)
         let result = m1 / m2
-        let expected: [Float] = [1, 2, 3, 4, 5, 6]
-        XCTAssert(result.flatArray == expected)
+        XCTAssert(result == [1, 2, 3, 4, 5, 6])
         XCTAssert(gradientIsValid(at: m1, m2, tolerance: 0.002, in: { $0 / $1 }))
     }
 
@@ -199,8 +188,7 @@ class test_BinaryFunctions: XCTestCase {
     func test_divScalar() {
         let m1 = Matrix(3, 2, with: 1...6)
         let result = m1 / 2
-        let expected: [Float] = [0.5, 1, 1.5, 2, 2.5, 3]
-        XCTAssert(result.flatArray == expected)
+        XCTAssert(result == [0.5, 1, 1.5, 2, 2.5, 3])
     }
 
     //--------------------------------------------------------------------------
@@ -208,7 +196,6 @@ class test_BinaryFunctions: XCTestCase {
     func test_divAndAssign() {
         var m1 = Matrix(3, 2, with: 1...6)
         m1 /= 2
-        let expected: [Float] = [0.5, 1, 1.5, 2, 2.5, 3]
-        XCTAssert(m1.flatArray == expected)
+        XCTAssert(m1 == [0.5, 1, 1.5, 2, 2.5, 3])
     }
 }
