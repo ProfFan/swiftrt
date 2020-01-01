@@ -38,7 +38,7 @@ class test_Reductions: XCTestCase {
     //--------------------------------------------------------------------------
     // test_sumVector
     func test_sumVector() {
-        Platform.local.servicePriority = [cpuSynchronousServiceName]
+//        Platform.local.servicePriority = [cpuSynchronousServiceName]
         
         let m = Vector(with: [0, 1, 2, 3])
         let result = m.sum()
@@ -49,7 +49,7 @@ class test_Reductions: XCTestCase {
     //--------------------------------------------------------------------------
     // test_sumMatrix
     func test_sumMatrix() {
-        Platform.local.servicePriority = [cpuSynchronousServiceName]
+//        Platform.local.servicePriority = [cpuSynchronousServiceName]
 
         let m = Matrix(3, 2, with: [
             0, 1,
@@ -73,35 +73,33 @@ class test_Reductions: XCTestCase {
         // sum cols
         do {
             let result = m.sum(alongAxes: 1)
-            let expected: [Float] = [
+            XCTAssert(result.extents == [3, 1])
+            XCTAssert(result == [
                 1,
                 5,
                 9
-            ]
-            XCTAssert(result.extents == [3, 1])
-            XCTAssert(result.flatArray == expected)
+            ])
         }
 
         // sum rows
         do {
             let result = m.sum(alongAxes: 0)
-            let expected: [Float] = [
-                6, 9
-            ]
             XCTAssert(result.extents == [1, 2])
-            XCTAssert(result.flatArray == expected)
+            XCTAssert(result == [
+                6, 9
+            ])
         }
     }
 
     //--------------------------------------------------------------------------
     // test_abssumMatrix
     func test_abssumMatrix() {
-        Platform.local.servicePriority = [cpuSynchronousServiceName]
+//        Platform.local.servicePriority = [cpuSynchronousServiceName]
 
         let m = Matrix(3, 2, with: [
-            0, -1,
-            -2, 3,
-            4, -5
+             0, -1,
+            -2,  3,
+             4, -5
         ])
 
         // sum all
@@ -120,30 +118,28 @@ class test_Reductions: XCTestCase {
         // sum cols
         do {
             let result = m.abssum(alongAxes: 1)
-            let expected: [Float] = [
+            XCTAssert(result.extents == [3, 1])
+            XCTAssert(result == [
                 1,
                 5,
                 9
-            ]
-            XCTAssert(result.extents == [3, 1])
-            XCTAssert(result.flatArray == expected)
+            ])
         }
 
         // sum rows
         do {
             let result = m.abssum(alongAxes: 0)
-            let expected: [Float] = [
-                6, 9
-            ]
             XCTAssert(result.extents == [1, 2])
-            XCTAssert(result.flatArray == expected)
+            XCTAssert(result == [
+                6, 9
+            ])
         }
     }
 
     //--------------------------------------------------------------------------
     // test_allVector
     func test_allVector() {
-        Platform.local.servicePriority = [cpuSynchronousServiceName]
+//        Platform.local.servicePriority = [cpuSynchronousServiceName]
         
         do {
             let m = BoolVector(elements: [true, true, true])
@@ -194,16 +190,14 @@ class test_Reductions: XCTestCase {
         
         // cols
         do {
-            let expected: [Float] = [3, 6]
             let result = m.max(alongAxes: 1)
-            XCTAssert(result.flatArray == expected)
+            XCTAssert(result == [3, 6])
         }
 
         // rows
         do {
-            let expected: [Float] = [1, 3, 6]
             let result = m.max(alongAxes: 0)
-            XCTAssert(result.flatArray == expected)
+            XCTAssert(result == [1, 3, 6])
         }
 
         // all
@@ -218,23 +212,21 @@ class test_Reductions: XCTestCase {
     func test_minMatrix() {
         let m = Matrix(with:
             [
-                [-1, 3, -6],
-                [1, -3,  6],
+                [-1,  3, -6],
+                [ 1, -3,  6],
             ]
         )
         
         // cols
         do {
-            let expected: [Float] = [-6, -3]
             let result = m.min(alongAxes: 1)
-            XCTAssert(result.flatArray == expected)
+            XCTAssert(result == [-6, -3])
         }
 
         // rows
         do {
-            let expected: [Float] = [-1, -3, -6]
             let result = m.min(alongAxes: 0)
-            XCTAssert(result.flatArray == expected)
+            XCTAssert(result == [-1, -3, -6])
         }
 
         // all
@@ -249,23 +241,21 @@ class test_Reductions: XCTestCase {
     func test_absmaxMatrix() {
         let m = Matrix(with:
             [
-                [-1, 3, -6],
-                [1, -3,  6],
+                [-1,  3, -6],
+                [ 1, -3,  6],
             ]
         )
         
         // cols
         do {
-            let expected: [Float] = [6, 6]
             let result = m.absmax(alongAxes: 1)
-            XCTAssert(result.flatArray == expected)
+            XCTAssert(result == [6, 6])
         }
 
         // rows
         do {
-            let expected: [Float] = [1, 3, 6]
             let result = m.absmax(alongAxes: 0)
-            XCTAssert(result.flatArray == expected)
+            XCTAssert(result == [1, 3, 6])
         }
 
         // all
@@ -275,10 +265,10 @@ class test_Reductions: XCTestCase {
         }
     }
         
-        //--------------------------------------------------------------------------
+        //----------------------------------------------------------------------
         // test_meanMatrix
         func test_meanMatrix() {
-            Platform.local.servicePriority = [cpuSynchronousServiceName]
+//            Platform.local.servicePriority = [cpuSynchronousServiceName]
 
             let m = Matrix(3, 2, with: [
                 0, 1,
@@ -302,23 +292,21 @@ class test_Reductions: XCTestCase {
             // mean cols
             do {
                 let result = m.mean(alongAxes: 1)
-                let expected: [Float] = [
+                XCTAssert(result.extents == [3, 1])
+                XCTAssert(result == [
                     0.5,
                     2.5,
                     4.5
-                ]
-                XCTAssert(result.extents == [3, 1])
-                XCTAssert(result.flatArray == expected)
+                ])
             }
 
             // mean rows
             do {
                 let result = m.mean(alongAxes: 0)
-                let expected: [Float] = [
-                    2, 3
-                ]
                 XCTAssert(result.extents == [1, 2])
-                XCTAssert(result.flatArray == expected)
+                XCTAssert(result == [
+                    2, 3
+                ])
             }
         }
 
@@ -353,7 +341,7 @@ class test_Reductions: XCTestCase {
             let chained = m.squared().sum(alongAxes: 1).sqrt()
             let result = m.sqrtSumSquares(alongAxes: 1)
             XCTAssert(result.extents == [3, 1])
-            XCTAssert(result.flatArray == chained.flatArray)
+            XCTAssert(result == chained)
         }
 
         // sum rows
@@ -361,7 +349,7 @@ class test_Reductions: XCTestCase {
             let chained = m.squared().sum(alongAxes: 0).sqrt()
             let result = m.sqrtSumSquares(alongAxes: 0)
             XCTAssert(result.extents == [1, 2])
-            XCTAssert(result.flatArray == chained.flatArray)
+            XCTAssert(result == chained)
         }
     }
     
@@ -388,14 +376,14 @@ class test_Reductions: XCTestCase {
             let chained = m.squared().sum().sqrt()
             let result = m.sqrtSumSquares()
             XCTAssert(result.extents == [1, 1, 1])
-            XCTAssert(result.element == chained.element)
+            XCTAssert(result == chained)
         }
 
         do {
             let chained = m.squared().sum(alongAxes: 0, 1, 2).sqrt()
             let result = m.sqrtSumSquares()
             XCTAssert(result.extents == [1, 1, 1])
-            XCTAssert(result.element == chained.element)
+            XCTAssert(result == chained)
         }
         
         // deps
@@ -403,7 +391,7 @@ class test_Reductions: XCTestCase {
             let chained = m.squared().sum(alongAxes: 0).sqrt()
             let result = m.sqrtSumSquares(alongAxes: 0)
             XCTAssert(result.extents == [1, 3, 2])
-            XCTAssert(result.flatArray == chained.flatArray)
+            XCTAssert(result == chained)
         }
 
         // rows
@@ -411,7 +399,7 @@ class test_Reductions: XCTestCase {
             let chained = m.squared().sum(alongAxes: 1).sqrt()
             let result = m.sqrtSumSquares(alongAxes: 1)
             XCTAssert(result.extents == [2, 1, 2])
-            XCTAssert(result.flatArray == chained.flatArray)
+            XCTAssert(result == chained)
         }
 
         // cols
@@ -419,7 +407,7 @@ class test_Reductions: XCTestCase {
             let chained = m.squared().sum(alongAxes: 2).sqrt()
             let result = m.sqrtSumSquares(alongAxes: 2)
             XCTAssert(result.extents == [2, 3, 1])
-            XCTAssert(result.flatArray == chained.flatArray)
+            XCTAssert(result == chained)
         }
     }
 }
