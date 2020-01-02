@@ -304,7 +304,7 @@ internal func _vjpProdNonZeros<T>(_ x: T, alongAxes axes: Set<Int>? = nil)
 @inlinable
 @differentiable(where T: DifferentiableTensorView)
 public func min<T>(_ x: T, alongAxes axes: Set<Int>? = nil) -> T
-    where T: TensorView, T.Element: Numeric & Comparable & AnyElement
+    where T: TensorView, T.Element: Numeric & Comparable
 {
     var result = x.createReductionResult(alongAxes: axes)
     DeviceContext.currentQueue.reduce(x: x,
@@ -350,7 +350,7 @@ internal func _vjpMin<T>(_ x: T, alongAxes axes: Set<Int>? = nil)
 @inlinable
 @differentiable(where T: DifferentiableTensorView)
 public func max<T>(_ x: T, alongAxes axes: Set<Int>? = nil) -> T
-    where T: TensorView, T.Element: Numeric & Comparable & AnyElement
+    where T: TensorView, T.Element: Numeric & Comparable
 {
     var result = x.createReductionResult(alongAxes: axes)
     DeviceContext.currentQueue.reduce(x: x,
@@ -395,7 +395,7 @@ internal func _vjpMax<T>(_ x: T, alongAxes axes: Set<Int>? = nil)
 /// - Parameter alongAxes: the axes to operate on
 @inlinable
 public func absmax<T>(_ x: T, alongAxes axes: Set<Int>? = nil) -> T
-    where T: TensorView, T.Element: SignedNumeric & Comparable & AnyElement
+    where T: TensorView, T.Element: SignedNumeric & Comparable
 {
     var result = x.createReductionResult(alongAxes: axes)
     DeviceContext.currentQueue.reduce(x: x,

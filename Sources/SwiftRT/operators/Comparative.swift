@@ -210,9 +210,7 @@ func _vjpMin<T>(_ lhs: T.Element, _ rhs: T) ->
 /// equal
 /// Performs element-wise equality comparison and returns a
 /// tensor of Bool values
-public func equal<T>(_ lhs: T, _ rhs: T) -> T.BoolView where
-    T: TensorView, T.Element: Equatable
-{
+public func equal<T>(_ lhs: T, _ rhs: T) -> T.BoolView where T: TensorView {
     assert(lhs.extents == rhs.extents, _messageTensorExtentsMismatch)
     var result = lhs.createBoolTensor()
     DeviceContext.currentQueue.equal(lhs: lhs, rhs: rhs, result: &result)
@@ -266,9 +264,7 @@ public extension TensorView where Element: SignedNumeric & Comparable {
 /// notEqual
 /// Computes `lhs != rhs` element-wise and returns a `TensorView` of Boolean
 /// values.
-public func notEqual<T>(_ lhs: T, _ rhs: T) -> T.BoolView where
-    T: TensorView, T.Element: Equatable
-{
+public func notEqual<T>(_ lhs: T, _ rhs: T) -> T.BoolView where T: TensorView {
     assert(lhs.extents == rhs.extents, _messageTensorExtentsMismatch)
     var result = lhs.createBoolTensor()
     DeviceContext.currentQueue.notEqual(lhs: lhs, rhs: rhs, result: &result)

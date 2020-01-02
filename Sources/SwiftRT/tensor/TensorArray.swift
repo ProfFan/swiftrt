@@ -20,7 +20,9 @@ import Foundation
 /// The TensorArray object is a flat array of values used by the TensorView.
 /// It is responsible for replication and syncing between devices.
 /// It is not created or directly used by end users.
-final public class TensorArray<Element>: ObjectTracking, Logging {
+final public class TensorArray<Element>: ObjectTracking, Codable, Logging
+    where Element: TensorElementConformance
+{
     //--------------------------------------------------------------------------
     /// used by TensorViews to synchronize access to this object
     public let accessQueue = DispatchQueue(label: "TensorArray.accessQueue")
@@ -370,20 +372,17 @@ final public class TensorArray<Element>: ObjectTracking, Logging {
             return array
         }
     }
-}
 
-//==============================================================================
-// Codable
-// useful discussion on techniques
-// https://www.raywenderlich.com/3418439-encoding-and-decoding-in-swift
-extension TensorArray: Codable where Element: Codable {
-    enum CodingKeys: String, CodingKey { case count, data, name }
-
+    //==========================================================================
+    // Codable
+    // useful discussion on techniques
+    // https://www.raywenderlich.com/3418439-encoding-and-decoding-in-swift
+    enum CodingKeys: String, CodingKey { case name, data }
+    
     /// encodes the contents of the array
     public func encode(to encoder: Encoder) throws {
         var container = encoder.container(keyedBy: CodingKeys.self)
         try container.encode(name, forKey: .name)
-        try container.encode(count, forKey: .count)
         var dataContainer = container.nestedUnkeyedContainer(forKey: .data)
         let buffer = try readOnly(using: DeviceContext.hostQueue)
         try buffer.forEach {
@@ -394,12 +393,15 @@ extension TensorArray: Codable where Element: Codable {
     public convenience init(from decoder: Decoder) throws {
         let container = try decoder.container(keyedBy: CodingKeys.self)
         let name = try container.decode(String.self, forKey: .name)
-        let count = try container.decode(Int.self, forKey: .count)
         var dataContainer = try container.nestedUnkeyedContainer(forKey: .data)
-        self.init(count: count, name: name)
-        let elements = try readWrite(using: DeviceContext.hostQueue)
-        for i in 0..<count {
-            elements[i] = try dataContainer.decode(Element.self)
+        if let count = dataContainer.count {
+            self.init(count: count, name: name)
+            let elements = try readWrite(using: DeviceContext.hostQueue)
+            for i in 0..<count {
+                elements[i] = try dataContainer.decode(Element.self)
+            }
+        } else {
+            self.init(count: 0, name: name)
         }
     }
 }

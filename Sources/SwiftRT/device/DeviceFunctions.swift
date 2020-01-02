@@ -96,8 +96,7 @@ public protocol DeviceFunctions {
                                 result: inout T.BoolView) where
         T: TensorView, T.Element: SignedNumeric & Comparable
     /// equal
-    func equal<T>(lhs: T, rhs: T, result: inout T.BoolView) where
-        T: TensorView, T.Element: Equatable
+    func equal<T>(lhs: T, rhs: T, result: inout T.BoolView) where T: TensorView
     /// exp
     func exp<T>(x: T, result: inout T) where
         T: TensorView, T.Element: Real
@@ -136,7 +135,7 @@ public protocol DeviceFunctions {
         T: TensorView, T.Element: SignedNumeric
     /// notEqual
     func notEqual<T>(lhs: T, rhs: T, result: inout T.BoolView) where
-        T: TensorView, T.Element: Equatable
+        T: TensorView
     /// pow
     func pow<T>(x: T, y: T, result: inout T) where
         T: TensorView, T.Element: Real
@@ -268,7 +267,7 @@ public extension DeviceFunctions where Self: DeviceQueue {
     }
     /// equal
     func equal<T>(lhs: T, rhs: T, result: inout T.BoolView) where
-        T: TensorView, T.Element: Equatable
+        T: TensorView
     {
         mapOp(lhs, rhs, &result, ==)
     }
@@ -348,8 +347,8 @@ public extension DeviceFunctions where Self: DeviceQueue {
         mapOp(x, &result, -)
     }
     /// notEqual
-    func notEqual<T>(lhs: T, rhs: T, result: inout T.BoolView) where
-        T: TensorView, T.Element: Equatable
+    func notEqual<T>(lhs: T, rhs: T, result: inout T.BoolView)
+        where T: TensorView
     {
         mapOp(lhs, rhs, &result, !=)
     }

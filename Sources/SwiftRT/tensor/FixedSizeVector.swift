@@ -22,7 +22,7 @@ import Foundation
 /// For example: Matrix<RGBA<Float>> -> NHWCTensor<Float>
 ///
 public protocol FixedSizeVector: Equatable {
-    associatedtype Scalar: Equatable
+    associatedtype Scalar: Equatable & Codable
     static var count: Int { get }
 }
 
@@ -34,10 +34,33 @@ public extension FixedSizeVector {
 
 //==============================================================================
 // RGB
-public protocol RGBProtocol: FixedSizeVector, AnyElement, Codable {}
+public protocol RGBProtocol: FixedSizeVector, AnyElement, Codable {
+    var r: Scalar { get set }
+    var g: Scalar { get set }
+    var b: Scalar { get set }
+    init(_ r: Scalar, _ g: Scalar, _ b: Scalar)
+}
+
+public extension RGBProtocol {
+    // useful discussion on Codable
+    // https://www.raywenderlich.com/3418439-encoding-and-decoding-in-swift
+    func encode(to encoder: Encoder) throws {
+        var container = encoder.unkeyedContainer()
+        try container.encode(r)
+        try container.encode(g)
+        try container.encode(b)
+    }
+
+    init(from decoder: Decoder) throws {
+        var container = try decoder.unkeyedContainer()
+        try self.init(container.decode(Scalar.self),
+                      container.decode(Scalar.self),
+                      container.decode(Scalar.self))
+    }
+}
 
 public struct RGB<Scalar>: RGBProtocol
-    where Scalar: Numeric & Codable & Equatable
+    where Scalar: TensorElementConformance & Numeric
 {
     public var r, g, b: Scalar
 
@@ -52,7 +75,31 @@ public struct RGB<Scalar>: RGBProtocol
 
 //==============================================================================
 // RGBA
-public protocol RGBAProtocol: FixedSizeVector, AnyElement, Codable {}
+public protocol RGBAProtocol: FixedSizeVector, AnyElement, Codable {
+    var r: Scalar { get set }
+    var g: Scalar { get set }
+    var b: Scalar { get set }
+    var a: Scalar { get set }
+    init(_ r: Scalar, _ g: Scalar, _ b: Scalar, _ a: Scalar)
+}
+
+public extension RGBAProtocol {
+    func encode(to encoder: Encoder) throws {
+        var container = encoder.unkeyedContainer()
+        try container.encode(r)
+        try container.encode(g)
+        try container.encode(b)
+        try container.encode(a)
+    }
+    
+    init(from decoder: Decoder) throws {
+        var container = try decoder.unkeyedContainer()
+        try self.init(container.decode(Scalar.self),
+                      container.decode(Scalar.self),
+                      container.decode(Scalar.self),
+                      container.decode(Scalar.self))
+    }
+}
 
 public struct RGBA<Scalar> : RGBAProtocol
     where Scalar: Numeric & Codable & Equatable

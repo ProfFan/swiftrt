@@ -39,10 +39,10 @@ import Foundation
 ///
 /// Data repeating (broadcasting) is an instrinsic feature
 ///
-public protocol TensorView: Logging {
+public protocol TensorView: Codable, Logging {
     //--------------------------------------------------------------------------
     /// the type of element stored by the tensor
-    associatedtype Element
+    associatedtype Element: TensorElementConformance
     /// A tensor shape specific indexer used to calculate a data buffer
     /// index based on a view's spatial position
     associatedtype Index: TensorIndexing
@@ -103,6 +103,8 @@ public protocol TensorView: Logging {
     /// returns a collection of mutable viewed elements
     mutating func mutableElements(using queue: DeviceQueue?) -> MutableValues
 }
+
+public typealias TensorElementConformance = AnyElement & Codable & Equatable
 
 //==============================================================================
 //
@@ -628,7 +630,6 @@ public extension TensorView {
 //==============================================================================
 //
 public extension TensorView where Element: FloatingPoint {
-    //--------------------------------------------------------------------------
     /// isFinite
     /// `true` if all elements are finite values. Primarily used for debugging
     func isFinite() throws -> Bool {
@@ -643,8 +644,30 @@ public extension TensorView where Element: FloatingPoint {
 }
 
 //==============================================================================
-//
-public extension TensorView where Element: Equatable {
+// Codable
+public enum TensorCodingKeys: String, CodingKey { case extents, data }
+
+public extension TensorView {
+    /// encodes the contents of the array
+    func encode(to encoder: Encoder) throws {
+        var container = encoder.container(keyedBy: TensorCodingKeys.self)
+        try container.encode(extents, forKey: .extents)
+        try container.encode(tensorArray, forKey: .data)
+    }
+    
+    init(from decoder: Decoder) throws {
+        let container = try decoder.container(keyedBy: TensorCodingKeys.self)
+        let extents = try container.decode(Shape.Array.self, forKey: .extents)
+        let array = try container.decode(TensorArray<Element>.self,
+                                         forKey: .data)
+        self = Self(shape: Shape(extents: extents), tensorArray: array,
+                    viewOffset: 0, isShared: false)
+    }
+}
+
+//==============================================================================
+// == operator to simplify unit test syntax
+public extension TensorView {
     /// compares the flat elements of self with a Swift array of elements
     static func == (lhs: Self, rhs: [Element]) -> Bool {
         for (i, element) in lhs.elements().enumerated() {
@@ -654,7 +677,7 @@ public extension TensorView where Element: Equatable {
     }
 }
 
-public extension TensorView where Element: Equatable & AnyConvertable {
+public extension TensorView where Element: AnyConvertable {
     /// compares the flat elements of self with a Swift array of elements
     static func == <U>(lhs: Self, rhs: [U]) -> Bool
         where U: Equatable & AnyConvertable

@@ -25,6 +25,7 @@ class test_Codable: XCTestCase {
         ("test_vector", test_vector),
         ("test_matrix", test_matrix),
         ("test_RGBImage", test_RGBImage),
+        ("test_RGBAImage", test_RGBAImage),
     ]
     
     //==========================================================================
@@ -76,8 +77,29 @@ class test_Codable: XCTestCase {
             let pixels = [Pixel(0, 0.5, 1), Pixel(0.25, 0.5, 0.75)]
             let image = Image(1, 2, elements: pixels, name: "pixels")
             let jsonData = try jsonEncoder.encode(image)
-            //            let jsonVectorString = String(data: jsonData, encoding: .utf8)!
-            //            print(jsonVectorString)
+//            let jsonVectorString = String(data: jsonData, encoding: .utf8)!
+//            print(jsonVectorString)
+            let decoder = JSONDecoder()
+            let image2 = try decoder.decode(Image.self, from: jsonData)
+            XCTAssert(image2 == pixels)
+        } catch {
+            XCTFail(String(describing: error))
+        }
+    }
+
+    //==========================================================================
+    // test_RGBAImage
+    // encodes and decodes
+    func test_RGBAImage() {
+        do {
+            typealias Pixel = RGBA<Float>
+            typealias Image = MatrixT<Pixel>
+            let jsonEncoder = JSONEncoder()
+            let pixels = [Pixel(0, 0.25, 0.5, 1), Pixel(0.25, 0.5, 0.75, 1)]
+            let image = Image(1, 2, elements: pixels, name: "pixels")
+            let jsonData = try jsonEncoder.encode(image)
+//            let jsonVectorString = String(data: jsonData, encoding: .utf8)!
+//            print(jsonVectorString)
             let decoder = JSONDecoder()
             let image2 = try decoder.decode(Image.self, from: jsonData)
             XCTAssert(image2 == pixels)

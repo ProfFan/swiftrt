@@ -19,8 +19,6 @@ import Foundation
 // VectorView protocol
 public protocol VectorView: TensorView where Shape == Shape1 { }
 
-extension VectorT: Codable where Element: Codable {}
-
 extension VectorT: CustomStringConvertible where Element: AnyConvertable {
     public var description: String { return formatted() }
 }
@@ -147,7 +145,9 @@ public extension VectorView {
 
 //==============================================================================
 // Vector
-public struct VectorT<Element>: VectorView {
+public struct VectorT<Element>: VectorView
+    where Element: TensorElementConformance
+{
     // properties
     public let isShared: Bool
     public let format: TensorFormat = .vector
@@ -182,8 +182,6 @@ extension VectorT: Differentiable & DifferentiableTensorView where
 public protocol MatrixView: TensorView  where Shape == Shape2 { }
 
 public enum MatrixLayout { case rowMajor, columnMajor }
-
-extension MatrixT: Codable where Element: Codable {}
 
 extension MatrixT: CustomStringConvertible where Element: AnyConvertable {
     public var description: String { return formatted() }
@@ -385,7 +383,9 @@ public extension MatrixView {
 
 //==============================================================================
 // Matrix
-public struct MatrixT<Element>: MatrixView {
+public struct MatrixT<Element>: MatrixView
+    where Element: TensorElementConformance
+{
     // properties
     public let isShared: Bool
     public let format: TensorFormat = .matrix
@@ -418,8 +418,6 @@ extension MatrixT: Differentiable & DifferentiableTensorView where
 //==============================================================================
 // VolumeView protocol
 public protocol VolumeView: TensorView  where Shape == Shape3 {}
-
-extension VolumeT: Codable where Element: Codable {}
 
 extension VolumeT: CustomStringConvertible where Element: AnyConvertable {
     public var description: String { return formatted() }
@@ -628,7 +626,9 @@ public extension VolumeView {
 
 //==============================================================================
 // Volume
-public struct VolumeT<Element>: VolumeView {
+public struct VolumeT<Element>: VolumeView
+    where Element: TensorElementConformance
+{
     // properties
     public let isShared: Bool
     public let format: TensorFormat = .volume
