@@ -372,23 +372,34 @@ final public class TensorArray<Element>: ObjectTracking, Logging {
     }
 }
 
-// TODO: is there anyway to do this without copying the data??
+//==============================================================================
+// Codable
+// useful discussion on techniques
+// https://www.raywenderlich.com/3418439-encoding-and-decoding-in-swift
 extension TensorArray: Codable where Element: Codable {
-    enum CodingKeys: String, CodingKey { case name, data }
+    enum CodingKeys: String, CodingKey { case count, data, name }
 
     /// encodes the contents of the array
     public func encode(to encoder: Encoder) throws {
         var container = encoder.container(keyedBy: CodingKeys.self)
         try container.encode(name, forKey: .name)
+        try container.encode(count, forKey: .count)
+        var dataContainer = container.nestedUnkeyedContainer(forKey: .data)
         let buffer = try readOnly(using: DeviceContext.hostQueue)
-        try container.encode(ContiguousArray(buffer), forKey: .data)
+        try buffer.forEach {
+            try dataContainer.encode($0)
+        }
     }
     
     public convenience init(from decoder: Decoder) throws {
         let container = try decoder.container(keyedBy: CodingKeys.self)
         let name = try container.decode(String.self, forKey: .name)
-        let data = try container.decode(ContiguousArray<Element>.self,
-                                        forKey: .data)
-        self.init(elements: data, name: name)
+        let count = try container.decode(Int.self, forKey: .count)
+        var dataContainer = try container.nestedUnkeyedContainer(forKey: .data)
+        self.init(count: count, name: name)
+        let elements = try readWrite(using: DeviceContext.hostQueue)
+        for i in 0..<count {
+            elements[i] = try dataContainer.decode(Element.self)
+        }
     }
 }

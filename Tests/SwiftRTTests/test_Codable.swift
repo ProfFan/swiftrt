@@ -36,8 +36,8 @@ class test_Codable: XCTestCase {
             let expected: [Float] = [-2, -1.5, -1, -0.5, 0, 0.5, 1, 1.5, 2]
             let vector = Vector(elements: expected)
             let jsonData = try jsonEncoder.encode(vector)
-            let jsonVectorString = String(data: jsonData, encoding: .utf8)!
-            print(jsonVectorString)
+//            let jsonVectorString = String(data: jsonData, encoding: .utf8)!
+//            print(jsonVectorString)
             let decoder = JSONDecoder()
             let vector2 = try decoder.decode(Vector.self, from: jsonData)
             XCTAssert(vector2 == expected)

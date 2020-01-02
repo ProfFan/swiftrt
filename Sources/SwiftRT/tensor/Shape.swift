@@ -144,17 +144,18 @@ public struct ShapeArray<Storage> : ShapeArrayProtocol {
         }
     }
     
+    // TODO: do a perf test to see if the ManagedBuffer class is faster
+    // than using ContiguousArray
     public init(from decoder: Decoder) throws {
-        let rank = MemoryLayout<Storage>.size / MemoryLayout<Element>.size
         var container = try decoder.unkeyedContainer()
-        var buffer = ContiguousArray<Int>(repeating: 0, count: rank)
+        let rank = MemoryLayout<Storage>.size / MemoryLayout<Element>.size
+        var array = ContiguousArray<Int>(repeating: 0, count: rank)
         for i in 0..<rank {
-            buffer[i] = try container.decode(Int.self)
+            array[i] = try container.decode(Int.self)
         }
-        let shape = buffer.withUnsafeBytes {
+        self.init(array.withUnsafeBytes {
             $0.bindMemory(to: Storage.self)[0]
-        }
-        self.init(shape)
+        })
     }
 }
 
