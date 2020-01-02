@@ -77,7 +77,14 @@ public struct ShapeArray<Storage> : ShapeArrayProtocol {
         guard let data = data else { return nil }
         self.init(data)
     }
-    
+
+//    @inlinable @inline(__always)
+//    public init() {
+//        assert(MemoryLayout<Storage>.size % MemoryLayout<Int>.size == 0,
+//               "Storage size must be multiple of Int size")
+//        memset(&storage, 0, MemoryLayout<Storage>.size)
+//    }
+
     //--------------------------------------------------------------------------
     // Equatable
     @inlinable @inline(__always)
@@ -131,18 +138,23 @@ public struct ShapeArray<Storage> : ShapeArrayProtocol {
     
     /// encodes the contents of the array
     public func encode(to encoder: Encoder) throws {
-        var container = encoder.container(keyedBy: CodingKeys.self)
-        try container.encode(self, forKey: .data)
+        var container = encoder.unkeyedContainer()
+        try forEach {
+            try container.encode($0)
+        }
     }
     
     public init(from decoder: Decoder) throws {
-        let container = try decoder.container(keyedBy: CodingKeys.self)
-        let data = try container.decode(ContiguousArray<Int>.self,
-                                        forKey: .data)
-        let s: Storage = data.withUnsafeBytes {
+        let rank = MemoryLayout<Storage>.size / MemoryLayout<Element>.size
+        var container = try decoder.unkeyedContainer()
+        var buffer = ContiguousArray<Int>(repeating: 0, count: rank)
+        for i in 0..<rank {
+            buffer[i] = try container.decode(Int.self)
+        }
+        let shape = buffer.withUnsafeBytes {
             $0.bindMemory(to: Storage.self)[0]
         }
-        self.init(s)
+        self.init(shape)
     }
 }
 
