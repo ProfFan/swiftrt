@@ -75,7 +75,7 @@ public extension TensorView {
 
     //--------------------------------------------------------------------------
     @inlinable @inline(__always)
-    //    @differentiable(where Self: DifferentiableTensorView)
+    @differentiable(where Self: DifferentiableTensorView)
     subscript(lower: Shape.Tuple, upper: Shape.Tuple, steps: Shape.Tuple)
         -> Self {
         get { self[Shape.Array(lower), Shape.Array(upper), Shape.Array(steps)] }

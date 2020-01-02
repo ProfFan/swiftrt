@@ -127,7 +127,7 @@ public extension VectorView {
     subscript(r: UnboundedRange) -> Self { self }
 
     // TODO
-//    @differentiable(vjp: vjpSubscript where Self: DifferentiableTensorView)
+    // @differentiable(where Self: DifferentiableTensorView)
     @inlinable @inline(__always)
     subscript<R>(range: R) -> Self
         where R: StridedRangeExpression, R.Bound == Int
