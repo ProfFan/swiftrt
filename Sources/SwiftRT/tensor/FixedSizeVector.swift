@@ -22,7 +22,7 @@ import Foundation
 /// For example: Matrix<RGBA<Float>> -> NHWCTensor<Float>
 ///
 public protocol FixedSizeVector: Equatable {
-    associatedtype Scalar
+    associatedtype Scalar: Equatable
     static var count: Int { get }
 }
 
@@ -36,7 +36,9 @@ public extension FixedSizeVector {
 // RGB
 public protocol RGBProtocol: FixedSizeVector, AnyElement, Codable {}
 
-public struct RGB<Scalar>: RGBProtocol where Scalar: Numeric & Codable {
+public struct RGB<Scalar>: RGBProtocol
+    where Scalar: Numeric & Codable & Equatable
+{
     public var r, g, b: Scalar
 
     @inlinable @inline(__always)
@@ -52,7 +54,9 @@ public struct RGB<Scalar>: RGBProtocol where Scalar: Numeric & Codable {
 // RGBA
 public protocol RGBAProtocol: FixedSizeVector, AnyElement, Codable {}
 
-public struct RGBA<Scalar> : RGBAProtocol where Scalar: Numeric & Codable {
+public struct RGBA<Scalar> : RGBAProtocol
+    where Scalar: Numeric & Codable & Equatable
+{
     public var r, g, b, a: Scalar
 
     @inlinable @inline(__always)
@@ -70,7 +74,9 @@ public struct RGBA<Scalar> : RGBAProtocol where Scalar: Numeric & Codable {
 // Stereo
 public protocol StereoProtocol: FixedSizeVector, AnyElement, Codable {}
 
-public struct Stereo<Scalar>: StereoProtocol where Scalar: Numeric & Codable {
+public struct Stereo<Scalar>: StereoProtocol
+    where Scalar: Numeric & Codable & Equatable
+{
     public var left, right: Scalar
 
     @inlinable @inline(__always)

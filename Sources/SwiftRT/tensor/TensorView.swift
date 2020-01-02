@@ -644,7 +644,7 @@ public extension TensorView where Element: FloatingPoint {
 
 //==============================================================================
 //
-public extension TensorView where Element: Comparable {
+public extension TensorView where Element: Equatable {
     /// compares the flat elements of self with a Swift array of elements
     static func == (lhs: Self, rhs: [Element]) -> Bool {
         for (i, element) in lhs.elements().enumerated() {
@@ -654,10 +654,10 @@ public extension TensorView where Element: Comparable {
     }
 }
 
-public extension TensorView where Element: Comparable & AnyConvertable {
+public extension TensorView where Element: Equatable & AnyConvertable {
     /// compares the flat elements of self with a Swift array of elements
     static func == <U>(lhs: Self, rhs: [U]) -> Bool
-        where U: Comparable & AnyConvertable
+        where U: Equatable & AnyConvertable
     {
         for (element, other) in zip(lhs.elements(), rhs) {
             if element != Element(any: other) { return false }
