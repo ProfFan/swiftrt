@@ -63,7 +63,9 @@ public extension TensorView {
             func divceil(_ x: Int, _ y: Int) -> Int { (x - 1 + y) / y }
             
             var subExtents = getExtents(from: lower, to: upper)
-            zip(subExtents, steps).map(into: &subExtents) { divceil($0, abs($1)) }
+            zip(subExtents, steps).map(into: &subExtents) {
+                divceil($0, Swift.abs($1))
+            }
             
             var subStrides = strides
             zip(strides, steps).map(into: &subStrides, *)

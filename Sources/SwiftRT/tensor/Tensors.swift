@@ -116,14 +116,14 @@ public extension VectorView {
 public extension VectorView {
     //--------------------------------------------------------------------------
     // TODO: probably move these off onto the TensorViewCollection
-    var startIndex: VectorIndex { return VectorIndex(view: self, at: (0)) }
-    var endIndex: VectorIndex { return VectorIndex(endOf: self) }
+    var startIndex: VectorIndex { VectorIndex(view: self, at: Shape.zeros.tuple)}
+    var endIndex: VectorIndex { VectorIndex(endOf: self) }
 
     //--------------------------------------------------------------------------
     @inlinable @inline(__always)
     subscript(index: Int) -> Self {
-        get { self[(index), (index + 1), (1)] }
-        set { self[(index), (index + 1), (1)] = newValue }
+        get { self[(index), (index + 1), Shape.ones.tuple] }
+        set { self[(index), (index + 1), Shape.ones.tuple] = newValue }
     }
     
     subscript(r: UnboundedRange) -> Self { self }
@@ -337,15 +337,15 @@ public extension MatrixView {
 public extension MatrixView {
     //--------------------------------------------------------------------------
     // TODO: probably move these off onto the TensorViewCollection
-    var startIndex: MatrixIndex { return MatrixIndex(view: self, at: (0, 0)) }
-    var endIndex: MatrixIndex { return MatrixIndex(endOf: self) }
+    var startIndex: MatrixIndex { MatrixIndex(view: self, at: Shape.ones.tuple)}
+    var endIndex: MatrixIndex { MatrixIndex(endOf: self) }
     
     //--------------------------------------------------------------------------
     // single element
     @inlinable @inline(__always)
     subscript(r: Int, c: Int) -> Self {
-        get { self[(r, c), (r + 1, c + 1), (1, 1)] }
-        set { self[(r, c), (r + 1, c + 1), (1, 1)] = newValue }
+        get { self[(r, c), (r + 1, c + 1), Shape.ones.tuple] }
+        set { self[(r, c), (r + 1, c + 1), Shape.ones.tuple] = newValue }
     }
 
     // TODO(TF-281): Rewrite `@differentiable` attribute as a `@differentiating`
@@ -366,20 +366,18 @@ public extension MatrixView {
         set {
             let r = rows.stridedRangeRelative(to: 0..<extents[0])
             let c = cols.stridedRangeRelative(to: 0..<extents[1])
-            return self[(r.from, c.from), (r.to, c.to), (r.by, c.by)] = newValue
+            self[(r.from, c.from), (r.to, c.to), (r.by, c.by)] = newValue
         }
     }
     
-    subscript<R>(rows: R, cols: UnboundedRange) -> Self where
-        R: StridedRangeExpression, R.Bound == Int
-    {
+    subscript<R>(rows: R, cols: UnboundedRange) -> Self
+        where R: StridedRangeExpression, R.Bound == Int {
         get { self[rows, 0...] }
         set { self[rows, 0...] = newValue }
     }
     
-    subscript<C>(rows: UnboundedRange, cols: C) -> Self where
-        C: StridedRangeExpression, C.Bound == Int
-    {
+    subscript<C>(rows: UnboundedRange, cols: C) -> Self
+        where C: StridedRangeExpression, C.Bound == Int {
         get { self[0..., cols] }
         set { self[0..., cols] = newValue }
     }
@@ -438,11 +436,6 @@ extension VolumeT: AdditiveArithmetic where Element: Numeric {
 //==============================================================================
 // VolumeView extensions
 public extension VolumeView {
-    //--------------------------------------------------------------------------
-    // TODO: probably move these off onto the TensorViewCollection
-    var startIndex: VolumeIndex { return VolumeIndex(view: self, at: (0, 0, 0))}
-    var endIndex: VolumeIndex { return VolumeIndex(endOf: self) }
-    
     //--------------------------------------------------------------------------
     /// reserved space
     init(extents: Shape.Array, name: String? = nil) {
@@ -549,6 +542,86 @@ public extension VolumeView {
     
     func createIndexTensor(with extents: Shape.Array) -> VolumeT<IndexT> {
         VolumeT<IndexT>(extents: extents)
+    }
+}
+
+//==============================================================================
+// MatrixView extensions
+public extension VolumeView {
+    //--------------------------------------------------------------------------
+    // TODO: probably move these off onto the TensorViewCollection
+    var startIndex: VolumeIndex { VolumeIndex(view: self,
+                                              at: Shape.zeros.tuple) }
+    var endIndex: VolumeIndex { VolumeIndex(endOf: self) }
+    
+    //--------------------------------------------------------------------------
+    // single element
+    @inlinable @inline(__always)
+    subscript(d: Int, r: Int, c: Int) -> Self {
+        get { self[(d, r, c), (d + 1, r + 1, c + 1), Shape.ones.tuple] }
+        set { self[(d, r, c), (d + 1, r + 1, c + 1), Shape.ones.tuple] =
+            newValue }
+    }
+    
+    // TODO(TF-281): Rewrite `@differentiable` attribute as a `@differentiating`
+    // attribute when `@differentiating` supports subscript declaration
+    // references.
+    //    @differentiable(vjp: vjpSubscript where Self: DifferentiableTensorView)
+    @inlinable @inline(__always)
+    subscript<D, R, C>(deps: D, rows: R, cols: C) -> Self where
+        D: StridedRangeExpression, D.Bound == Int,
+        R: StridedRangeExpression, R.Bound == Int,
+        C: StridedRangeExpression, C.Bound == Int
+        {
+        get {
+            let d = deps.stridedRangeRelative(to: 0..<extents[0])
+            let r = rows.stridedRangeRelative(to: 0..<extents[1])
+            let c = cols.stridedRangeRelative(to: 0..<extents[2])
+            return self[(d.from, r.from, c.from),
+                        (d.to, r.to, c.to),
+                        (d.by, r.by, c.by)]
+        }
+        
+        set {
+            let d = deps.stridedRangeRelative(to: 0..<extents[0])
+            let r = rows.stridedRangeRelative(to: 0..<extents[1])
+            let c = cols.stridedRangeRelative(to: 0..<extents[2])
+            self[(d.from, r.from, c.from),
+                 (d.to, r.to, c.to),
+                 (d.by, r.by, c.by)] = newValue
+        }
+    }
+    
+    subscript<D>(deps: D, rows: UnboundedRange, cols: UnboundedRange) -> Self
+        where D: StridedRangeExpression, D.Bound == Int {
+        get { self[deps, 0..., 0...] }
+        set { self[deps, 0..., 0...] = newValue }
+    }
+    
+    subscript<D, R>(deps: D, rows: R, cols: UnboundedRange) -> Self where
+        D: StridedRangeExpression, D.Bound == Int,
+        R: StridedRangeExpression, R.Bound == Int {
+        get { self[deps, rows, 0...] }
+        set { self[deps, rows, 0...] = newValue }
+    }
+    
+    subscript<D, C>(deps: D, rows: UnboundedRange, cols: C) -> Self where
+        D: StridedRangeExpression, D.Bound == Int,
+        C: StridedRangeExpression, C.Bound == Int {
+        get { self[deps, 0..., cols] }
+        set { self[deps, 0..., cols] = newValue }
+    }
+
+    subscript<R>(deps: UnboundedRange, rows: R, cols: UnboundedRange) -> Self
+        where R: StridedRangeExpression, R.Bound == Int {
+        get { self[0..., rows, 0...] }
+        set { self[0..., rows, 0...] = newValue }
+    }
+    
+    subscript<C>(deps: UnboundedRange, rows: UnboundedRange, cols: C) -> Self
+        where C: StridedRangeExpression, C.Bound == Int {
+        get { self[0..., 0..., cols] }
+        set { self[0..., 0..., cols] = newValue }
     }
 }
 

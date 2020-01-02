@@ -37,6 +37,42 @@ public func cast<T, U>(_ other: U) -> T where
 }
 
 //==============================================================================
+/// abs(x)
+/// computes the absolute value of `x`
+///
+/// - Parameter x: value tensor
+/// - Returns: result
+@inlinable @inline(__always)
+public func abs<T>(_ x: T) -> T
+    where T: TensorView, T.Element: Real
+{
+    var result = x.createDense()
+    DeviceContext.currentQueue.abs(x: x, result: &result)
+    return result
+}
+
+public extension TensorView where Element: Real {
+    // make glboal function visible for extension implementations
+    @differentiable(where Self: DifferentiableTensorView)
+    @inlinable @inline(__always)
+    func abs(_ x: Self) -> Self { SwiftRT.abs(x) }
+    
+    @differentiable(where Self: DifferentiableTensorView)
+    @inlinable @inline(__always)
+    func abs() -> Self { abs(self) }
+}
+
+//--------------------------------------
+// derivative functions
+@derivative(of: abs)
+@inlinable @inline(__always)
+internal func _vjpAbs<T>(_ x: T) -> (value: T, pullback: (T) -> T)
+    where T: DifferentiableTensorView, T.Element: Real
+{
+    fatalError()
+}
+
+//==============================================================================
 /// exp(x)
 /// computes the exponential value of `x`
 ///

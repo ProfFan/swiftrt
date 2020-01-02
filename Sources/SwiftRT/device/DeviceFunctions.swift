@@ -75,6 +75,9 @@ public protocol DeviceFunctions {
 
     //--------------------------------------------------------------------------
     // ops
+    /// Computes the absolute value of the specified TensorView element-wise.
+    func abs<T>(x: T, result: inout T) where
+        T: TensorView, T.Element: Real
     /// add
     func add<T>(lhs: T, rhs: T, result: inout T) where
         T: TensorView, T.Element: AdditiveArithmetic
@@ -213,6 +216,12 @@ public extension DeviceFunctions where Self: DeviceQueue {
     }
     
     //==========================================================================
+    /// abs
+    func abs<T>(x: T, result: inout T) where
+        T: TensorView, T.Element: Real
+    {
+        mapOp(x, &result) { Swift.abs($0) }
+    }
     // add
     func add<T>(lhs: T, rhs: T, result: inout T) where
         T: TensorView, T.Element: AdditiveArithmetic
@@ -255,7 +264,7 @@ public extension DeviceFunctions where Self: DeviceQueue {
                                 result: inout T.BoolView) where
         T: TensorView, T.Element: SignedNumeric & Comparable
     {
-        mapOp(lhs, rhs, &result) { abs($0 - $1) <= tolerance }
+        mapOp(lhs, rhs, &result) { Swift.abs($0 - $1) <= tolerance }
     }
     /// equal
     func equal<T>(lhs: T, rhs: T, result: inout T.BoolView) where

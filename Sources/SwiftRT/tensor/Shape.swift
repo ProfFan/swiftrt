@@ -45,6 +45,9 @@ public struct ShapeArray<Storage> : ShapeArrayProtocol {
     public var array: [Int] { [Int](self) }
     /// some value object used for storage space
     public var storage: Storage
+    /// alias
+    @inlinable @inline(__always)
+    public var tuple: Storage { storage }
     /// the number of elements in the array
     @inlinable @inline(__always)
     public var count: Int {
