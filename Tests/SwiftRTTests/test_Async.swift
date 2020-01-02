@@ -38,7 +38,7 @@ class test_Async: XCTestCase {
     // into batches and concurrently executing a user closure for each batch
     func test_hostMultiWrite() {
         do {
-            Platform.log.level = .diagnostic
+//            Platform.log.level = .diagnostic
             typealias Pixel = RGB<UInt8>
             typealias ImageSet = VolumeT<Pixel>
             let expected = Pixel(0, 127, 255)
@@ -62,7 +62,7 @@ class test_Async: XCTestCase {
 
             // check the last item to see if it contains the expected value
             let item = trainingSet.view(item: trainingSet.items - 1)
-            XCTAssert(item.element == expected)
+            XCTAssert(item.first == expected)
         } catch {
             XCTFail(String(describing: error))
         }
@@ -77,12 +77,14 @@ class test_Async: XCTestCase {
     // test_defaultQueueOp
     // initializes two matrices and adds them together
     func test_defaultQueueOp() {
-        Platform.log.level = .diagnostic
-        let m1 = IndexMatrix(2, 5, with: 0..<10, name: "m1")
-        let m2 = IndexMatrix(2, 5, with: 0..<10, name: "m2")
-        let result = m1 + m2
-        XCTAssert(result == (0..<10).map { $0 + $0 })
-
+//        Platform.log.level = .diagnostic
+        do {
+            let m1 = IndexMatrix(2, 5, with: 0..<10, name: "m1")
+            let m2 = IndexMatrix(2, 5, with: 0..<10, name: "m2")
+            let result = m1 + m2
+            XCTAssert(result == (0..<10).map { $0 + $0 })
+        }
+        
         if ObjectTracker.global.hasUnreleasedObjects {
             XCTFail(ObjectTracker.global.getActiveObjectReport())
         }
@@ -93,20 +95,21 @@ class test_Async: XCTestCase {
     // initializes two matrices on the app thread, executes them on `queue1`,
     // the retrieves the results
     func test_secondaryDiscreetMemoryQueue() {
-        Platform.log.level = .diagnostic
-        Platform.log.categories = [.dataAlloc, .dataCopy, .scheduling, .queueSync]
+//        Platform.log.level = .diagnostic
+//        Platform.log.categories = [.dataAlloc, .dataCopy, .scheduling, .queueSync]
         
-        let device1 = Platform.testCpu1
+        do {
+            let device1 = Platform.testCpu1
+            
+            let m1 = IndexMatrix(2, 5, with: 0..<10, name: "m1")
+            let m2 = IndexMatrix(2, 5, with: 0..<10, name: "m2")
+            
+            // perform on user provided discreet memory queue
+            // synchronize with host queue and retrieve result values
+            let result = using(device1) { m1 + m2 }
+            XCTAssert(result == (0..<10).map { $0 + $0 })
+        }
         
-        let m1 = IndexMatrix(2, 5, with: 0..<10, name: "m1")
-        let m2 = IndexMatrix(2, 5, with: 0..<10, name: "m2")
-        
-        // perform on user provided discreet memory queue
-        let result = using(device1) { m1 + m2 }
-
-        // synchronize with host queue and retrieve result values
-        XCTAssert(result == (0..<10).map { $0 + $0 })
-
         if ObjectTracker.global.hasUnreleasedObjects {
             XCTFail(ObjectTracker.global.getActiveObjectReport())
         }
@@ -115,27 +118,28 @@ class test_Async: XCTestCase {
     //==========================================================================
     // test_threeQueueInterleave
     func test_threeQueueInterleave() {
-        Platform.log.level = .diagnostic
-        
-        let device1 = Platform.testCpu1
-        let device2 = Platform.testCpu2
-        
-        let m1 = IndexMatrix(2, 3, with: 0..<6, name: "m1")
-        let m2 = IndexMatrix(2, 3, with: 0..<6, name: "m2")
-        let m3 = IndexMatrix(2, 3, with: 0..<6, name: "m3")
-        
-        // sum the values with a delay on device 1
-        let sum_m1m2: IndexMatrix = using(device1) {
-            DeviceContext.currentQueue.delayQueue(atLeast: 0.1)
-            return m1 + m2
+//        Platform.log.level = .diagnostic
+        do {
+            let device1 = Platform.testCpu1
+            let device2 = Platform.testCpu2
+            
+            let m1 = IndexMatrix(2, 3, with: 0..<6, name: "m1")
+            let m2 = IndexMatrix(2, 3, with: 0..<6, name: "m2")
+            let m3 = IndexMatrix(2, 3, with: 0..<6, name: "m3")
+            
+            // sum the values with a delay on device 1
+            let sum_m1m2: IndexMatrix = using(device1) {
+                DeviceContext.currentQueue.delayQueue(atLeast: 0.1)
+                return m1 + m2
+            }
+            
+            // multiply the values on device 2
+            let result = using(device2) {
+                sum_m1m2 * m3
+            }
+            XCTAssert(result == (0..<6).map { ($0 + $0) * $0 })
         }
         
-        // multiply the values on device 2
-        let result = using(device2) {
-            sum_m1m2 * m3
-        }
-        XCTAssert(result == (0..<6).map { ($0 + $0) * $0 })
-
         if ObjectTracker.global.hasUnreleasedObjects {
             XCTFail(ObjectTracker.global.getActiveObjectReport())
         }
@@ -149,10 +153,10 @@ class test_Async: XCTestCase {
     //==========================================================================
     // test_QueueEventWait
     func test_QueueEventWait() {
+//        Platform.log.level = .diagnostic
+//        Platform.log.categories = [.queueSync]
+        
         do {
-            Platform.log.level = .diagnostic
-            Platform.log.categories = [.queueSync]
-            
             let queue = Platform.testCpu1.queues[0]
             let event = try queue.createEvent()
             queue.delayQueue(atLeast: 0.001)

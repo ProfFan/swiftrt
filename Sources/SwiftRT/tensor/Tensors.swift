@@ -337,7 +337,7 @@ public extension MatrixView {
 public extension MatrixView {
     //--------------------------------------------------------------------------
     // TODO: probably move these off onto the TensorViewCollection
-    var startIndex: MatrixIndex { MatrixIndex(view: self, at: Shape.ones.tuple)}
+    var startIndex: MatrixIndex { MatrixIndex(view: self, at: Shape.zeros.tuple)}
     var endIndex: MatrixIndex { MatrixIndex(endOf: self) }
     
     //--------------------------------------------------------------------------
@@ -550,8 +550,9 @@ public extension VolumeView {
 public extension VolumeView {
     //--------------------------------------------------------------------------
     // TODO: probably move these off onto the TensorViewCollection
-    var startIndex: VolumeIndex { VolumeIndex(view: self,
-                                              at: Shape.zeros.tuple) }
+    var startIndex: VolumeIndex {
+        VolumeIndex(view: self, at: Shape.zeros.tuple)
+    }
     var endIndex: VolumeIndex { VolumeIndex(endOf: self) }
     
     //--------------------------------------------------------------------------
