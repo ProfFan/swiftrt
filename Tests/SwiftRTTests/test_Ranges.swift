@@ -23,6 +23,7 @@ class test_Ranges: XCTestCase {
     // support terminal test run
     static var allTests = [
         ("test_VectorRange", test_VectorRange),
+        ("test_VectorRangeGradient", test_VectorRangeGradient),
         ("test_VectorSteppedRange", test_VectorSteppedRange),
         ("test_VectorWriteRange", test_VectorWriteRange),
         ("test_MatrixRange", test_MatrixRange),
@@ -61,6 +62,19 @@ class test_Ranges: XCTestCase {
 
         // sliding window starting at 2 and extending 5, stepped
         XCTAssert(vector[2..|5..2] == [2, 4])
+    }
+
+    //==========================================================================
+    // test_VectorRangeGradient
+    func test_VectorRangeGradient() {
+        let v = Vector(with: 0..<10)
+
+        // simple range selection
+        XCTAssert(gradientIsValid(at: v[1..<3], tolerance: 0.7, in: { exp($0) }))
+
+        // test expression gradient
+        let derivatives = v[2...] - v[1..<-1]
+        XCTAssert(gradientIsValid(at: derivatives, tolerance: 0.7, in: { exp($0) }))
     }
 
     //==========================================================================
