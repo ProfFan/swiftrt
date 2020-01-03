@@ -152,7 +152,7 @@ extension Int {
 infix operator ..|: RangeFormationPrecedence
 
 extension Int {
-    static func ..| (from: Int, extent: Int) -> Range<Int> {
+    public static func ..| (from: Int, extent: Int) -> Range<Int> {
         Range(uncheckedBounds: (from, from + extent))
     }
 }

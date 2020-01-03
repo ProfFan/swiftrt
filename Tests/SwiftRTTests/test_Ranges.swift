@@ -96,12 +96,23 @@ class test_Ranges: XCTestCase {
     //==========================================================================
     // test_MatrixRange
     func test_MatrixRange() {
-        let m1 = IndexMatrix(3, 4, with: 0..<12)
+        let m1 = IndexMatrix(3, 4, with: [
+            0, 1,  2,  3,
+            4, 5,  6,  7,
+            8, 9, 10, 11
+        ])
+        
         let v1 = m1[1..<-1, ...3]
         XCTAssert(v1 == 4...6)
 
         // use negative row value to work from end and select row 1
         XCTAssert(m1[-2..<2, 1..<4] == 5...7)
+        
+        // sliding window starting at 0 and extending 2
+        XCTAssert(m1[0..|2, ...] == [
+            0, 1,  2,  3,
+            4, 5,  6,  7,
+        ])
     }
 
     //--------------------------------------------------------------------------
