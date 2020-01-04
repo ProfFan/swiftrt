@@ -68,7 +68,7 @@ precedencegroup StridedRangeFormationPrecedence {
 }
 
 extension RangeExpression where Bound == Int {
-    static func .. (range: Self, stride: Bound) -> PartialStridedRange<Self> {
+    public static func .. (range: Self, stride: Bound) -> PartialStridedRange<Self> {
         PartialStridedRange(partial: range, with: stride)
     }
     
@@ -78,7 +78,7 @@ extension RangeExpression where Bound == Int {
 //    }
 }
 
-extension Int {
+public extension Int {
     static func .. (range: Int, stride: Int) -> PartialStridedRange<Int> {
         assert(stride == 1, "strides are invalid for Integer indexes." +
             " Did you mean to specifiy a closed range with `...`?")
@@ -117,12 +117,12 @@ public func ...- (lower: Int, upper: Int) -> ClosedRange<Int> {
 prefix operator ..<-
 prefix operator ...-
 
-extension Int {
-    prefix public static func ..<- (maximum: Int) -> PartialRangeUpTo<Int> {
+public extension Int {
+    prefix static func ..<- (maximum: Int) -> PartialRangeUpTo<Int> {
         ..<(-maximum)
     }
     
-    prefix public static func ...- (maximum: Int) -> PartialRangeThrough<Int> {
+    prefix static func ...- (maximum: Int) -> PartialRangeThrough<Int> {
         ...(-maximum)
     }
 }
@@ -131,8 +131,8 @@ extension Int {
 prefix operator .....
 //prefix operator .....-
 
-extension Int {
-    prefix public static func ..... (stride: Int) ->
+public extension Int {
+    prefix static func ..... (stride: Int) ->
         PartialStridedRange<PartialRangeFrom<Int>>
     {
         PartialStridedRange(partial: 0..., with: stride)
@@ -151,8 +151,8 @@ extension Int {
 /// specifies range and relative extent to do windowed operations
 infix operator ..|: RangeFormationPrecedence
 
-extension Int {
-    public static func ..| (from: Int, extent: Int) -> Range<Int> {
+public extension Int {
+    static func ..| (from: Int, extent: Int) -> Range<Int> {
         Range(uncheckedBounds: (from, from + extent))
     }
 }
