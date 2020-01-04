@@ -258,3 +258,14 @@ public struct PartialStridedRange<Partial>: StridedRangeExpression
         partialRange.contains(element)
     }
 }
+
+//==============================================================================
+/// PartialStridedRange
+extension PartialStridedRange: Collection, Sequence where Partial == Range<Int>{
+    public typealias Element = Int
+    public var startIndex: Int { partialRange.lowerBound }
+    public var endIndex: Int { partialRange.upperBound }
+    public subscript(position: Int) -> Int { position }
+    public func index(after i: Int) -> Int { i + stride }
+}
+

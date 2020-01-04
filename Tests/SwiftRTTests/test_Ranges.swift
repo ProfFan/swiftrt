@@ -23,6 +23,7 @@ class test_Ranges: XCTestCase {
     // support terminal test run
     static var allTests = [
         ("test_VectorRange", test_VectorRange),
+        ("test_StridedRangeInForLoop", test_StridedRangeInForLoop),
         ("test_VectorRangeGradient", test_VectorRangeGradient),
         ("test_VectorSteppedRange", test_VectorSteppedRange),
         ("test_VectorWriteRange", test_VectorWriteRange),
@@ -64,6 +65,14 @@ class test_Ranges: XCTestCase {
         XCTAssert(vector[2..|5..2] == [2, 4])
     }
 
+    //==========================================================================
+    // test_StridedRangeInForLoop
+    func test_StridedRangeInForLoop() {
+        let vector = IndexVector(with: 0..<12)
+        let batchSize = 3
+        XCTAssert([Int](0..<vector.items..batchSize) == [0, 3, 6, 9])
+    }
+    
     //==========================================================================
     // test_VectorRangeGradient
     func test_VectorRangeGradient() {
