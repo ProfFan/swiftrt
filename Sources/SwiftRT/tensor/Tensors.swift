@@ -130,7 +130,7 @@ public extension VectorView {
     // @differentiable(where Self: DifferentiableTensorView)
     @inlinable @inline(__always)
     subscript<R>(range: R) -> Self
-        where R: StridedRangeExpression, R.Bound == Int
+        where R: PartialStridedRangeExpression, R.Bound == Int
     {
         get {
             let r = range.stridedRangeRelative(to: 0..<extents[0])
@@ -352,8 +352,8 @@ public extension MatrixView {
     //    @differentiable(vjp: vjpSubscript where Self: DifferentiableTensorView)
     @inlinable @inline(__always)
     subscript<R, C>(rows: R, cols: C) -> Self where
-        R: StridedRangeExpression, R.Bound == Int,
-        C: StridedRangeExpression, C.Bound == Int
+        R: PartialStridedRangeExpression, R.Bound == Int,
+        C: PartialStridedRangeExpression, C.Bound == Int
     {
         get {
             let r = rows.stridedRangeRelative(to: 0..<extents[0])
@@ -369,13 +369,13 @@ public extension MatrixView {
     }
     
     subscript<R>(rows: R, cols: UnboundedRange) -> Self
-        where R: StridedRangeExpression, R.Bound == Int {
+        where R: PartialStridedRangeExpression, R.Bound == Int {
         get { self[rows, 0...] }
         set { self[rows, 0...] = newValue }
     }
     
     subscript<C>(rows: UnboundedRange, cols: C) -> Self
-        where C: StridedRangeExpression, C.Bound == Int {
+        where C: PartialStridedRangeExpression, C.Bound == Int {
         get { self[0..., cols] }
         set { self[0..., cols] = newValue }
     }
@@ -568,9 +568,9 @@ public extension VolumeView {
     //    @differentiable(vjp: vjpSubscript where Self: DifferentiableTensorView)
     @inlinable @inline(__always)
     subscript<D, R, C>(deps: D, rows: R, cols: C) -> Self where
-        D: StridedRangeExpression, D.Bound == Int,
-        R: StridedRangeExpression, R.Bound == Int,
-        C: StridedRangeExpression, C.Bound == Int
+        D: PartialStridedRangeExpression, D.Bound == Int,
+        R: PartialStridedRangeExpression, R.Bound == Int,
+        C: PartialStridedRangeExpression, C.Bound == Int
         {
         get {
             let d = deps.stridedRangeRelative(to: 0..<extents[0])
@@ -592,33 +592,33 @@ public extension VolumeView {
     }
     
     subscript<D>(deps: D, rows: UnboundedRange, cols: UnboundedRange) -> Self
-        where D: StridedRangeExpression, D.Bound == Int {
+        where D: PartialStridedRangeExpression, D.Bound == Int {
         get { self[deps, 0..., 0...] }
         set { self[deps, 0..., 0...] = newValue }
     }
     
     subscript<D, R>(deps: D, rows: R, cols: UnboundedRange) -> Self where
-        D: StridedRangeExpression, D.Bound == Int,
-        R: StridedRangeExpression, R.Bound == Int {
+        D: PartialStridedRangeExpression, D.Bound == Int,
+        R: PartialStridedRangeExpression, R.Bound == Int {
         get { self[deps, rows, 0...] }
         set { self[deps, rows, 0...] = newValue }
     }
     
     subscript<D, C>(deps: D, rows: UnboundedRange, cols: C) -> Self where
-        D: StridedRangeExpression, D.Bound == Int,
-        C: StridedRangeExpression, C.Bound == Int {
+        D: PartialStridedRangeExpression, D.Bound == Int,
+        C: PartialStridedRangeExpression, C.Bound == Int {
         get { self[deps, 0..., cols] }
         set { self[deps, 0..., cols] = newValue }
     }
 
     subscript<R>(deps: UnboundedRange, rows: R, cols: UnboundedRange) -> Self
-        where R: StridedRangeExpression, R.Bound == Int {
+        where R: PartialStridedRangeExpression, R.Bound == Int {
         get { self[0..., rows, 0...] }
         set { self[0..., rows, 0...] = newValue }
     }
     
     subscript<C>(deps: UnboundedRange, rows: UnboundedRange, cols: C) -> Self
-        where C: StridedRangeExpression, C.Bound == Int {
+        where C: PartialStridedRangeExpression, C.Bound == Int {
         get { self[0..., 0..., cols] }
         set { self[0..., 0..., cols] = newValue }
     }

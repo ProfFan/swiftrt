@@ -14,6 +14,12 @@
 // limitations under the License.
 //
 
+//==============================================================================
+/// StridedRangeExpression
+public protocol StridedRangeExpression: PartialStridedRangeExpression {
+    var lowerBound: Bound { get }
+    var upperBound: Bound { get }
+}
 
 //==============================================================================
 /// StridedRange
@@ -30,19 +36,19 @@ public struct StridedRange<T: Comparable> {
 }
 
 //==============================================================================
-/// StridedRangeExpression
-public protocol StridedRangeExpression: RangeExpression {
+/// PartialStridedRangeExpression
+public protocol PartialStridedRangeExpression: RangeExpression {
     var stride: Bound { get }
     
     func stridedRangeRelative<C>(to collection: C) -> StridedRange<Bound>
         where C : Collection, Self.Bound == C.Index
 }
 
-public extension StridedRangeExpression where Bound == Int {
+public extension PartialStridedRangeExpression where Bound: Numeric {
     var stride: Bound { 1 }
 }
 
-public extension StridedRangeExpression {
+public extension PartialStridedRangeExpression {
     /// stridedRangeRelative
     /// this is the default implementation adopted by Swift standard ranges
     func stridedRangeRelative<C>(to collection: C) -> StridedRange<Bound>
@@ -53,6 +59,15 @@ public extension StridedRangeExpression {
                             to: range.upperBound,
                             by: stride)
     }
+    
+    static func .. (range: Self, stride: Bound) -> PartialStridedRange<Self> {
+        PartialStridedRange(partial: range, with: stride)
+    }
+        
+    // TODO: do want to support reverse stepping through ranges?
+    //    static func ..- (range: Self, stride: Bound) -> PartialStridedRange<Self> {
+    //        PartialStridedRange(partial: range, with: -stride)
+    //    }
 }
 
 //==============================================================================
@@ -65,17 +80,6 @@ precedencegroup StridedRangeFormationPrecedence {
     associativity: left
     higherThan: CastingPrecedence
     lowerThan: RangeFormationPrecedence
-}
-
-extension RangeExpression where Bound == Int {
-    public static func .. (range: Self, stride: Bound) -> PartialStridedRange<Self> {
-        PartialStridedRange(partial: range, with: stride)
-    }
-    
-// TODO: do want to support reverse stepping through ranges?
-//    static func ..- (range: Self, stride: Bound) -> PartialStridedRange<Self> {
-//        PartialStridedRange(partial: range, with: -stride)
-//    }
 }
 
 public extension Int {
@@ -158,63 +162,74 @@ public extension Int {
 }
 
 //==============================================================================
-/// StridedRangeExpression extensions
-extension Range: StridedRangeExpression where Bound == Int {
+/// PartialStridedRangeExpression extensions
+extension Range: StridedRangeExpression, PartialStridedRangeExpression
+    where Bound: Numeric
+{
     public func stridedRangeRelative<C>(to collection: C) -> StridedRange<Bound>
         where C : Collection, Self.Bound == C.Index
     {
-        StridedRange(
-            from: lowerBound < 0 ? lowerBound + collection.count : lowerBound,
-            to: (upperBound < 0 ? upperBound + collection.count : upperBound),
+        let count = Bound(exactly: collection.count)!
+        return StridedRange(
+            from: lowerBound < 0 ? lowerBound + count : lowerBound,
+            to: (upperBound < 0 ? upperBound + count : upperBound),
             by: stride)
     }
 }
 
-extension ClosedRange: StridedRangeExpression where Bound == Int {
+extension ClosedRange: StridedRangeExpression, PartialStridedRangeExpression
+    where Bound: Numeric
+{
     public func stridedRangeRelative<C>(to collection: C) -> StridedRange<Bound>
         where C : Collection, Self.Bound == C.Index
     {
-        StridedRange(
-            from: lowerBound < 0 ? lowerBound + collection.count : lowerBound,
-            to: (upperBound < 0 ? upperBound + collection.count : upperBound) + 1,
+        let count = Bound(exactly: collection.count)!
+        return StridedRange(
+            from: lowerBound < 0 ? lowerBound + count : lowerBound,
+            to: (upperBound < 0 ? upperBound + count : upperBound) + stride,
             by: stride)
     }
 }
 
-extension PartialRangeFrom: StridedRangeExpression where Bound == Int {
+extension PartialRangeFrom: PartialStridedRangeExpression where Bound: Numeric {
     public func stridedRangeRelative<C>(to collection: C) -> StridedRange<Bound>
         where C : Collection, Self.Bound == C.Index
     {
-        StridedRange(
-            from: lowerBound < 0 ? lowerBound + collection.count : lowerBound,
-            to: collection.count,
+        let count = Bound(exactly: collection.count)!
+        return StridedRange(
+            from: lowerBound < 0 ? lowerBound + count : lowerBound,
+            to: count,
             by: stride)
     }
 }
 
-extension PartialRangeUpTo: StridedRangeExpression where Bound == Int {
+extension PartialRangeUpTo: PartialStridedRangeExpression where Bound: Numeric {
     public func stridedRangeRelative<C>(to collection: C) -> StridedRange<Bound>
         where C : Collection, Self.Bound == C.Index
     {
-        StridedRange(
+        let count = Bound(exactly: collection.count)!
+        return StridedRange(
             from: 0,
-            to: upperBound < 0 ? upperBound + collection.count : upperBound,
+            to: upperBound < 0 ? upperBound + count : upperBound,
             by: stride)
     }
 }
 
-extension PartialRangeThrough: StridedRangeExpression where Bound == Int {
+extension PartialRangeThrough: PartialStridedRangeExpression
+    where Bound: Numeric
+{
     public func stridedRangeRelative<C>(to collection: C) -> StridedRange<Bound>
         where C : Collection, Self.Bound == C.Index
     {
-        StridedRange(
+        let count = Bound(exactly: collection.count)!
+        return StridedRange(
             from: 0,
-            to: upperBound < 0 ? upperBound + collection.count : upperBound,
+            to: (upperBound < 0 ? upperBound + count : upperBound) + stride,
             by: stride)
     }
 }
 
-extension Int: StridedRangeExpression {
+extension Int: PartialStridedRangeExpression {
     public typealias Bound = Int
     
     public func relative<C>(to collection: C) -> Range<Int>
@@ -227,7 +242,7 @@ extension Int: StridedRangeExpression {
 
 //==============================================================================
 /// PartialStridedRange
-public struct PartialStridedRange<Partial>: StridedRangeExpression
+public struct PartialStridedRange<Partial>: PartialStridedRangeExpression
     where Partial: RangeExpression
 {
     public typealias Bound = Partial.Bound
@@ -259,13 +274,15 @@ public struct PartialStridedRange<Partial>: StridedRangeExpression
     }
 }
 
-//==============================================================================
-/// PartialStridedRange
-extension PartialStridedRange: Collection, Sequence where Partial == Range<Int>{
-    public typealias Element = Int
-    public var startIndex: Int { partialRange.lowerBound }
-    public var endIndex: Int { partialRange.upperBound }
-    public subscript(position: Int) -> Int { position }
-    public func index(after i: Int) -> Int { i + stride }
-}
+extension PartialStridedRange: Collection, Sequence
+    where Partial: StridedRangeExpression, Partial.Bound: AdditiveArithmetic
+{
+    public typealias Index = Partial.Bound
+    public typealias Element = Partial.Bound
 
+    // Collection
+    public var startIndex: Partial.Bound { partialRange.lowerBound }
+    public var endIndex: Partial.Bound { partialRange.upperBound }
+    public subscript(position: Partial.Bound) -> Partial.Bound { position }
+    public func index(after i: Partial.Bound) -> Partial.Bound { i + stride }
+}

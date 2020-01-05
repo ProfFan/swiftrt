@@ -690,7 +690,7 @@ public extension TensorView where Element: AnyConvertable {
 
     /// compares the flat elements of self with a Swift array of elements
     static func == <R>(lhs: Self, rhs: R) -> Bool
-        where R: StridedRangeExpression, R.Bound == Int
+        where R: PartialStridedRangeExpression, R.Bound == Int
     {
         let r = rhs.stridedRangeRelative(to: 0..<lhs.count + 1)
         let range = stride(from: r.from, to: r.to, by: r.by)

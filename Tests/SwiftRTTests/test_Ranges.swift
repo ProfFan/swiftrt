@@ -68,9 +68,10 @@ class test_Ranges: XCTestCase {
     //==========================================================================
     // test_StridedRangeInForLoop
     func test_StridedRangeInForLoop() {
-        let vector = IndexVector(with: 0..<12)
+        let v1 = IndexVector(with: 0..<12)
         let batchSize = 3
-        XCTAssert([Int](0..<vector.items..batchSize) == [0, 3, 6, 9])
+        XCTAssert([Int](0..<v1.items..batchSize) == [0, 3, 6, 9])
+        XCTAssert([Double](0.0..<2.0..0.5) == [0.0, 0.5, 1.0, 1.5])
     }
     
     //==========================================================================
