@@ -118,26 +118,29 @@ public extension VectorView {
     var endIndex: VectorIndex { VectorIndex(endOf: self) }
 
     //--------------------------------------------------------------------------
+    @differentiable(where Self: DifferentiableTensorView)
     @inlinable @inline(__always)
     subscript(index: Int) -> Self {
         get { self[(index), (index + 1), Shape.ones.tuple] }
         set { self[(index), (index + 1), Shape.ones.tuple] = newValue }
     }
     
+    @differentiable(where Self: DifferentiableTensorView)
     subscript(r: UnboundedRange) -> Self { self }
 
-    // TODO
-    // @differentiable(where Self: DifferentiableTensorView)
+    @differentiable(where Self: DifferentiableTensorView)
     @inlinable @inline(__always)
     subscript<R>(range: R) -> Self
         where R: PartialStridedRangeExpression, R.Bound == Int
     {
         get {
-            let r = range.stridedRangeRelative(to: 0..<extents[0])
+            let r = withoutDerivative(at:
+                range.stridedRangeRelative(to: 0..<extents[0]))
             return self[(r.from), (r.to), (r.by)]
         }
         set {
-            let r = range.stridedRangeRelative(to: 0..<extents[0])
+            let r = withoutDerivative(at:
+                range.stridedRangeRelative(to: 0..<extents[0]))
             self[(r.from), (r.to), (r.by)] = newValue
         }
     }
@@ -340,40 +343,44 @@ public extension MatrixView {
     
     //--------------------------------------------------------------------------
     // single element
+    @differentiable(where Self: DifferentiableTensorView)
     @inlinable @inline(__always)
     subscript(r: Int, c: Int) -> Self {
         get { self[(r, c), (r + 1, c + 1), Shape.ones.tuple] }
         set { self[(r, c), (r + 1, c + 1), Shape.ones.tuple] = newValue }
     }
 
-    // TODO(TF-281): Rewrite `@differentiable` attribute as a `@differentiating`
-    // attribute when `@differentiating` supports subscript declaration
-    // references.
-    //    @differentiable(vjp: vjpSubscript where Self: DifferentiableTensorView)
+    @differentiable(where Self: DifferentiableTensorView)
     @inlinable @inline(__always)
     subscript<R, C>(rows: R, cols: C) -> Self where
         R: PartialStridedRangeExpression, R.Bound == Int,
         C: PartialStridedRangeExpression, C.Bound == Int
     {
         get {
-            let r = rows.stridedRangeRelative(to: 0..<extents[0])
-            let c = cols.stridedRangeRelative(to: 0..<extents[1])
+            let r = withoutDerivative(at:
+                rows.stridedRangeRelative(to: 0..<extents[0]))
+            let c = withoutDerivative(at:
+                cols.stridedRangeRelative(to: 0..<extents[1]))
             return self[(r.from, c.from), (r.to, c.to), (r.by, c.by)]
         }
         
         set {
-            let r = rows.stridedRangeRelative(to: 0..<extents[0])
-            let c = cols.stridedRangeRelative(to: 0..<extents[1])
+            let r = withoutDerivative(at:
+                rows.stridedRangeRelative(to: 0..<extents[0]))
+            let c = withoutDerivative(at:
+                cols.stridedRangeRelative(to: 0..<extents[1]))
             self[(r.from, c.from), (r.to, c.to), (r.by, c.by)] = newValue
         }
     }
     
+    @differentiable(where Self: DifferentiableTensorView)
     subscript<R>(rows: R, cols: UnboundedRange) -> Self
         where R: PartialStridedRangeExpression, R.Bound == Int {
         get { self[rows, 0...] }
         set { self[rows, 0...] = newValue }
     }
     
+    @differentiable(where Self: DifferentiableTensorView)
     subscript<C>(rows: UnboundedRange, cols: C) -> Self
         where C: PartialStridedRangeExpression, C.Bound == Int {
         get { self[0..., cols] }
@@ -555,6 +562,7 @@ public extension VolumeView {
     
     //--------------------------------------------------------------------------
     // single element
+    @differentiable(where Self: DifferentiableTensorView)
     @inlinable @inline(__always)
     subscript(d: Int, r: Int, c: Int) -> Self {
         get { self[(d, r, c), (d + 1, r + 1, c + 1), Shape.ones.tuple] }
@@ -562,10 +570,7 @@ public extension VolumeView {
             newValue }
     }
     
-    // TODO(TF-281): Rewrite `@differentiable` attribute as a `@differentiating`
-    // attribute when `@differentiating` supports subscript declaration
-    // references.
-    //    @differentiable(vjp: vjpSubscript where Self: DifferentiableTensorView)
+    @differentiable(where Self: DifferentiableTensorView)
     @inlinable @inline(__always)
     subscript<D, R, C>(deps: D, rows: R, cols: C) -> Self where
         D: PartialStridedRangeExpression, D.Bound == Int,
@@ -573,30 +578,38 @@ public extension VolumeView {
         C: PartialStridedRangeExpression, C.Bound == Int
         {
         get {
-            let d = deps.stridedRangeRelative(to: 0..<extents[0])
-            let r = rows.stridedRangeRelative(to: 0..<extents[1])
-            let c = cols.stridedRangeRelative(to: 0..<extents[2])
+            let d = withoutDerivative(at:
+                deps.stridedRangeRelative(to: 0..<extents[0]))
+            let r = withoutDerivative(at:
+                rows.stridedRangeRelative(to: 0..<extents[1]))
+            let c = withoutDerivative(at:
+                cols.stridedRangeRelative(to: 0..<extents[2]))
             return self[(d.from, r.from, c.from),
                         (d.to, r.to, c.to),
                         (d.by, r.by, c.by)]
         }
         
         set {
-            let d = deps.stridedRangeRelative(to: 0..<extents[0])
-            let r = rows.stridedRangeRelative(to: 0..<extents[1])
-            let c = cols.stridedRangeRelative(to: 0..<extents[2])
+            let d = withoutDerivative(at:
+                deps.stridedRangeRelative(to: 0..<extents[0]))
+            let r = withoutDerivative(at:
+                rows.stridedRangeRelative(to: 0..<extents[1]))
+            let c = withoutDerivative(at:
+                cols.stridedRangeRelative(to: 0..<extents[2]))
             self[(d.from, r.from, c.from),
                  (d.to, r.to, c.to),
                  (d.by, r.by, c.by)] = newValue
         }
     }
     
+    @differentiable(where Self: DifferentiableTensorView)
     subscript<D>(deps: D, rows: UnboundedRange, cols: UnboundedRange) -> Self
         where D: PartialStridedRangeExpression, D.Bound == Int {
         get { self[deps, 0..., 0...] }
         set { self[deps, 0..., 0...] = newValue }
     }
     
+    @differentiable(where Self: DifferentiableTensorView)
     subscript<D, R>(deps: D, rows: R, cols: UnboundedRange) -> Self where
         D: PartialStridedRangeExpression, D.Bound == Int,
         R: PartialStridedRangeExpression, R.Bound == Int {
@@ -604,6 +617,7 @@ public extension VolumeView {
         set { self[deps, rows, 0...] = newValue }
     }
     
+    @differentiable(where Self: DifferentiableTensorView)
     subscript<D, C>(deps: D, rows: UnboundedRange, cols: C) -> Self where
         D: PartialStridedRangeExpression, D.Bound == Int,
         C: PartialStridedRangeExpression, C.Bound == Int {
@@ -611,12 +625,14 @@ public extension VolumeView {
         set { self[deps, 0..., cols] = newValue }
     }
 
+    @differentiable(where Self: DifferentiableTensorView)
     subscript<R>(deps: UnboundedRange, rows: R, cols: UnboundedRange) -> Self
         where R: PartialStridedRangeExpression, R.Bound == Int {
         get { self[0..., rows, 0...] }
         set { self[0..., rows, 0...] = newValue }
     }
     
+    @differentiable(where Self: DifferentiableTensorView)
     subscript<C>(deps: UnboundedRange, rows: UnboundedRange, cols: C) -> Self
         where C: PartialStridedRangeExpression, C.Bound == Int {
         get { self[0..., 0..., cols] }
