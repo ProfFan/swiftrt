@@ -68,8 +68,13 @@ class test_Ranges: XCTestCase {
     //==========================================================================
     // test_StridedRangeInForLoop
     func test_StridedRangeInForLoop() {
-        XCTAssert([Int](0..<12..3) == [0, 3, 6, 9])
-        XCTAssert([Double](0.0..<2.0..0.5) == [0.0, 0.5, 1.0, 1.5])
+//        XCTAssert([Int](0..<12..3) == [0, 3, 6, 9])
+//        XCTAssert((0..<8..2).count == 4)
+//        XCTAssert((0.0..<2.0..0.5).count == 4)
+//        XCTAssert([Double](0.0..<2.0..0.5) == [0.0, 0.5, 1.0, 1.5])
+        for d in 0.0..<1.0..0.3 {
+            print(d)
+        }
     }
     
     //==========================================================================
