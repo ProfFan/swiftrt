@@ -131,17 +131,15 @@ public extension VectorView {
     @differentiable(where Self: DifferentiableTensorView)
     @inlinable @inline(__always)
     subscript<R>(range: R) -> Self
-        where R: PartialStridedRangeExpression, R.Bound == Int
+        where R: StridedRangeExpression, R.Bound == Int
     {
         get {
-            let r = withoutDerivative(at:
-                range.stridedRangeRelative(to: 0..<extents[0]))
-            return self[(r.from), (r.to), (r.by)]
+            let r = withoutDerivative(at: range.relativeTo(0..<extents[0]))
+            return self[(r.start), (r.end), (r.step)]
         }
         set {
-            let r = withoutDerivative(at:
-                range.stridedRangeRelative(to: 0..<extents[0]))
-            self[(r.from), (r.to), (r.by)] = newValue
+            let r = withoutDerivative(at: range.relativeTo(0..<extents[0]))
+            self[(r.start), (r.end), (r.step)] = newValue
         }
     }
 }
@@ -353,36 +351,32 @@ public extension MatrixView {
     @differentiable(where Self: DifferentiableTensorView)
     @inlinable @inline(__always)
     subscript<R, C>(rows: R, cols: C) -> Self where
-        R: PartialStridedRangeExpression, R.Bound == Int,
-        C: PartialStridedRangeExpression, C.Bound == Int
+        R: StridedRangeExpression, R.Bound == Int,
+        C: StridedRangeExpression, C.Bound == Int
     {
         get {
-            let r = withoutDerivative(at:
-                rows.stridedRangeRelative(to: 0..<extents[0]))
-            let c = withoutDerivative(at:
-                cols.stridedRangeRelative(to: 0..<extents[1]))
-            return self[(r.from, c.from), (r.to, c.to), (r.by, c.by)]
+            let r = withoutDerivative(at: rows.relativeTo(0..<extents[0]))
+            let c = withoutDerivative(at: cols.relativeTo(0..<extents[1]))
+            return self[(r.start, c.start), (r.end, c.end), (r.step, c.step)]
         }
         
         set {
-            let r = withoutDerivative(at:
-                rows.stridedRangeRelative(to: 0..<extents[0]))
-            let c = withoutDerivative(at:
-                cols.stridedRangeRelative(to: 0..<extents[1]))
-            self[(r.from, c.from), (r.to, c.to), (r.by, c.by)] = newValue
+            let r = withoutDerivative(at: rows.relativeTo(0..<extents[0]))
+            let c = withoutDerivative(at: cols.relativeTo(0..<extents[1]))
+            self[(r.start, c.start), (r.end, c.end), (r.step, c.step)] = newValue
         }
     }
     
     @differentiable(where Self: DifferentiableTensorView)
     subscript<R>(rows: R, cols: UnboundedRange) -> Self
-        where R: PartialStridedRangeExpression, R.Bound == Int {
+        where R: StridedRangeExpression, R.Bound == Int {
         get { self[rows, 0...] }
         set { self[rows, 0...] = newValue }
     }
     
     @differentiable(where Self: DifferentiableTensorView)
     subscript<C>(rows: UnboundedRange, cols: C) -> Self
-        where C: PartialStridedRangeExpression, C.Bound == Int {
+        where C: StridedRangeExpression, C.Bound == Int {
         get { self[0..., cols] }
         set { self[0..., cols] = newValue }
     }
@@ -573,68 +567,62 @@ public extension VolumeView {
     @differentiable(where Self: DifferentiableTensorView)
     @inlinable @inline(__always)
     subscript<D, R, C>(deps: D, rows: R, cols: C) -> Self where
-        D: PartialStridedRangeExpression, D.Bound == Int,
-        R: PartialStridedRangeExpression, R.Bound == Int,
-        C: PartialStridedRangeExpression, C.Bound == Int
+        D: StridedRangeExpression, D.Bound == Int,
+        R: StridedRangeExpression, R.Bound == Int,
+        C: StridedRangeExpression, C.Bound == Int
         {
         get {
-            let d = withoutDerivative(at:
-                deps.stridedRangeRelative(to: 0..<extents[0]))
-            let r = withoutDerivative(at:
-                rows.stridedRangeRelative(to: 0..<extents[1]))
-            let c = withoutDerivative(at:
-                cols.stridedRangeRelative(to: 0..<extents[2]))
-            return self[(d.from, r.from, c.from),
-                        (d.to, r.to, c.to),
-                        (d.by, r.by, c.by)]
+            let d = withoutDerivative(at: deps.relativeTo(0..<extents[0]))
+            let r = withoutDerivative(at: rows.relativeTo(0..<extents[1]))
+            let c = withoutDerivative(at: cols.relativeTo(0..<extents[2]))
+            return self[(d.start, r.start, c.start),
+                        (d.end, r.end, c.end),
+                        (d.step, r.step, c.step)]
         }
         
         set {
-            let d = withoutDerivative(at:
-                deps.stridedRangeRelative(to: 0..<extents[0]))
-            let r = withoutDerivative(at:
-                rows.stridedRangeRelative(to: 0..<extents[1]))
-            let c = withoutDerivative(at:
-                cols.stridedRangeRelative(to: 0..<extents[2]))
-            self[(d.from, r.from, c.from),
-                 (d.to, r.to, c.to),
-                 (d.by, r.by, c.by)] = newValue
+            let d = withoutDerivative(at: deps.relativeTo(0..<extents[0]))
+            let r = withoutDerivative(at: rows.relativeTo(0..<extents[1]))
+            let c = withoutDerivative(at: cols.relativeTo(0..<extents[2]))
+            self[(d.start, r.start, c.start),
+                 (d.end, r.end, c.end),
+                 (d.step, r.step, c.step)] = newValue
         }
     }
     
     @differentiable(where Self: DifferentiableTensorView)
     subscript<D>(deps: D, rows: UnboundedRange, cols: UnboundedRange) -> Self
-        where D: PartialStridedRangeExpression, D.Bound == Int {
+        where D: StridedRangeExpression, D.Bound == Int {
         get { self[deps, 0..., 0...] }
         set { self[deps, 0..., 0...] = newValue }
     }
     
     @differentiable(where Self: DifferentiableTensorView)
     subscript<D, R>(deps: D, rows: R, cols: UnboundedRange) -> Self where
-        D: PartialStridedRangeExpression, D.Bound == Int,
-        R: PartialStridedRangeExpression, R.Bound == Int {
+        D: StridedRangeExpression, D.Bound == Int,
+        R: StridedRangeExpression, R.Bound == Int {
         get { self[deps, rows, 0...] }
         set { self[deps, rows, 0...] = newValue }
     }
     
     @differentiable(where Self: DifferentiableTensorView)
     subscript<D, C>(deps: D, rows: UnboundedRange, cols: C) -> Self where
-        D: PartialStridedRangeExpression, D.Bound == Int,
-        C: PartialStridedRangeExpression, C.Bound == Int {
+        D: StridedRangeExpression, D.Bound == Int,
+        C: StridedRangeExpression, C.Bound == Int {
         get { self[deps, 0..., cols] }
         set { self[deps, 0..., cols] = newValue }
     }
 
     @differentiable(where Self: DifferentiableTensorView)
     subscript<R>(deps: UnboundedRange, rows: R, cols: UnboundedRange) -> Self
-        where R: PartialStridedRangeExpression, R.Bound == Int {
+        where R: StridedRangeExpression, R.Bound == Int {
         get { self[0..., rows, 0...] }
         set { self[0..., rows, 0...] = newValue }
     }
     
     @differentiable(where Self: DifferentiableTensorView)
     subscript<C>(deps: UnboundedRange, rows: UnboundedRange, cols: C) -> Self
-        where C: PartialStridedRangeExpression, C.Bound == Int {
+        where C: StridedRangeExpression, C.Bound == Int {
         get { self[0..., 0..., cols] }
         set { self[0..., 0..., cols] = newValue }
     }
