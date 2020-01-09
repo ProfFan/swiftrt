@@ -28,7 +28,6 @@ precedencegroup StridedRangeFormationPrecedence {
 //==============================================================================
 /// RangeBound
 public protocol RangeBound: Comparable, Numeric {
-    func isMultiple(of other: Self) -> Bool
     func steps(dividedBy step: Self) -> Int
 }
 
@@ -37,7 +36,6 @@ public extension RangeBound where Self: FixedWidthInteger {
 }
 
 public extension RangeBound where Self: BinaryFloatingPoint {
-    func isMultiple(of other: Self) -> Bool { fmod(self, other) == 0 }
     func steps(dividedBy step: Self) -> Int { Int(self / step) }
 }
 
@@ -60,12 +58,6 @@ extension PartialRangeExpression {
     public var step: Bound { 1 }
 }
 
-extension RangeExpression where Bound: RangeBound {
-    static func .. (range: Self, stride: Bound) -> PartialStridedRange<Self> {
-        PartialStridedRange(partial: range, by: stride)
-    }
-}
-
 //==============================================================================
 /// PartialStridedRange
 public struct PartialStridedRange<Partial>: PartialRangeExpression
@@ -84,7 +76,63 @@ public struct PartialStridedRange<Partial>: PartialRangeExpression
         where C : Collection, Self.Bound == C.Index
     {
         let r = partialRange.relative(to: collection)
-        return StridedRange(from: r.lowerBound, to: r.upperBound, by: r.step)
+        return StridedRange(from: r.lowerBound, to: r.upperBound, by: step)
+    }
+}
+
+//==============================================================================
+/// range operators
+public func .. (range: UnboundedRange, step: Int)
+    -> PartialStridedRange<PartialRangeFrom<Int>>
+{
+    PartialStridedRange(partial: 0..., by: step)
+}
+
+// Range with negative bounds
+infix operator ..<-: RangeFormationPrecedence
+public func ..<- (lower: Int, upper: Int) -> Range<Int> {
+    Range(uncheckedBounds: (lower, -upper))
+}
+
+// Range through with negative bounds
+infix operator ...-: RangeFormationPrecedence
+public func ...- (lower: Int, upper: Int) -> ClosedRange<Int> {
+    ClosedRange(uncheckedBounds: (lower, -upper))
+}
+
+// PartialRangeUpTo/PartialRangeThrough negative
+prefix operator ..<-
+prefix operator ...-
+
+public extension Int {
+    prefix static func ..<- (upper: Int) -> PartialRangeUpTo<Int> {
+        ..<(-upper)
+    }
+    
+    prefix static func ...- (upper: Int) -> PartialRangeThrough<Int> {
+        ...(-upper)
+    }
+}
+
+// whole range stepped
+prefix operator .....
+
+public extension Int {
+    prefix static func ..... (step: Int) ->
+        PartialStridedRange<PartialRangeFrom<Int>>
+    {
+        PartialStridedRange(partial: 0..., by: step)
+    }
+}
+
+//==============================================================================
+/// ..| operator
+/// specifies range and relative extent to do windowed operations
+infix operator ..|: RangeFormationPrecedence
+
+public extension Int {
+    static func ..| (from: Int, extent: Int) -> Range<Int> {
+        Range(uncheckedBounds: (from, from + extent))
     }
 }
 
@@ -114,12 +162,12 @@ public struct StridedRange<Bound>: StridedRangeExpression, Collection
     
     // closed range init
     public init(from lower: Bound, through upper: Bound, by step: Bound) {
-        assert(lower <= upper, "Empty range: `to` must be greater than `from`")
-        assert((upper - lower).isMultiple(of: step),
-               "Closed ranges must be an even multiple of step")
-        self.count = (upper - lower).steps(dividedBy: step)
+        assert(lower <= upper,
+               "Empty range: `to` must be greater than or equal to `from`")
+        let rangeCount = (upper - lower + step)
+        self.count = rangeCount.steps(dividedBy: step)
         self.start = lower
-        self.end = (upper + step)
+        self.end = lower + rangeCount
         self.step = step
     }
     
@@ -148,6 +196,10 @@ extension Range: StridedRangeExpression, PartialRangeExpression
         let end = upperBound < 0 ? upperBound + count : upperBound
         return StridedRange(from: start, to: end, by: step)
     }
+    
+    static func .. (r: Self, step: Bound) -> StridedRange<Bound> {
+        StridedRange(from: r.lowerBound, to: r.upperBound, by: step)
+    }
 }
 
 extension ClosedRange: StridedRangeExpression, PartialRangeExpression
@@ -161,6 +213,10 @@ extension ClosedRange: StridedRangeExpression, PartialRangeExpression
         let end = (upperBound < 0 ? upperBound + count : upperBound) + step
         return StridedRange(from: start, to: end, by: step)
     }
+
+    static func .. (r: Self, step: Bound) -> StridedRange<Bound> {
+        StridedRange(from: r.lowerBound, through: r.upperBound, by: step)
+    }
 }
 
 extension PartialRangeFrom: PartialRangeExpression where Bound: RangeBound {
@@ -171,6 +227,10 @@ extension PartialRangeFrom: PartialRangeExpression where Bound: RangeBound {
         let start = lowerBound < 0 ? lowerBound + count : lowerBound
         return StridedRange(from: start, to: count, by: step)
     }
+
+    static func .. (range: Self, step: Bound) -> PartialStridedRange<Self> {
+        PartialStridedRange(partial: range, by: step)
+    }
 }
 
 extension PartialRangeUpTo: PartialRangeExpression where Bound: RangeBound {
@@ -180,6 +240,10 @@ extension PartialRangeUpTo: PartialRangeExpression where Bound: RangeBound {
         let count = Bound(exactly: collection.count)!
         let end = upperBound < 0 ? upperBound + count : upperBound
         return StridedRange(from: 0, to: end, by: step)
+    }
+
+    static func .. (range: Self, step: Bound) -> PartialStridedRange<Self> {
+        PartialStridedRange(partial: range, by: step)
     }
 }
 
@@ -192,6 +256,10 @@ extension PartialRangeThrough: PartialRangeExpression
         let count = Bound(exactly: collection.count)!
         let end = (upperBound < 0 ? upperBound + count : upperBound) + step
         return StridedRange(from: 0, to: end, by: step)
+    }
+
+    static func .. (range: Self, step: Bound) -> PartialStridedRange<Self> {
+        PartialStridedRange(partial: range, by: step)
     }
 }
 

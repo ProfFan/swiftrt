@@ -678,23 +678,12 @@ public extension TensorView {
 }
 
 public extension TensorView where Element: AnyConvertable {
-    /// compares the flat elements of self with a Swift array of elements
-    static func == <U>(lhs: Self, rhs: [U]) -> Bool
-        where U: Equatable & AnyConvertable
-    {
-        for (element, other) in zip(lhs.elements(), rhs) {
-            if element != Element(any: other) { return false }
-        }
-        return true
-    }
-
-    /// compares the flat elements of self with a Swift array of elements
+    /// compares the flat elements of self with a Swift collection of elements
     static func == <R>(lhs: Self, rhs: R) -> Bool
-        where R: StridedRangeExpression, R.Bound == Int
+        where R: Collection, R.Element: AnyConvertable
     {
-        let range = rhs.relativeTo(0..<lhs.count + 1)
-        for (element, rangeIndex) in zip(lhs.elements(), range) {
-            if element != Element(any: rangeIndex) { return false }
+        for (lhsElement, rhsElement) in zip(lhs.elements(), rhs) {
+            if lhsElement != Element(any: rhsElement) { return false }
         }
         return true
     }

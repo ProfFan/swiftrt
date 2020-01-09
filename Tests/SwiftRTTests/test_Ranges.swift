@@ -52,12 +52,6 @@ class test_Ranges: XCTestCase {
         XCTAssert(vector[(...)..2] == 0..<10..2)
         XCTAssert(vector[.....2] == 0..<10..2)
 
-        // TODO: do want to support reverse stepping through ranges?
-        // the whole range stepping in reverse by 2
-//        let reversed = [Int32](stride(from: 0, to: 10, by: 2).reversed())
-//        XCTAssert(vector[(...)..-2] == reversed)
-//        XCTAssert(vector[.....-2] == reversed)
-
         // sliding window starting at 2 and extending 3 (i.e 2 + 3)
         XCTAssert(vector[2..|3] == 2...4)
 
@@ -68,13 +62,10 @@ class test_Ranges: XCTestCase {
     //==========================================================================
     // test_StridedRangeInForLoop
     func test_StridedRangeInForLoop() {
-//        XCTAssert([Int](0..<12..3) == [0, 3, 6, 9])
-//        XCTAssert((0..<8..2).count == 4)
-//        XCTAssert((0.0..<2.0..0.5).count == 4)
-//        XCTAssert([Double](0.0..<2.0..0.5) == [0.0, 0.5, 1.0, 1.5])
-        for d in 0.0..<1.0..0.3 {
-            print(d)
-        }
+        XCTAssert([Int](0..<12..3) == [0, 3, 6, 9])
+        XCTAssert((0..<8..2).count == 4)
+        XCTAssert((0.0..<2.0..0.5).count == 4)
+        XCTAssert([Double](0.0..<2.0..0.5) == [0.0, 0.5, 1.0, 1.5])
     }
     
     //==========================================================================
