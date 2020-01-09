@@ -197,7 +197,7 @@ extension Range: StridedRangeExpression, PartialRangeExpression
         return StridedRange(from: start, to: end, by: step)
     }
     
-    static func .. (r: Self, step: Bound) -> StridedRange<Bound> {
+    public static func .. (r: Self, step: Bound) -> StridedRange<Bound> {
         StridedRange(from: r.lowerBound, to: r.upperBound, by: step)
     }
 }
@@ -214,7 +214,7 @@ extension ClosedRange: StridedRangeExpression, PartialRangeExpression
         return StridedRange(from: start, to: end, by: step)
     }
 
-    static func .. (r: Self, step: Bound) -> StridedRange<Bound> {
+    public static func .. (r: Self, step: Bound) -> StridedRange<Bound> {
         StridedRange(from: r.lowerBound, through: r.upperBound, by: step)
     }
 }
@@ -228,7 +228,9 @@ extension PartialRangeFrom: PartialRangeExpression where Bound: RangeBound {
         return StridedRange(from: start, to: count, by: step)
     }
 
-    static func .. (range: Self, step: Bound) -> PartialStridedRange<Self> {
+    public static func .. (range: Self, step: Bound) ->
+        PartialStridedRange<Self>
+    {
         PartialStridedRange(partial: range, by: step)
     }
 }
@@ -242,7 +244,9 @@ extension PartialRangeUpTo: PartialRangeExpression where Bound: RangeBound {
         return StridedRange(from: 0, to: end, by: step)
     }
 
-    static func .. (range: Self, step: Bound) -> PartialStridedRange<Self> {
+    public static func .. (range: Self, step: Bound) ->
+        PartialStridedRange<Self>
+    {
         PartialStridedRange(partial: range, by: step)
     }
 }
@@ -258,7 +262,9 @@ extension PartialRangeThrough: PartialRangeExpression
         return StridedRange(from: 0, to: end, by: step)
     }
 
-    static func .. (range: Self, step: Bound) -> PartialStridedRange<Self> {
+    public static func .. (range: Self, step: Bound) ->
+        PartialStridedRange<Self>
+    {
         PartialStridedRange(partial: range, by: step)
     }
 }
