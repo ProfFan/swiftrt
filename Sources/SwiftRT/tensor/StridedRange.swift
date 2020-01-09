@@ -26,142 +26,50 @@ precedencegroup StridedRangeFormationPrecedence {
 }
 
 //==============================================================================
+/// RangeBound
+public protocol RangeBound: Comparable, Numeric {
+    func isMultiple(of other: Self) -> Bool
+    func steps(dividedBy step: Self) -> Int
+}
+
+public extension RangeBound where Self: FixedWidthInteger {
+    func steps(dividedBy step: Self) -> Int { Int(self / step) }
+}
+
+public extension RangeBound where Self: BinaryFloatingPoint {
+    func isMultiple(of other: Self) -> Bool { fmod(self, other) == 0 }
+    func steps(dividedBy step: Self) -> Int { Int(self / step) }
+}
+
+extension Int: RangeBound { }
+extension Float: RangeBound { }
+extension Double: RangeBound { }
+
+//==============================================================================
 /// StridedRangeExpression
-public protocol StridedRangeExpression {
-    associatedtype Bound: Comparable
-    
-    // this is intentionally named to avoid conflict with RangeExpression
+public protocol PartialRangeExpression {
+    associatedtype Bound: RangeBound
+
+    var step: Bound { get }
+
     func relativeTo<C>(_ collection: C) -> StridedRange<Bound>
         where C : Collection, Self.Bound == C.Index
 }
 
-//==============================================================================
-/// StridedRange
-public struct StridedRange<Bound>: StridedRangeExpression
-    where Bound: Comparable
-{
-    // properties
-    public let start: Bound
-    public let end: Bound
-    public let step: Bound
+extension PartialRangeExpression {
+    public var step: Bound { 1 }
+}
 
-    // open range init
-    public init(from lower: Bound, to upper: Bound, by step: Bound) {
-        assert(lower < upper, "Empty range: `to` must be greater than `from`")
-        self.start = lower
-        self.end = upper
-        self.step = step
+extension RangeExpression where Bound: RangeBound {
+    static func .. (range: Self, stride: Bound) -> PartialStridedRange<Self> {
+        PartialStridedRange(partial: range, by: stride)
     }
-    
-    public func relativeTo<C>(_ collection: C) -> Self
-        where C : Collection, Self.Bound == C.Index { self }
-}
-
-extension StridedRange where Bound: AnyNumeric {
-    // closed range init
-    public init(from lower: Bound, through upper: Bound, by step: Bound) {
-        assert(lower <= upper, "Empty range: `to` must be greater than `from`")
-        assert(fmod((Float(any: upper) - Float(any: lower)),
-                    Float(any: step)) == 0,
-               "Closed ranges must be an even multiple of step")
-        self.start = lower
-        self.end = (upper + step)
-        self.step = step
-    }
-}
-
-//==============================================================================
-/// StridedRange Collection extensions
-extension StridedRange: Collection, Sequence, IteratorProtocol
-    where Bound == Int
-{
-    public typealias Index = Bound
-    public typealias Element = Bound
-
-    // Sequence
-    public mutating func next() -> Bound? {
-        fatalError()
-    }
-    
-    // Collection
-    public var startIndex: Bound { start }
-    public var endIndex: Bound { end }
-    public subscript(position: Bound) -> Bound { position * step }
-    public func index(after i: Bound) -> Bound { i + 1 }
-}
-
-extension StridedRange where Bound == Int {
-    public var count: Int { (end - start) / step }
-}
-
-extension StridedRange where Bound: AnyFloatingPoint {
-    public var count: Int { Int(any: (end - start) / step) }
-}
-
-//==============================================================================
-/// Range extensions
-extension Range where Bound: Comparable {
-    public static func .. (range: Self, step: Bound) -> StridedRange<Bound> {
-        StridedRange(from: range.lowerBound, to: range.upperBound, by: step)
-    }
-}
-
-extension ClosedRange where Bound: AnyNumeric {
-    public static func .. (r: Self, step: Bound) -> StridedRange<Bound> {
-        StridedRange(from: r.lowerBound, through: r.upperBound, by: step)
-    }
-}
-
-//==============================================================================
-/// Unbound Range extensions
-public func .. (range: UnboundedRange, step: Int)
-    -> PartialStridedRange<PartialRangeFrom<Int>>
-{
-    PartialStridedRange(partial: 0..., by: step)
-}
-
-public protocol PartialRangeExpression
-    where Self: RangeExpression, Bound: BinaryInteger
-{
-    static func .. (range: Self, step: Bound) -> PartialStridedRange<Self>
-    func relativeTo<C>(_ collection: C) -> StridedRange<Bound>
-        where C : Collection, Self.Bound == C.Index
-}
-
-extension PartialRangeExpression
-    where Self: RangeExpression, Bound: BinaryInteger
-{
-    public static func .. (range: Self, step: Bound) -> PartialStridedRange<Self> {
-        PartialStridedRange(partial: range, by: step)
-    }
-
-    public func relativeTo<C>(_ collection: C) -> StridedRange<Bound>
-        where C : Collection, Self.Bound == C.Index
-    {
-        let r = relative(to: collection.indices)
-        return StridedRange(from: r.lowerBound, to: r.upperBound, by: 1)
-    }
-}
-
-extension PartialRangeFrom: StridedRangeExpression, PartialRangeExpression where Bound: BinaryInteger { }
-extension PartialRangeUpTo: StridedRangeExpression, PartialRangeExpression where Bound: BinaryInteger { }
-extension PartialRangeThrough: StridedRangeExpression, PartialRangeExpression where Bound: BinaryInteger { }
-
-extension Int: RangeExpression, PartialRangeExpression {
-    public typealias Bound = Int
-    
-    public func relative<C>(to collection: C) -> Range<Int>
-        where C : Collection, Self.Bound == C.Index {
-            Range(uncheckedBounds: (self, self + 1))
-    }
-    
-    public func contains(_ element: Int) -> Bool { element == self }
 }
 
 //==============================================================================
 /// PartialStridedRange
-public struct PartialStridedRange<Partial>: StridedRangeExpression
-    where Partial: RangeExpression
+public struct PartialStridedRange<Partial>: PartialRangeExpression
+    where Partial: RangeExpression, Partial.Bound: RangeBound
 {
     public typealias Bound = Partial.Bound
     public var partialRange: Partial
@@ -171,11 +79,128 @@ public struct PartialStridedRange<Partial>: StridedRangeExpression
         self.partialRange = range
         self.step = step
     }
-
+    
     public func relativeTo<C>(_ collection: C) -> StridedRange<Bound>
         where C : Collection, Self.Bound == C.Index
     {
-        let r = partialRange.relative(to: collection.indices)
-        return StridedRange(from: r.lowerBound, to: r.upperBound, by: step)
+        let r = partialRange.relative(to: collection)
+        return StridedRange(from: r.lowerBound, to: r.upperBound, by: r.step)
     }
 }
+
+//==============================================================================
+/// StridedRangeExpression
+public protocol StridedRangeExpression: PartialRangeExpression { }
+
+//==============================================================================
+/// StridedRange
+public struct StridedRange<Bound>: StridedRangeExpression, Collection
+    where Bound: RangeBound
+{
+    // properties
+    public let count: Int
+    public let start: Bound
+    public let end: Bound
+    public let step: Bound
+    
+    // open range init
+    public init(from lower: Bound, to upper: Bound, by step: Bound) {
+        assert(lower < upper, "Empty range: `to` must be greater than `from`")
+        self.count = (upper - lower).steps(dividedBy: step)
+        self.start = lower
+        self.end = upper
+        self.step = step
+    }
+    
+    // closed range init
+    public init(from lower: Bound, through upper: Bound, by step: Bound) {
+        assert(lower <= upper, "Empty range: `to` must be greater than `from`")
+        assert((upper - lower).isMultiple(of: step),
+               "Closed ranges must be an even multiple of step")
+        self.count = (upper - lower).steps(dividedBy: step)
+        self.start = lower
+        self.end = (upper + step)
+        self.step = step
+    }
+    
+    public func relativeTo<C>(_ collection: C) -> Self
+        where C : Collection, Bound == C.Index { self }
+    
+    // Collection
+    public var startIndex: Int { 0 }
+    public var endIndex: Int { count }
+    public subscript(position: Int) -> Bound {
+        Bound(exactly: position)! * step
+    }
+    public func index(after i: Int) -> Int { i + 1 }
+}
+
+//==============================================================================
+/// StridedRangeExpression
+extension Range: StridedRangeExpression, PartialRangeExpression
+    where Bound: RangeBound
+{
+    public func relativeTo<C>(_ collection: C) -> StridedRange<Bound>
+        where C : Collection, Self.Bound == C.Index
+    {
+        let count = Bound(exactly: collection.count)!
+        let start = lowerBound < 0 ? lowerBound + count : lowerBound
+        let end = upperBound < 0 ? upperBound + count : upperBound
+        return StridedRange(from: start, to: end, by: step)
+    }
+}
+
+extension ClosedRange: StridedRangeExpression, PartialRangeExpression
+    where Bound: RangeBound
+{
+    public func relativeTo<C>(_ collection: C) -> StridedRange<Bound>
+        where C : Collection, Self.Bound == C.Index
+    {
+        let count = Bound(exactly: collection.count)!
+        let start = lowerBound < 0 ? lowerBound + count : lowerBound
+        let end = (upperBound < 0 ? upperBound + count : upperBound) + step
+        return StridedRange(from: start, to: end, by: step)
+    }
+}
+
+extension PartialRangeFrom: PartialRangeExpression where Bound: RangeBound {
+    public func relativeTo<C>(_ collection: C) -> StridedRange<Bound>
+        where C : Collection, Self.Bound == C.Index
+    {
+        let count = Bound(exactly: collection.count)!
+        let start = lowerBound < 0 ? lowerBound + count : lowerBound
+        return StridedRange(from: start, to: count, by: step)
+    }
+}
+
+extension PartialRangeUpTo: PartialRangeExpression where Bound: RangeBound {
+    public func relativeTo<C>(_ collection: C) -> StridedRange<Bound>
+        where C : Collection, Self.Bound == C.Index
+    {
+        let count = Bound(exactly: collection.count)!
+        let end = upperBound < 0 ? upperBound + count : upperBound
+        return StridedRange(from: 0, to: end, by: step)
+    }
+}
+
+extension PartialRangeThrough: PartialRangeExpression
+    where Bound: RangeBound
+{
+    public func relativeTo<C>(_ collection: C) -> StridedRange<Bound>
+        where C : Collection, Self.Bound == C.Index
+    {
+        let count = Bound(exactly: collection.count)!
+        let end = (upperBound < 0 ? upperBound + count : upperBound) + step
+        return StridedRange(from: 0, to: end, by: step)
+    }
+}
+
+extension Int: PartialRangeExpression {
+    public typealias Bound = Int
+    
+    public func relativeTo<C>(_ collection: C) -> StridedRange<Bound>
+        where C : Collection, Self.Bound == C.Index {
+            StridedRange(from: self, to: self + 1, by: 1)
+    }
+}
+

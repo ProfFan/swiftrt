@@ -692,15 +692,10 @@ public extension TensorView where Element: AnyConvertable {
     static func == <R>(lhs: Self, rhs: R) -> Bool
         where R: StridedRangeExpression, R.Bound == Int
     {
-        let r: StridedRange<Int> = rhs.relativeTo(0..<(lhs.count + 1))
-        print([Int](r))
-        print([Int](0..<10..2))
-        for i in 0..<10..2 {
-            
+        let range = rhs.relativeTo(0..<lhs.count + 1)
+        for (element, rangeIndex) in zip(lhs.elements(), range) {
+            if element != Element(any: rangeIndex) { return false }
         }
-//        for (element, rangeIndex) in zip(lhs.elements(), r) {
-//            if element != Element(any: rangeIndex) { return false }
-//        }
         return true
     }
 }
