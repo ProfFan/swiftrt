@@ -72,8 +72,10 @@ class test_Math: XCTestCase {
         let expected: [Float] = range.map { Foundation.exp(Float($0)) }
         XCTAssert(values == expected)
         
-        let m2 = Matrix(3, 2, with: 1...6)
-        XCTAssert(gradientIsValid(at: m2, tolerance: 0.7, in: { exp($0) }))
+        let v = Vector(with: 1...3)
+        let g = gradient(at: v, in: { exp($0).sum() })
+        let e = Vector(with: [2.7182817,  7.389056, 20.085537])
+        XCTAssert(elementsAlmostEqual(g, e, tolerance: 0.0001).all().element)
     }
 
     //--------------------------------------------------------------------------
@@ -86,8 +88,10 @@ class test_Math: XCTestCase {
         let expected: [Float] = range.map { Foundation.log(Float($0)) }
         XCTAssert(values == expected)
         
-        let m2 = Matrix(3, 2, with: 1...6)
-        XCTAssert(gradientIsValid(at: m2, in: { log($0) }))
+        let v = Vector(with: [1, -2, 3])
+        let g = gradient(at: v, in: { log($0).sum() })
+        let e = Vector(with: [1.0, -0.5, 0.33333334])
+        XCTAssert(elementsAlmostEqual(g, e, tolerance: 0.0001).all().element)
     }
     
     //--------------------------------------------------------------------------
@@ -102,9 +106,10 @@ class test_Math: XCTestCase {
         
         let values2 = -matrix
         XCTAssert(values2 == expected)
-
-        let m2 = Matrix(3, 2, with: 1...6)
-        XCTAssert(gradientIsValid(at: m2, tolerance: 0.002, in: { neg($0) }))
+        
+        let v = Vector(with: [1, -2, 3])
+        let g = gradient(at: v, in: { (-$0).sum() })
+        XCTAssert(g == [-1, -1, -1])
     }
     
     //--------------------------------------------------------------------------
@@ -124,8 +129,9 @@ class test_Math: XCTestCase {
         let values = matrix.squared()
         let expected: [Float] = (0...5).map { Float($0 * $0) }
         XCTAssert(values == expected)
-
-        let m2 = Matrix(3, 2, with: 1...6)
-        XCTAssert(gradientIsValid(at: m2, tolerance: 0.02, in: { squared($0) }))
+        
+        let v = Vector(with: [1, -2, 3])
+        let g = gradient(at: v, in: { $0.squared().sum() })
+        XCTAssert(g == [2, -4, 6])
     }
 }
