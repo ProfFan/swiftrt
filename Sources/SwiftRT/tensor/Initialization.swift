@@ -173,14 +173,13 @@ public extension TensorView {
 
 //==============================================================================
 //
-
 public extension TensorView where Self: DifferentiableTensorView {
     @derivative(of: init(repeating:to:name:))
     static func _vjpInit(repeating value: Element, to extents: Shape.Array,
                          name: String?) ->
         (value: Self, pullback: (Self) -> (Element))
     {
-        fatalError()
+        (Self(repeating: value, to: extents), { $0.sum().element })
     }
 }
 
