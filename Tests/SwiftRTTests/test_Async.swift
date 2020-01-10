@@ -176,19 +176,15 @@ class test_Async: XCTestCase {
     // measures the event overhead of creating 10,000 events
     func test_perfCreateQueueEvent() {
         #if !DEBUG
-        do {
-            let queue = try Platform.local.createQueue()
-            self.measure {
-                do {
-                    for _ in 0..<10000 {
-                        _ = try queue.createEvent()
-                    }
-                } catch {
-                    XCTFail(String(describing: error))
+        let queue = Platform.testCpu1.queues[0]
+        self.measure {
+            do {
+                for _ in 0..<10000 {
+                    _ = try queue.createEvent()
                 }
+            } catch {
+                XCTFail(String(describing: error))
             }
-        } catch {
-            XCTFail(String(describing: error))
         }
         #endif
     }
@@ -198,20 +194,16 @@ class test_Async: XCTestCase {
     // measures the event overhead of processing 10,000 tensors
     func test_perfRecordQueueEvent() {
         #if !DEBUG
-        do {
-            let queue = Platform.testCpu1.queues[0]
-            self.measure {
-                do {
-                    for _ in 0..<10000 {
-                        _ = try queue.record(event: queue.createEvent())
-                    }
-                    try queue.waitUntilQueueIsComplete()
-                } catch {
-                    XCTFail(String(describing: error))
+        let queue = Platform.testCpu1.queues[0]
+        self.measure {
+            do {
+                for _ in 0..<10000 {
+                    _ = try queue.record(event: queue.createEvent())
                 }
+                try queue.waitUntilQueueIsComplete()
+            } catch {
+                XCTFail(String(describing: error))
             }
-        } catch {
-            XCTFail(String(describing: error))
         }
         #endif
     }

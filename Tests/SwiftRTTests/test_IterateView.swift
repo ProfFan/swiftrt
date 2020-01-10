@@ -120,7 +120,7 @@ class test_IterateView: XCTestCase {
         let rows = 1024
         let cols = 1024
         
-        let matrix = Matrix<Int32>(rows, cols, with: 0..<(rows * cols))
+        let matrix = Matrix(rows, cols, with: 0..<(rows * cols))
         let values = matrix.elements
         
         self.measure {
@@ -137,8 +137,8 @@ class test_IterateView: XCTestCase {
         let rows = 512
         let cols = 512
         
-        let matrix = Volume<Int32>(depths, rows, cols,
-                                   with: 0..<(depths * rows * cols))
+        let matrix = IndexVolume(depths, rows, cols,
+                                 with: 0..<(depths * rows * cols))
         let values = matrix.elements
         
         self.measure {
@@ -151,7 +151,7 @@ class test_IterateView: XCTestCase {
     // test_perfIndexCopy
     func test_perfIndexCopy() {
         #if !DEBUG
-        var m = Matrix<Int32>(1024, 1024).startIndex
+        var m = Matrix(1024, 1024).startIndex
         
         self.measure {
             for _ in 0..<1000000 {
