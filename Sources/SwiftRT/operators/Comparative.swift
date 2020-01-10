@@ -18,14 +18,11 @@ import Real
 //==============================================================================
 // utilities
 @inlinable
-func _vjpMinMaxHelper<T>(_ x: T, _ y: T, seed: T, op: (T, T) -> T.BoolView)
+func _vjpMinMaxHelper<T>(_ x: T, _ y: T, v: T, op: (T, T) -> T.BoolView)
     -> (T, T) where T: DifferentiableTensorView
 {
     let mask = T(op(x, y))
-    let lhsGrad = seed * mask
-    let rhsGrad = seed * (1 - mask)
-    return (T(repeating: lhsGrad.sum().element, like: x),
-            T(repeating: rhsGrad.sum().element, like: y))
+    return (v * mask, v * (1 - mask))
 }
 
 //==============================================================================
@@ -87,7 +84,7 @@ func _vjpMax<T>(_ lhs: T, _ rhs: T)
     T: DifferentiableTensorView
 {
     return (value: max(lhs, rhs), {
-        _vjpMinMaxHelper(lhs, rhs, seed: $0, op: .>=)
+        _vjpMinMaxHelper(lhs, rhs, v: $0, op: .>=)
     })
 }
 
@@ -99,8 +96,8 @@ func _vjpMax<T>(_ lhs: T, _ rhs: T.Element) ->
 {
     let rhs = T(repeating: rhs, like: lhs)
     return (value: max(lhs, rhs), {
-        let result = _vjpMinMaxHelper(lhs, rhs, seed: $0, op: .>=)
-        return (result.0, result.1.element)
+        let (lhsGrad, rhsGrad) = _vjpMinMaxHelper(lhs, rhs, v: $0, op: .>=)
+        return (lhsGrad, rhsGrad.sum().element)
     })
 }
 
@@ -112,8 +109,8 @@ func _vjpMax<T>(_ lhs: T.Element, _ rhs: T) ->
 {
     let lhs = T(repeating: lhs, like: rhs)
     return (value: max(lhs, rhs), {
-        let result = _vjpMinMaxHelper(lhs, rhs, seed: $0, op: .>=)
-        return (result.0.element, result.1)
+        let (lhsGrad, rhsGrad) = _vjpMinMaxHelper(lhs, rhs, v: $0, op: .>=)
+        return (lhsGrad.sum().element, rhsGrad)
     })
 }
 
@@ -176,7 +173,7 @@ func _vjpMin<T>(_ lhs: T, _ rhs: T)
     T: DifferentiableTensorView
 {
     return (value: min(lhs, rhs), {
-        _vjpMinMaxHelper(lhs, rhs, seed: $0, op: .<=)
+        _vjpMinMaxHelper(lhs, rhs, v: $0, op: .<=)
     })
 }
 
@@ -188,8 +185,8 @@ func _vjpMin<T>(_ lhs: T, _ rhs: T.Element) ->
 {
     let rhs = T(repeating: rhs, like: lhs)
     return (value: min(lhs, rhs), {
-        let result = _vjpMinMaxHelper(lhs, rhs, seed: $0, op: .<=)
-        return (result.0, result.1.element)
+        let (lhsGrad, rhsGrad) = _vjpMinMaxHelper(lhs, rhs, v: $0, op: .<=)
+        return (lhsGrad, rhsGrad.sum().element)
     })
 }
 
@@ -201,8 +198,8 @@ func _vjpMin<T>(_ lhs: T.Element, _ rhs: T) ->
 {
     let lhs = T(repeating: lhs, like: rhs)
     return (value: min(lhs, rhs), {
-        let result = _vjpMinMaxHelper(lhs, rhs, seed: $0, op: .<=)
-        return (result.0.element, result.1)
+        let (lhsGrad, rhsGrad) = _vjpMinMaxHelper(lhs, rhs, v: $0, op: .<=)
+        return (lhsGrad.sum().element, rhsGrad)
     })
 }
 
