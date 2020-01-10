@@ -67,16 +67,20 @@ class test_Comparative: XCTestCase {
     func test_max() {
         let m1 = Matrix(3, 2, with: [0, 1, -2, -3, -4, 5])
         let m2 = Matrix(3, 2, with: [0, -7, 2, 3, 4, 5])
-        let result = max(m1, m2)
-        XCTAssert(result == [0, 1, 2, 3, 4, 5])
+        XCTAssert(max(m1, m2) == [0, 1, 2, 3, 4, 5])
+        XCTAssert(gradientIsValid(at: m1, m2, tolerance: 0.002, in: { max($0, $1) }))
     }
     
     //--------------------------------------------------------------------------
     // test_maxScalar
     func test_maxScalar() {
         let m1 = Matrix(3, 2, with: 0...5)
-        let result = max(m1, 2)
-        XCTAssert(result == [2, 2, 2, 3, 4, 5])
+        let scalar: Float = 2
+        let expected = [2, 2, 2, 3, 4, 5]
+        XCTAssert(max(m1, scalar) == expected)
+        XCTAssert(max(scalar, m1) == expected)
+        XCTAssert(gradientIsValid(at: m1, scalar, tolerance: 0.002, in: { max($0, $1) }))
+        XCTAssert(gradientIsValid(at: scalar, m1, tolerance: 0.002, in: { max($0, $1) }))
     }
     
     //--------------------------------------------------------------------------
@@ -84,15 +88,19 @@ class test_Comparative: XCTestCase {
     func test_min() {
         let m1 = Matrix(3, 2, with: [0, 1, 2, -3, 4, -5])
         let m2 = Matrix(3, 2, with: [0, -1, -2, 3, -4, 5])
-        let result = min(m1, m2)
-        XCTAssert(result == [0, -1, -2, -3, -4, -5])
+        XCTAssert(min(m1, m2) == [0, -1, -2, -3, -4, -5])
+        XCTAssert(gradientIsValid(at: m1, m2, tolerance: 0.002, in: { min($0, $1) }))
     }
     
     //--------------------------------------------------------------------------
     // test_minScalar
     func test_minScalar() {
         let m1 = Matrix(3, 2, with: 0...5)
-        let result = min(m1, 3)
-        XCTAssert(result == [0, 1, 2, 3, 3, 3])
+        let scalar: Float = 3
+        let expected = [0, 1, 2, 3, 3, 3]
+        XCTAssert(min(m1, scalar) == expected)
+        XCTAssert(min(scalar, m1) == expected)
+        XCTAssert(gradientIsValid(at: m1, scalar, tolerance: 0.002, in: { min($0, $1) }))
+        XCTAssert(gradientIsValid(at: scalar, m1, tolerance: 0.002, in: { min($0, $1) }))
     }
 }
