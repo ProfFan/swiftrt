@@ -49,7 +49,10 @@ class test_BinaryFunctions: XCTestCase {
         let m2 = Matrix(3, 2, with: 0..<6)
         let result = m1 + m2
         XCTAssert(result == [0, 2, 4, 6, 8, 10])
-        XCTAssert(gradientIsValid(at: m1, m2, tolerance: 0.002, in: { $0 + $1 }))
+  
+        let (g1, g2) = gradient(at: m1, m2, in: { $0 + $1 })
+        XCTAssert(g1 == [1, 1, 1, 1, 1, 1])
+        XCTAssert(g2 == [1, 1, 1, 1, 1, 1])
     }
 
     //--------------------------------------------------------------------------
@@ -97,7 +100,10 @@ class test_BinaryFunctions: XCTestCase {
         let m2 = Matrix(3, 2, with: 0..<6)
         let result = m1 - m2
         XCTAssert(result == [1, 1, 1, 1, 1, 1])
-        XCTAssert(gradientIsValid(at: m1, m2, tolerance: 0.002, in: { $0 - $1 }))
+        
+        let (g1, g2) = gradient(at: m1, m2, in: { $0 - $1 })
+        XCTAssert(g1 == [1, 1, 1, 1, 1, 1])
+        XCTAssert(g2 == [-1, -1, -1, -1, -1, -1])
     }
 
     //--------------------------------------------------------------------------
@@ -153,7 +159,10 @@ class test_BinaryFunctions: XCTestCase {
         let m2 = Matrix(3, 2, with: 0..<6)
         let result = m1 * m2
         XCTAssert(result == [0, 1, 4, 9, 16, 25])
-        XCTAssert(gradientIsValid(at: m1, m2, tolerance: 0.006, in: { $0 * $1 }))
+        
+        let (g1, g2) = gradient(at: m1, m2, in: { $0 * $1 })
+        XCTAssert(g1 == [0, 1, 2, 3, 4, 5])
+        XCTAssert(g2 == [0, 1, 2, 3, 4, 5])
     }
 
     //--------------------------------------------------------------------------
@@ -179,7 +188,13 @@ class test_BinaryFunctions: XCTestCase {
         let m2 = Matrix(3, 2, with: 1...6)
         let result = m1 / m2
         XCTAssert(result == [1, 2, 3, 4, 5, 6])
-        XCTAssert(gradientIsValid(at: m1, m2, tolerance: 0.002, in: { $0 / $1 }))
+        
+        let (g1, g2) = gradient(at: m1, m2, in: { $0 / $1 })
+        let g1Expected =
+            Matrix(3, 2, with: [1, 0.5, 0.3333333, 0.25, 0.2, 0.1666666])
+        XCTAssert(elementsAlmostEqual(g1, g1Expected, tolerance: 0.00001)
+            .all().element)
+        XCTAssert(g2 == [-1, -1, -1, -1, -1, -1])
     }
 
     //--------------------------------------------------------------------------
