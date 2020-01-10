@@ -69,7 +69,8 @@ public extension TensorView where Element: Real {
 internal func _vjpAbs<T>(_ x: T) -> (value: T, pullback: (T) -> T)
     where T: DifferentiableTensorView, T.Element: Real
 {
-    fatalError()
+    let signX = sign(x)
+    return (abs(x), { $0 * signX })
 }
 
 //==============================================================================
@@ -311,5 +312,40 @@ internal func _vjpSqrt<T>(_ x: T) -> (value: T, pullback: (T) -> T)
 {
     let value = sqrt(x)
     return (value, { v in v / (2 * value) })
+}
+
+//==============================================================================
+/// sign(x)
+///
+/// - Parameter x: value tensor
+/// - Returns: the signs of `x`. -1 for negative `x` values, 1 for positive
+@inlinable @inline(__always)
+public func sign<T>(_ x: T) -> T
+    where T: TensorView, T.Element: Real
+{
+    var result = x.createDense()
+    DeviceContext.currentQueue.sign(x: x, result: &result)
+    return result
+}
+
+public extension TensorView where Element: Real {
+    // make glboal function visible for extension implementations
+    @differentiable(where Self: DifferentiableTensorView)
+    @inlinable @inline(__always)
+    func sign(_ x: Self) -> Self { SwiftRT.sign(x) }
+    
+    @differentiable(where Self: DifferentiableTensorView)
+    @inlinable @inline(__always)
+    func sign() -> Self { sign(self) }
+}
+
+//--------------------------------------
+// derivative functions
+@derivative(of: sign)
+@inlinable @inline(__always)
+internal func _vjpSign<T>(_ x: T) -> (value: T, pullback: (T) -> T)
+    where T: DifferentiableTensorView, T.Element: Real
+{
+    (sign(x), { _ in T(repeating: 0, like: x) })
 }
 

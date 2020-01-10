@@ -142,6 +142,9 @@ public protocol DeviceFunctions {
     /// replace
     func replace<T>(x: T, with y: T, where condition: T.BoolView,
                     result: inout T) where T: TensorView
+    /// sign
+    func sign<T>(x: T, result: inout T) where
+        T: TensorView, T.Element: Real
     /// subtract
     func subtract<T>(lhs: T, rhs: T, result: inout T) where
         T: TensorView, T.Element: AdditiveArithmetic
@@ -364,6 +367,12 @@ public extension DeviceFunctions where Self: DeviceQueue {
         where T: TensorView
     {
         mapOp(condition, y, x, &result) { $0 ? $1 : $2 }
+    }
+    /// sign
+    func sign<T>(x: T, result: inout T) where
+        T: TensorView, T.Element: Real
+    {
+        mapOp(x, &result) { $0 < 0 ? -1 : 1 }
     }
     /// subtract
     func subtract<T>(lhs: T, rhs: T, result: inout T) where

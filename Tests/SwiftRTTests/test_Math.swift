@@ -22,12 +22,24 @@ class test_Math: XCTestCase {
     //==========================================================================
     // support terminal test run
     static var allTests = [
+        ("test_abs", test_abs),
         ("test_concat", test_concat),
         ("test_exp", test_exp),
         ("test_log", test_log),
         ("test_neg", test_neg),
+        ("test_sign", test_sign),
         ("test_squared", test_squared),
     ]
+    
+    //--------------------------------------------------------------------------
+    // test_abs
+    func test_abs() {
+        let v = Vector(with: [-1, 2, -3, 4])
+        XCTAssert(abs(v) == [1, 2, 3, 4])
+        
+        let g = gradient(at: v, in: { abs($0).sum() })
+        XCTAssert(g == [-1, 1, -1, 1])
+    }
 
     //--------------------------------------------------------------------------
     // test_concat
@@ -50,11 +62,10 @@ class test_Math: XCTestCase {
             4, 5, 6, 10, 11, 12
         ])
     }
-
+    
     //--------------------------------------------------------------------------
     // test_exp
     func test_exp() {
-        Platform.local.servicePriority = [cpuSynchronousServiceName]
         let range = 0..<6
         let matrix = Matrix(3, 2, with: range)
         let values = exp(matrix)
@@ -96,6 +107,16 @@ class test_Math: XCTestCase {
         XCTAssert(gradientIsValid(at: m2, tolerance: 0.002, in: { neg($0) }))
     }
     
+    //--------------------------------------------------------------------------
+    // test_sign
+    func test_sign() {
+        let v = Vector(with: [-1, 2, -3, 4])
+        XCTAssert(sign(v) == [-1, 1, -1, 1])
+        
+        let g = gradient(at: v, in: { sign($0).sum() })
+        XCTAssert(g == [0, 0, 0, 0])
+    }
+
     //--------------------------------------------------------------------------
     // test_squared
     func test_squared() {
