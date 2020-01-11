@@ -72,6 +72,7 @@ public extension VectorView {
     
     //--------------------------------------------------------------------------
     /// from flat `AnyConvertable` collection
+    @inlinable @inline(__always)
     init<C>(with elements: C, name: String? = nil) where
         C: Collection, C.Element: AnyConvertable, Element: AnyConvertable
     {
