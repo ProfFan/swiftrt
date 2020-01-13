@@ -47,7 +47,6 @@ class test_BinaryFunctions: XCTestCase {
     // test_addSubMulDivComplex
     func test_addSubMulDivComplex() {
         typealias ComplexF = Complex<Float>
-        typealias ComplexMatrix = MatrixT<ComplexF>
         let data: [Complex<Float>] = [0, 1, 2, 3, 4, 5]
         let cm1 = ComplexMatrix(2, 3, elements: data)
         let cm2 = ComplexMatrix(2, 3, elements: data)

@@ -13,20 +13,23 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 //
+import Complex
 
 //==============================================================================
 // TODO: review and discuss how default types are defined
-
 public typealias IndexT = Int32
 
 public typealias Vector = VectorT<Float>
 public typealias BoolVector = VectorT<Bool>
 public typealias IndexVector = VectorT<IndexT>
+public typealias ComplexVector = VectorT<Complex<Float>>
 
 public typealias Matrix = MatrixT<Float>
 public typealias BoolMatrix = MatrixT<Bool>
 public typealias IndexMatrix = MatrixT<IndexT>
+public typealias ComplexMatrix = MatrixT<Complex<Float>>
 
 public typealias Volume = VolumeT<Float>
 public typealias BoolVolume = VolumeT<Bool>
 public typealias IndexVolume = VolumeT<IndexT>
+public typealias ComplexVolume = VolumeT<Complex<Float>>
