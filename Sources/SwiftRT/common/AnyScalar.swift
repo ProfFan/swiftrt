@@ -16,6 +16,7 @@
 // *** NOTE: There might eventually be no need for AnyConvertable
 //
 import Foundation
+import Complex
 
 //==============================================================================
 /// AnyElement
@@ -29,6 +30,11 @@ public extension Numeric {
     static var one: Self { 1 }
 }
 
+extension Complex: AnyElement {
+    public init() {
+        self.init(0)
+    }
+}
 //==============================================================================
 /// AnyConvertable
 /// AnyNumeric enables the use of constants, type conversion, and

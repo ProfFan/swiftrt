@@ -15,8 +15,7 @@
 //
 import XCTest
 import Foundation
-
-@testable import SwiftRT
+import SwiftRT
 
 class test_Comparative: XCTestCase {
     //==========================================================================

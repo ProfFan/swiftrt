@@ -15,13 +15,14 @@
 //
 import XCTest
 import Foundation
-
-@testable import SwiftRT
+import SwiftRT
+import Complex
 
 class test_BinaryFunctions: XCTestCase {
     //==========================================================================
     // support terminal test run
     static var allTests = [
+        ("test_addSubMulDivComplex", test_addSubMulDivComplex),
         ("test_add", test_add),
         ("test_addInt32", test_addInt32),
         ("test_addUInt8", test_addUInt8),
@@ -41,6 +42,41 @@ class test_BinaryFunctions: XCTestCase {
         ("test_divScalar", test_divScalar),
         ("test_divAndAssign", test_divAndAssign),
     ]
+    
+    //--------------------------------------------------------------------------
+    // test_addSubMulDivComplex
+    func test_addSubMulDivComplex() {
+        typealias ComplexF = Complex<Float>
+        typealias ComplexMatrix = MatrixT<ComplexF>
+        let data: [Complex<Float>] = [0, 1, 2, 3, 4, 5]
+        let cm1 = ComplexMatrix(2, 3, elements: data)
+        let cm2 = ComplexMatrix(2, 3, elements: data)
+
+        // add a scalar
+        XCTAssert(cm1 + 1 == [ComplexF](arrayLiteral: 1, 2, 3, 4, 5, 6))
+        
+        // add tensors
+        XCTAssert(cm1 + cm2 == [ComplexF](arrayLiteral: 0, 2, 4, 6, 8, 10))
+
+        // subtract a scalar
+        XCTAssert(cm1 - 1 == [ComplexF](arrayLiteral: -1, 0, 1, 2, 3, 4))
+        
+        // subtract tensors
+        XCTAssert(cm1 - cm2 == [ComplexF](arrayLiteral: 0, 0, 0, 0, 0, 0))
+
+        // mul a scalar
+        XCTAssert(cm1 * 2 == [ComplexF](arrayLiteral: 0, 2, 4, 6, 8, 10))
+        
+        // mul tensors
+        XCTAssert(cm1 * cm2 == [ComplexF](arrayLiteral: 0, 1, 4, 9, 16, 25))
+
+//        // divide by a scalar
+//        let divExpected = [0, ComplexF(0.5), 1, ComplexF(1.5), 2, ComplexF(2.5)]
+//        XCTAssert(cm1 / 2 == divExpected)
+//
+//        // divide by a tensor
+//        XCTAssert(cm1 / cm2 == [ComplexF](arrayLiteral: 0, 1, 1, 1, 1, 1))
+    }
     
     //--------------------------------------------------------------------------
     // test_add
