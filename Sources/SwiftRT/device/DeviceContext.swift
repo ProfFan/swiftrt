@@ -54,8 +54,7 @@ public func using<R>(_ devices: [ComputeDevice],
 //==============================================================================
 /// DeviceContext
 /// Manages the scope for the current devices, log, and error handlers
-@usableFromInline
-class DeviceContext {
+public class DeviceContext {
     /// stack of current device collections used to execute/distribute work
     var devicesStack: [[ComputeDevice]]
     /// specifies whether operators in the current scope are
@@ -86,7 +85,6 @@ class DeviceContext {
 
     //--------------------------------------------------------------------------
     /// returns the thread local instance of the queues stack
-    @usableFromInline
     static var local: DeviceContext {
         // try to get an existing state
         if let state = pthread_getspecific(key) {
@@ -129,7 +127,6 @@ class DeviceContext {
     public var logInfo: LogInfo { return devicesStack.last![0].logInfo }
 
     //--------------------------------------------------------------------------
-    @inlinable @inline(__always)
     public static var lastError: Error? {
         get { DeviceContext.currentQueue.device.lastError }
         set { DeviceContext.currentQueue.device.lastError = newValue }
@@ -153,7 +150,6 @@ class DeviceContext {
     /// push(devices:
     /// pushes the specified device collection onto a queue stack which makes
     /// it the current queue used by operator functions
-    @usableFromInline
     func push(devices: [ComputeDevice]) {
         devicesStack.append(devices)
     }
@@ -161,7 +157,6 @@ class DeviceContext {
     //--------------------------------------------------------------------------
     /// popDevices
     /// restores the previous current devices collection
-    @usableFromInline
     func popDevices() {
         assert(devicesStack.count > 1)
         _ = devicesStack.popLast()

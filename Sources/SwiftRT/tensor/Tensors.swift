@@ -244,7 +244,7 @@ public extension MatrixView {
         C: Collection, C.Element == Element
     {
         let shape = Self.matrixShape((rows, cols), layout)
-        assert(shape.count == elements.count)
+        assert(shape.count == elements.count, _messageElementCountMismatch)
         self = Self.create(elements, shape, name)
     }
 
@@ -256,7 +256,7 @@ public extension MatrixView {
         C: Collection, C.Element: AnyConvertable, Element: AnyConvertable
     {
         let shape = Self.matrixShape((rows, cols), layout)
-        assert(shape.count == elements.count)
+        assert(shape.count == elements.count, _messageElementCountMismatch)
         self = Self.create(elements.lazy.map { Element(any: $0) }, shape, name)
     }
     
@@ -473,7 +473,7 @@ public extension VolumeView {
         C: Collection, C.Element == Element
     {
         let shape = Shape(extents: (deps, rows, cols))
-        assert(shape.count == elements.count)
+        assert(shape.count == elements.count, _messageElementCountMismatch)
         self = Self.create(elements, shape, name)
     }
     
@@ -484,7 +484,7 @@ public extension VolumeView {
         C: Collection, C.Element: AnyConvertable, Element: AnyConvertable
     {
         let shape = Shape(extents: (deps, rows, cols))
-        assert(shape.count == elements.count)
+        assert(shape.count == elements.count, _messageElementCountMismatch)
         self = Self.create(elements.lazy.map { Element(any: $0) }, shape, name)
     }
     
