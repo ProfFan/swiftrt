@@ -12,7 +12,7 @@
 // WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 // See the License for the specific language governing permissions and
 // limitations under the License.
-//
+
 import Complex
 
 //==============================================================================
@@ -23,8 +23,11 @@ public protocol DifferentiableElement:
 extension Float: DifferentiableElement {}
 extension Double: DifferentiableElement {}
 
-// Do something here??
-// extension Complex: DifferentiableElement {}
+// Note: `DifferentiableElement` is problematic because `Complex` doesn't
+// conform to `FloatingPoint` or `AnyFloatingPoint`.
+extension Complex: Differentiable {
+  public typealias TangentVector = Self
+}
 
 //==============================================================================
 /// DifferentiableTensorView
