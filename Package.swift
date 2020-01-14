@@ -161,7 +161,7 @@ let package = Package(
     products: products,
     dependencies: [
         .package(url: "https://github.com/apple/swift-numerics",
-                 .branch("master"))
+                 .branch("FieldProtocol"))
     ],
     targets: targets
 )

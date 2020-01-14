@@ -12,6 +12,7 @@
 // WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 // See the License for the specific language governing permissions and
 // limitations under the License.
+import Real
 
 //==============================================================================
 /// Elementwise add tensors
@@ -220,7 +221,7 @@ public extension TensorView where Self: DifferentiableTensorView {
 /// - Returns: a new tensor containing the result
 @inlinable @inline(__always)
 public func div<T>(_ lhs: T, _ rhs: T) -> T
-    where T: TensorView, T.Element: FloatingPoint
+    where T: TensorView, T.Element: Field
 {
     let (lhs, rhs) = implicitlyMatchExtents(lhs, rhs)
     assert(lhs.extents == rhs.extents, _messageTensorExtentsMismatch)
@@ -229,7 +230,7 @@ public func div<T>(_ lhs: T, _ rhs: T) -> T
     return result
 }
 
-public extension TensorView where Element: FloatingPoint {
+public extension TensorView where Element: Field {
     @inlinable @inline(__always)
     static func / (lhs: Self, rhs: Self) -> Self { div(lhs, rhs) }
 
@@ -255,12 +256,15 @@ public extension TensorView where Element: FloatingPoint {
 @derivative(of: div)
 @inlinable @inline(__always)
 internal func _vjpDivide<T>(_ lhs: T, _ rhs: T) ->
-    (value: T, pullback: (T) -> (T, T)) where T: DifferentiableTensorView
+    (value: T, pullback: (T) -> (T, T))
+    where T: DifferentiableTensorView, T.Element: Field
 {
     (lhs / rhs, { v in (v / rhs, -lhs / rhs.squared() * v) })
 }
 
-public extension TensorView where Self: DifferentiableTensorView {
+public extension TensorView
+    where Self: DifferentiableTensorView, Self.Element: Field
+{
     @derivative(of: /)
     @inlinable @inline(__always)
     static func _vjpDivide(lhs: Self, rhs: Self) ->

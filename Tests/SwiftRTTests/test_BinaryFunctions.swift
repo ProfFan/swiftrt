@@ -52,29 +52,29 @@ class test_BinaryFunctions: XCTestCase {
         let cm2 = ComplexMatrix(2, 3, elements: data)
 
         // add a scalar
-        XCTAssert(cm1 + 1 == [ComplexF](arrayLiteral: 1, 2, 3, 4, 5, 6))
+        XCTAssert(cm1 + 1 == [1, 2, 3, 4, 5, 6])
         
         // add tensors
-        XCTAssert(cm1 + cm2 == [ComplexF](arrayLiteral: 0, 2, 4, 6, 8, 10))
+        XCTAssert(cm1 + cm2 == [0, 2, 4, 6, 8, 10])
 
         // subtract a scalar
-        XCTAssert(cm1 - 1 == [ComplexF](arrayLiteral: -1, 0, 1, 2, 3, 4))
+        XCTAssert(cm1 - 1 == [-1, 0, 1, 2, 3, 4])
         
         // subtract tensors
-        XCTAssert(cm1 - cm2 == [ComplexF](arrayLiteral: 0, 0, 0, 0, 0, 0))
+        XCTAssert(cm1 - cm2 == [0, 0, 0, 0, 0, 0])
 
         // mul a scalar
-        XCTAssert(cm1 * 2 == [ComplexF](arrayLiteral: 0, 2, 4, 6, 8, 10))
+        XCTAssert(cm1 * 2 == [0, 2, 4, 6, 8, 10])
         
         // mul tensors
-        XCTAssert(cm1 * cm2 == [ComplexF](arrayLiteral: 0, 1, 4, 9, 16, 25))
+        XCTAssert(cm1 * cm2 == [0, 1, 4, 9, 16, 25])
 
-//        // divide by a scalar
-//        let divExpected = [0, ComplexF(0.5), 1, ComplexF(1.5), 2, ComplexF(2.5)]
-//        XCTAssert(cm1 / 2 == divExpected)
-//
-//        // divide by a tensor
-//        XCTAssert(cm1 / cm2 == [ComplexF](arrayLiteral: 0, 1, 1, 1, 1, 1))
+        // divide by a scalar
+        let divExpected: [Float] = [0, 0.5, 1, 1.5, 2, 2.5]
+        XCTAssert(cm1 / 2 == divExpected.map { ComplexF($0) })
+
+        // divide by a tensor
+        XCTAssert((cm1 + 1) / (cm2 + 1) == [1, 1, 1, 1, 1, 1])
     }
     
     //--------------------------------------------------------------------------
