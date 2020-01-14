@@ -141,17 +141,6 @@ public extension TensorView {
 }
 
 //==============================================================================
-/// DifferentiableTensorView
-///
-/// Marker protocol for `TensorView` that conform to `Differentiable`.
-///
-/// While this protoocl is not strictly necessary, it is used to reduce the
-/// number of generic requirements when writing `@differentiable` attributes on
-/// generic differentiable `TensorView` functions.
-public protocol DifferentiableTensorView: TensorView & Differentiable where
-    Self == TangentVector, Element: DifferentiableElement {}
-
-//==============================================================================
 /// ScalarType
 /// Used primarily for serialization, C APIs, and Cuda kernels
 // TODO: maybe remove this after Cuda integration if not used

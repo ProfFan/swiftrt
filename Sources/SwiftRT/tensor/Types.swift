@@ -16,6 +16,28 @@
 import Complex
 
 //==============================================================================
+/// DifferentiableElement
+public protocol DifferentiableElement:
+    Differentiable & AnyFloatingPoint where Self == TangentVector {}
+
+extension Float: DifferentiableElement {}
+extension Double: DifferentiableElement {}
+
+// Do something here??
+// extension Complex: DifferentiableElement {}
+
+//==============================================================================
+/// DifferentiableTensorView
+///
+/// Marker protocol for `TensorView` that conform to `Differentiable`.
+///
+/// While this protoocl is not strictly necessary, it is used to reduce the
+/// number of generic requirements when writing `@differentiable` attributes on
+/// generic differentiable `TensorView` functions.
+public protocol DifferentiableTensorView: TensorView & Differentiable where
+    Self == TangentVector, Element: DifferentiableElement {}
+
+//==============================================================================
 // TODO: review and discuss how default types are defined
 public typealias IndexT = Int32
 
