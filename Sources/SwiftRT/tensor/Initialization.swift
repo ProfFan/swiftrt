@@ -73,6 +73,15 @@ public extension TensorView {
     }
     
     //--------------------------------------------------------------------------
+    // flattening
+    init<T>(flattening other: T) where T: TensorView, T.Element == Element {
+        self.init(shape: Shape(flattening: other.shape),
+                  tensorArray: other.tensorArray,
+                  viewOffset: other.viewOffset,
+                  isShared: other.isShared)
+    }
+
+    //--------------------------------------------------------------------------
     /// repeating element
     @differentiable(where Self: DifferentiableTensorView)
     init(repeating value: Element, to extents: Shape.Array, name: String? = nil)

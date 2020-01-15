@@ -98,7 +98,15 @@ public extension VectorView {
         let shape = Shape(extents: (buffer.count))
         self = Self.create(referenceTo: buffer, shape, name)
     }
-    
+
+    //--------------------------------------------------------------------------
+    // squeezing
+    init<T>(squeezing other: T, alongAxes axes: Set<Int>? = nil)
+        where T: TensorView
+    {
+        fatalError()
+    }
+
     //--------------------------------------------------------------------------
     // typed views
     func createBoolTensor(with extents: Shape.Array) -> VectorType<Bool> {

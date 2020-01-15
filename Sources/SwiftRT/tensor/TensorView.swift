@@ -269,23 +269,6 @@ public extension TensorView {
     func repeated(to extents: Shape.Tuple) -> Self {
         repeated(to: Shape.Array(extents))
     }
-    // TODO
-//    //--------------------------------------------------------------------------
-//    /// flattened
-//    /// Returns a view with all dimensions higher than `axis` set to 1
-//    /// and the extent of `axis` adjusted to be the new total element count
-//    func flattened(axis: Int = 0) -> Self {
-//        // check if self already meets requirements
-//        guard self.isShared != isShared || axis != shape.rank - 1 else {
-//            return self
-//        }
-//
-//        // create flattened view
-//        return Self(shape: shape.flattened(),
-//                    tensorArray: tensorArray,
-//                    viewOffset: viewOffset,
-//                    isShared: isShared)
-//    }
     
     //--------------------------------------------------------------------------
     /// an array of viewed elements
@@ -314,19 +297,6 @@ public extension TensorView {
         let index = Index(view: self, at: position)
         buffer[index.dataIndex] = value
     }
-    
-//    //--------------------------------------------------------------------------
-//    /// squeezed(axes:
-//    /// performs a rank reduction by removing dimensions with an extent of 1
-//    /// - Parameter axes: the axes to squeeze. `nil` implies all axes.
-//    /// - Returns: the new data shape
-//    /// - Precondition: Each value in `axes` must be in the range `-rank..<rank`
-//    func squeezed(axes: [Int]? = nil) -> NDTensor<Element> {
-//        return NDTensor<Element>(shape: shape.squeezed(axes: axes),
-//                                 tensorArray: tensorArray,
-//                                 viewOffset: viewOffset,
-//                                 isShared: isShared)
-//    }
 
     //--------------------------------------------------------------------------
     /// isUniqueReference

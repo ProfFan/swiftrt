@@ -21,6 +21,7 @@ class test_Initialize: XCTestCase {
     //==========================================================================
     // support terminal test run
     static var allTests = [
+        ("test_flattening", test_flattening),
         ("test_cast", test_cast),
         ("test_concatMatrixRows", test_concatMatrixRows),
         ("test_concatMatrixCols", test_concatMatrixCols),
@@ -28,6 +29,20 @@ class test_Initialize: XCTestCase {
         ("test_repeatRowVector", test_repeatRowVector),
         ("test_repeatColVector", test_repeatColVector),
     ]
+
+    //--------------------------------------------------------------------------
+    // test_flattening
+    func test_flattening() {
+        let volume = Volume(2, 3, 4, with: 0..<24)
+        let matrix = Matrix(flattening: volume)
+        XCTAssert(matrix.extents == [2, 12])
+
+        let v1 = Vector(flattening: volume)
+        XCTAssert(v1.extents == [24])
+
+        let v2 = Vector(flattening: matrix)
+        XCTAssert(v2.extents == [24])
+    }
     
     //--------------------------------------------------------------------------
     // test_cast

@@ -161,11 +161,21 @@ public struct ShapeArray<Storage> : ShapeArrayProtocol {
 
 //==============================================================================
 //
-extension ShapeArrayProtocol {
-    @inlinable  @inline(__always)
+public extension ShapeArrayProtocol {
+    @inlinable @inline(__always)
     func map(_ transform: (Element) -> Element) -> Self {
         var result = self
         zip(result.indices, self).forEach { result[$0] = transform($1) }
+        return result
+    }
+    
+    @inlinable @inline(__always)
+    func reduce<Result>(
+        _ initialResult: Result,
+        _ nextPartialResult: (Result, Element) -> Result) -> Result
+    {
+        var result = initialResult
+        forEach { result = nextPartialResult(result, $0) }
         return result
     }
 }
@@ -195,6 +205,9 @@ public protocol ShapeProtocol: Codable {
     /// - Parameter extents: extent of the shape in each dimension
     /// - Parameter strides: the distance to the next element in each dimension
     init(extents: Array, strides: Array?)
+    /// Flattening initializer
+    /// - Parameter flattening: the higher order shape to flatten
+    init<S>(flattening other: S) where S: ShapeProtocol
 }
 
 //==============================================================================
@@ -412,6 +425,14 @@ public struct Shape1: ShapeProtocol {
         count = extents[0]
         spanCount = Self.computeSpanCount(self.extents, self.strides)
     }
+
+    //--------------------------------------------------------------------------
+    // init(flattening:
+    @inlinable @inline(__always)
+    public init<S>(flattening other: S) where S: ShapeProtocol {
+        assert(other.rank > 1, "Only higher ranked shapes can be flattened")
+        self.init(extents: Array((other.count)))
+    }
 }
 
 //==============================================================================
@@ -435,7 +456,18 @@ public struct Shape2: ShapeProtocol {
         count = extents.reduce(1, *)
         spanCount = Self.computeSpanCount(self.extents, self.strides)
     }
+
+    //--------------------------------------------------------------------------
+    // init(flattening:
+    @inlinable @inline(__always)
+    public init<S>(flattening other: S) where S: ShapeProtocol {
+        assert(other.isContiguous, "Cannot flatten strided data")
+        assert(other.rank > 2, "Only higher ranked shapes can be flattened")
+        self.init(extents: Array((other.extents[0],
+                                  other.count / other.extents[0])))
+    }
 }
+
 //==============================================================================
 // Shape3
 public struct Shape3: ShapeProtocol {
@@ -456,5 +488,55 @@ public struct Shape3: ShapeProtocol {
         self.strides = strides ?? Self.denseStrides(extents)
         count = extents.reduce(1, *)
         spanCount = Self.computeSpanCount(self.extents, self.strides)
+    }
+    
+    //--------------------------------------------------------------------------
+    // init(flattening:
+    @inlinable @inline(__always)
+    public init<S>(flattening other: S) where S: ShapeProtocol {
+        assert(other.isContiguous, "Cannot flatten strided data")
+        assert(other.rank > 3, "Only higher ranked shapes can be flattened")
+        self.init(extents: Array((
+            other.extents[0],
+            other.extents[1],
+            other.extents[2...].reduce(0,+)
+        )))
+    }
+}
+
+//==============================================================================
+// Shape4
+public struct Shape4: ShapeProtocol {
+    // constants
+    public typealias Array = ShapeArray<(Int, Int, Int, Int)>
+    public static let zeros = Array((0, 0, 0, 0))
+    public static let ones = Array((1, 1, 1, 1))
+    
+    // properties
+    public let count: Int
+    public let spanCount: Int
+    public let extents: Array
+    public let strides: Array
+    
+    @inlinable @inline(__always)
+    public init(extents: Array, strides: Array? = nil) {
+        self.extents = extents
+        self.strides = strides ?? Self.denseStrides(extents)
+        count = extents.reduce(1, *)
+        spanCount = Self.computeSpanCount(self.extents, self.strides)
+    }
+    
+    //--------------------------------------------------------------------------
+    // init(flattening:
+    @inlinable @inline(__always)
+    public init<S>(flattening other: S) where S: ShapeProtocol {
+        assert(other.isContiguous, "Cannot flatten strided data")
+        assert(other.rank > 4, "Only higher ranked shapes can be flattened")
+        self.init(extents: Array((
+            other.extents[0],
+            other.extents[1],
+            other.extents[2],
+            other.extents[3...].reduce(0,+)
+        )))
     }
 }
