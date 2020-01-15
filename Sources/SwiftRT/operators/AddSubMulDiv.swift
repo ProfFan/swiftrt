@@ -259,13 +259,13 @@ public extension TensorView where Element: Field {
 @inlinable @inline(__always)
 internal func _vjpDivide<T>(_ lhs: T, _ rhs: T) ->
     (value: T, pullback: (T) -> (T, T))
-    where T: DifferentiableTensorView, T.Element: SignedNumeric
+    where T: DifferentiableTensorView, T.Element: Field & SignedNumeric
 {
     (lhs / rhs, { v in (v / rhs, -lhs / rhs.squared() * v) })
 }
 
 public extension TensorView
-    where Self: DifferentiableTensorView, Element: SignedNumeric
+    where Self: DifferentiableTensorView, Element: Field & SignedNumeric
 {
     @derivative(of: /)
     @inlinable @inline(__always)

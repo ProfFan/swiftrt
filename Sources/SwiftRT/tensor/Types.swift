@@ -17,13 +17,11 @@ import Numerics
 //==============================================================================
 /// DifferentiableElement
 public protocol DifferentiableElement:
-    Differentiable & Field where Self == TangentVector {}
+    Differentiable & Numeric where Self == TangentVector {}
 
 extension Float: DifferentiableElement {}
 extension Double: DifferentiableElement {}
 
-// Note: `DifferentiableElement` is problematic because `Complex` doesn't
-// conform to `FloatingPoint` or `AnyFloatingPoint`.
 extension Complex: Differentiable {
   public typealias TangentVector = Self
 }

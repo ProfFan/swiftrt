@@ -116,7 +116,7 @@ extension TensorView where Self: DifferentiableTensorView {
         -> (value: Self, pullback: (Self) -> Self)
     {
         return (self[lower, upper, steps], { v in
-            var result = self.filled(with: 0)
+            var result = self.filled(with: Element())
             result[lower, upper, steps] = v
             return result
         })

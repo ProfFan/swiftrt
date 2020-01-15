@@ -199,7 +199,7 @@ public extension TensorView where Element: Field {
 @inlinable @inline(__always)
 internal func _vjpMean<T>(_ x: T, alongAxes axes: Set<Int>? = nil)
     -> (value: T, pullback: (T) -> T)
-    where T: DifferentiableTensorView
+    where T: DifferentiableTensorView, T.Element: Field
 {
     let value = x.mean(alongAxes: axes)
     let count = T.Element(exactly: x.count)!
