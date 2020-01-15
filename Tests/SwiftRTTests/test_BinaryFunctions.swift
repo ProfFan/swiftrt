@@ -70,8 +70,8 @@ class test_BinaryFunctions: XCTestCase {
         XCTAssert(cm1 * cm2 == [1, 4, 9, 16])
 
         // divide by a scalar
-        let divExpected: [Float] = [0.5, 1, 1.5, 2]
-        XCTAssert(cm1 / 2 == divExpected.map { Complex<Float>($0) })
+        let divExpected = [0.5, 1, 1.5, 2].map { Complex<Float>($0) }
+        XCTAssert(cm1 / 2 == divExpected)
 
         // divide by a tensor
         XCTAssert(cm1 / cm2 == [1, 1, 1, 1])
