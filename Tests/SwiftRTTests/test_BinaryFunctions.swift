@@ -46,40 +46,64 @@ class test_BinaryFunctions: XCTestCase {
     //--------------------------------------------------------------------------
     // test_addSubMulDivComplex
     func test_addSubMulDivComplex() {
-        let data: [Complex<Float>] = [0, 1, 2, 3, 4, 5]
-        let cm1 = ComplexMatrix(2, 3, elements: data)
-        let cm2 = ComplexMatrix(2, 3, elements: data)
+        let data: [Complex<Float>] = [1, 2, 3, 4]
+        let cm1 = ComplexMatrix(2, 2, elements: data)
+        let cm2 = ComplexMatrix(2, 2, elements: data)
+        let ones = ComplexMatrix(repeating: 1, like: cm1)
 
         // add a scalar
-        XCTAssert(cm1 + 1 == [1, 2, 3, 4, 5, 6])
+        XCTAssert(cm1 + 1 == [2, 3, 4, 5])
         
         // add tensors
-        XCTAssert(cm1 + cm2 == [0, 2, 4, 6, 8, 10])
+        XCTAssert(cm1 + cm2 == [2, 4, 6, 8])
         
-        // test derivatives
-        let ones = ComplexMatrix(repeating: 1, like: cm1)
-        let (g1, g2) = pullback(at: cm1, cm2, in: { $0 + $1 })(ones)
-        XCTAssert(g1 == [1, 1, 1, 1, 1, 1])
-        XCTAssert(g2 == [1, 1, 1, 1, 1, 1])
-
         // subtract a scalar
-        XCTAssert(cm1 - 1 == [-1, 0, 1, 2, 3, 4])
+        XCTAssert(cm1 - 1 == [0, 1, 2, 3])
         
         // subtract tensors
-        XCTAssert(cm1 - cm2 == [0, 0, 0, 0, 0, 0])
+        XCTAssert(cm1 - cm2 == [0, 0, 0, 0])
 
         // mul a scalar
-        XCTAssert(cm1 * 2 == [0, 2, 4, 6, 8, 10])
+        XCTAssert(cm1 * 2 == [2, 4, 6, 8])
         
         // mul tensors
-        XCTAssert(cm1 * cm2 == [0, 1, 4, 9, 16, 25])
+        XCTAssert(cm1 * cm2 == [1, 4, 9, 16])
 
         // divide by a scalar
-        let divExpected: [Float] = [0, 0.5, 1, 1.5, 2, 2.5]
+        let divExpected: [Float] = [0.5, 1, 1.5, 2]
         XCTAssert(cm1 / 2 == divExpected.map { Complex<Float>($0) })
 
         // divide by a tensor
-        XCTAssert((cm1 + 1) / (cm2 + 1) == [1, 1, 1, 1, 1, 1])
+        XCTAssert(cm1 / cm2 == [1, 1, 1, 1])
+
+        // test add derivative
+        do {
+            let (g1, g2) = pullback(at: cm1, cm2, in: { $0 + $1 })(ones)
+            XCTAssert(g1 == [1, 1, 1, 1])
+            XCTAssert(g2 == [1, 1, 1, 1])
+        }
+        
+        do {
+            let (g1, g2) = pullback(at: cm1, cm2, in: { $0 - $1 })(ones)
+            XCTAssert(g1 == [1, 1, 1, 1])
+            XCTAssert(g2 == [-1, -1, -1, -1])
+        }
+        do {
+            let (g1, g2) = pullback(at: cm1, cm2, in: { $0 * $1 })(ones)
+            XCTAssert(g1 == [1, 2, 3, 4])
+            XCTAssert(g2 == [1, 2, 3, 4])
+        }
+        do {
+            let (g1, g2) = pullback(at: cm1, cm2, in: { $0 / $1 })(ones)
+            let data = [1, 0.5, 0.333333343, 0.25].map { Complex<Float>($0) }
+            let g1Expected = ComplexMatrix(2, 2, elements: data)
+            let g1sumdiff = sum(g1 - g1Expected).element
+            XCTAssert(abs(g1sumdiff.real) <= 1e-6 && g1sumdiff.imaginary == 0)
+            
+            let g2Expected = -ComplexMatrix(2, 2, elements: data)
+            let g2sumdiff = sum(g2 - g2Expected).element
+            XCTAssert(abs(g2sumdiff.real) <= 1e-6 && g2sumdiff.imaginary == 0)
+        }
     }
     
     //--------------------------------------------------------------------------
@@ -229,12 +253,13 @@ class test_BinaryFunctions: XCTestCase {
         let result = m1 / m2
         XCTAssert(result == [1, 2, 3, 4, 5, 6])
         
-        let (g1, g2) = gradient(at: m1, m2, in: { $0 / $1 })
-        let g1Expected =
-            Matrix(3, 2, with: [1, 0.5, 0.3333333, 0.25, 0.2, 0.1666666])
-        XCTAssert(elementsAlmostEqual(g1, g1Expected, tolerance: 0.00001)
-            .all().element)
-        XCTAssert(g2 == [-1, -1, -1, -1, -1, -1])
+        do {
+            let (g1, g2) = gradient(at: m1, m2, in: { $0 / $1 })
+            let g1Expected = Matrix(3, 2, with:
+                [1, 0.5, 0.3333333, 0.25, 0.2, 0.1666666])
+            XCTAssert(abssum(g1 - g1Expected).element <= 1e-6)
+            XCTAssert(g2 == [-1, -1, -1, -1, -1, -1])
+        }
     }
 
     //--------------------------------------------------------------------------
