@@ -209,6 +209,11 @@ public extension TensorView where Element: Numeric {
     func squared() -> Self { squared(self) }
 }
 
+/// Numeric extension for scalar types
+public extension Numeric {
+    func squared() -> Self { self * self }
+}
+
 //--------------------------------------
 // derivative functions
 @inlinable

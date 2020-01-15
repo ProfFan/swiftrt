@@ -15,29 +15,6 @@
 import Numerics
 
 //==============================================================================
-/// DifferentiableElement
-public protocol DifferentiableElement:
-    Differentiable & Numeric where Self == TangentVector {}
-
-extension Float: DifferentiableElement {}
-extension Double: DifferentiableElement {}
-
-extension Complex: Differentiable {
-  public typealias TangentVector = Self
-}
-
-//==============================================================================
-/// Numeric extensions
-public extension Numeric {
-    func squared() -> Self { self * self }
-}
-
-//==============================================================================
-/// Field extensions
-/// The Field protocol is conformed to by both Real and Complex number types
-
-
-//==============================================================================
 /// DifferentiableTensorView
 ///
 /// Marker protocol for `TensorView` that conform to `Differentiable`.
@@ -46,7 +23,22 @@ public extension Numeric {
 /// number of generic requirements when writing `@differentiable` attributes on
 /// generic differentiable `TensorView` functions.
 public protocol DifferentiableTensorView: TensorView & Differentiable where
-    Self == TangentVector, Element: DifferentiableElement {}
+Self == TangentVector, Element: DifferentiableElement {}
+
+//==============================================================================
+/// DifferentiableElement
+// this is for shorthand also to make the code less verbose
+public protocol DifferentiableElement:
+    Differentiable & Numeric where Self == TangentVector {}
+
+extension Float: DifferentiableElement {}
+extension Double: DifferentiableElement {}
+
+// this is defined with the typealias because of AD same file
+// compiler requirements. Hopefully fixed in the future
+extension Complex: DifferentiableElement {
+  public typealias TangentVector = Self
+}
 
 //==============================================================================
 // TODO: review and discuss how default types are defined
