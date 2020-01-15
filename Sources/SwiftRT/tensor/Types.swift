@@ -40,23 +40,9 @@ extension Complex: DifferentiableElement {
   public typealias TangentVector = Self
 }
 
-// swift build -Xswiftc -Xllvm -Xswiftc -enable-experimental-cross-file-derivative-registration
-// TODO uncomment when AD same file requirement is lifted
-//extension Complex where
-//    RealType: Differentiable,
-//    RealType.TangentVector == RealType
-//{
-//    @derivative(of: init(_:_:))
-//    static func _vjpInit(real: RealType, imaginary: RealType) ->
-//        (value: Complex, pullback: (Complex) -> (RealType, RealType))
-//    {
-//        (Complex(real, imaginary), { ($0.real, $0.imaginary) })
-//    }
-//}
-
 //==============================================================================
-// TODO: review and discuss how default types are defined
 public typealias IndexType = Int32
+//public typealias Complex = ComplexModule.Complex<Float>
 
 public typealias Vector = VectorType<Float>
 public typealias BoolVector = VectorType<Bool>
