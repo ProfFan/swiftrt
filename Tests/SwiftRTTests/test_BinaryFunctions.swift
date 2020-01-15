@@ -57,10 +57,10 @@ class test_BinaryFunctions: XCTestCase {
         XCTAssert(cm1 + cm2 == [0, 2, 4, 6, 8, 10])
         
         // test derivatives
-//        let ones = ComplexMatrix(repeating: 1, like: cm1)
-//        let (g1, g2) = pullback(at: cm1, cm2, in: { $0 + $1 })(ones)
-//        XCTAssert(g1 == [1, 1, 1, 1, 1, 1])
-//        XCTAssert(g2 == [1, 1, 1, 1, 1, 1])
+        let ones = ComplexMatrix(repeating: 1, like: cm1)
+        let (g1, g2) = pullback(at: cm1, cm2, in: { $0 + $1 })(ones)
+        XCTAssert(g1 == [1, 1, 1, 1, 1, 1])
+        XCTAssert(g2 == [1, 1, 1, 1, 1, 1])
 
         // subtract a scalar
         XCTAssert(cm1 - 1 == [-1, 0, 1, 2, 3, 4])
