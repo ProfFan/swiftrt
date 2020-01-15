@@ -170,6 +170,15 @@ public protocol DeviceFunctions {
                    opNext: @escaping (T.Element, T.Element) -> T.Element,
                    opFinal: ReduceOpFinal<T>?)
         where T: TensorView
+
+    //==========================================================================
+    // derivative function declarations
+    
+    /// derivativeLogicalCompare
+    func derivativeLogicalCompare<T>(
+        x: T, y: T, scale: T, op: @escaping (T.Element, T.Element) -> Bool,
+        resultTrue: inout T, resultFalse: inout T)
+        where T: TensorView, T.Element: Comparable & Numeric
 }
 
 //==============================================================================
@@ -200,6 +209,24 @@ public extension DeviceFunctions where Self: DeviceQueue {
         T1: TensorView, T2: TensorView, T3: TensorView, R: TensorView
     {
         zip(a, b, c).map(into: &result, op)
+    }
+    // mapOp 3R2
+    /// generically combines three tensors
+    func mapOp<T1, T2, T3, R>(
+        _ a: T1, _ b: T2, _ c: T3, _ result1: inout R,  _ result2: inout R,
+        _ op: @escaping (T1.Element, T2.Element, T3.Element) -> (R.Element, R.Element))
+        where T1: TensorView, T2: TensorView, T3: TensorView, R: TensorView
+    {
+        var r1 = result1.mutableElements()
+        var r2 = result2.mutableElements()
+        
+        for ((av, bv, cv), (i1, i2)) in
+            zip(zip(a, b, c), zip(r1.indices, r2.indices))
+        {
+            let (rv1, rv2) = op(av, bv, cv)
+            r1[i1] = rv1
+            r2[i2] = rv2
+        }
     }
     // inPlaceOp
     func inPlaceOp<T>(_ result: inout T,
@@ -426,6 +453,21 @@ public extension DeviceFunctions where Self: DeviceQueue {
             }
         } catch {
             device.report(error)
+        }
+    }
+}
+
+//==============================================================================
+// DeviceQueue default derivative implementations
+public extension DeviceFunctions where Self: DeviceQueue {
+    /// derivativeLogicalCompare
+    func derivativeLogicalCompare<T>(
+        x: T, y: T, scale: T, op: @escaping (T.Element, T.Element) -> Bool,
+        resultTrue: inout T, resultFalse: inout T)
+        where T: TensorView, T.Element: Comparable & Numeric
+    {
+        mapOp(x, y, scale, &resultTrue, &resultFalse) {
+            op($0, $1) ? ($2, T.Element.zero) : (T.Element.zero, $2)
         }
     }
 }

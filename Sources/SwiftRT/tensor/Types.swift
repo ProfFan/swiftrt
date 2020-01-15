@@ -12,13 +12,12 @@
 // WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 // See the License for the specific language governing permissions and
 // limitations under the License.
-
-import Complex
+import Numerics
 
 //==============================================================================
 /// DifferentiableElement
 public protocol DifferentiableElement:
-    Differentiable & AnyFloatingPoint where Self == TangentVector {}
+    Differentiable & Field where Self == TangentVector {}
 
 extension Float: DifferentiableElement {}
 extension Double: DifferentiableElement {}
@@ -28,6 +27,17 @@ extension Double: DifferentiableElement {}
 extension Complex: Differentiable {
   public typealias TangentVector = Self
 }
+
+//==============================================================================
+/// Numeric extensions
+public extension Numeric {
+    func squared() -> Self { self * self }
+}
+
+//==============================================================================
+/// Field extensions
+/// The Field protocol is conformed to by both Real and Complex number types
+
 
 //==============================================================================
 /// DifferentiableTensorView
@@ -42,19 +52,19 @@ public protocol DifferentiableTensorView: TensorView & Differentiable where
 
 //==============================================================================
 // TODO: review and discuss how default types are defined
-public typealias IndexT = Int32
+public typealias IndexType = Int32
 
-public typealias Vector = VectorT<Float>
-public typealias BoolVector = VectorT<Bool>
-public typealias IndexVector = VectorT<IndexT>
-public typealias ComplexVector = VectorT<Complex<Float>>
+public typealias Vector = VectorType<Float>
+public typealias BoolVector = VectorType<Bool>
+public typealias IndexVector = VectorType<IndexType>
+public typealias ComplexVector = VectorType<Complex<Float>>
 
-public typealias Matrix = MatrixT<Float>
-public typealias BoolMatrix = MatrixT<Bool>
-public typealias IndexMatrix = MatrixT<IndexT>
-public typealias ComplexMatrix = MatrixT<Complex<Float>>
+public typealias Matrix = MatrixType<Float>
+public typealias BoolMatrix = MatrixType<Bool>
+public typealias IndexMatrix = MatrixType<IndexType>
+public typealias ComplexMatrix = MatrixType<Complex<Float>>
 
-public typealias Volume = VolumeT<Float>
-public typealias BoolVolume = VolumeT<Bool>
-public typealias IndexVolume = VolumeT<IndexT>
-public typealias ComplexVolume = VolumeT<Complex<Float>>
+public typealias Volume = VolumeType<Float>
+public typealias BoolVolume = VolumeType<Bool>
+public typealias IndexVolume = VolumeType<IndexType>
+public typealias ComplexVolume = VolumeType<Complex<Float>>

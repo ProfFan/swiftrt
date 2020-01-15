@@ -57,7 +57,7 @@ public protocol TensorView: Codable, Logging {
         BoolView.Element == Bool, BoolView.Shape == Shape
     /// A concrete type used in generics to return index results
     associatedtype IndexView: TensorView where
-        IndexView.Element == IndexT, IndexView.Shape == Shape
+        IndexView.Element == IndexType, IndexView.Shape == Shape
     /// tensor shape
     associatedtype Shape: ShapeProtocol
 
@@ -92,9 +92,9 @@ public protocol TensorView: Codable, Logging {
     /// creates a new dense tensor where `Element` equals `Bool`
     /// with the specified extents
     func createBoolTensor(with extents: Shape.Array) -> BoolView
-    /// creates a new dense tensor where `Element` equals `IndexT`
+    /// creates a new dense tensor where `Element` equals `IndexType`
     /// with the specified extents and initial values
-    func createIndexTensor(with extents: Shape.Array) -> IndexView
+    func createIndexTypeensor(with extents: Shape.Array) -> IndexView
 
     //--------------------------------------------------------------------------
     /// returns a collection of viewed elements

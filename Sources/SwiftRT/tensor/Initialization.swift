@@ -55,8 +55,8 @@ public extension TensorView {
     /// equal to `Bool`
     func createBoolTensor() -> BoolView { createBoolTensor(with: extents) }
     /// creates a tensor of the same shape as `self` with `Element`
-    /// equal to `IndexT`
-    func createIndexTensor() -> IndexView { createIndexTensor(with: extents) }
+    /// equal to `IndexType`
+    func createIndexTypeensor() -> IndexView { createIndexTypeensor(with: extents) }
     
     //--------------------------------------------------------------------------
     /// concatenated tensors

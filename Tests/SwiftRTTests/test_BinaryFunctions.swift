@@ -46,7 +46,6 @@ class test_BinaryFunctions: XCTestCase {
     //--------------------------------------------------------------------------
     // test_addSubMulDivComplex
     func test_addSubMulDivComplex() {
-        typealias ComplexF = Complex<Float>
         let data: [Complex<Float>] = [0, 1, 2, 3, 4, 5]
         let cm1 = ComplexMatrix(2, 3, elements: data)
         let cm2 = ComplexMatrix(2, 3, elements: data)
@@ -77,7 +76,7 @@ class test_BinaryFunctions: XCTestCase {
 
         // divide by a scalar
         let divExpected: [Float] = [0, 0.5, 1, 1.5, 2, 2.5]
-        XCTAssert(cm1 / 2 == divExpected.map { ComplexF($0) })
+        XCTAssert(cm1 / 2 == divExpected.map { Complex<Float>($0) })
 
         // divide by a tensor
         XCTAssert((cm1 + 1) / (cm2 + 1) == [1, 1, 1, 1, 1, 1])
@@ -108,8 +107,8 @@ class test_BinaryFunctions: XCTestCase {
     //--------------------------------------------------------------------------
     // test_addUInt8
     func test_addUInt8() {
-        let m1 = MatrixT<UInt8>(3, 2, with: 0..<6)
-        let m2 = MatrixT<UInt8>(3, 2, with: 0..<6)
+        let m1 = MatrixType<UInt8>(3, 2, with: 0..<6)
+        let m2 = MatrixType<UInt8>(3, 2, with: 0..<6)
         let result = m1 + m2
         XCTAssert(result == [0, 2, 4, 6, 8, 10])
     }

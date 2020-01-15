@@ -199,7 +199,7 @@ public extension TensorView where Element: Field {
 @inlinable @inline(__always)
 internal func _vjpMean<T>(_ x: T, alongAxes axes: Set<Int>? = nil)
     -> (value: T, pullback: (T) -> T)
-    where T: DifferentiableTensorView, T.Element: Field
+    where T: DifferentiableTensorView
 {
     let value = x.mean(alongAxes: axes)
     let count = T.Element(exactly: x.count)!
@@ -288,7 +288,8 @@ public extension TensorView where Element: Numeric {
 @derivative(of: prodNonZeros)
 @inlinable @inline(__always)
 internal func _vjpProdNonZeros<T>(_ x: T, alongAxes axes: Set<Int>? = nil)
-    -> (value: T, pullback: (T) -> T) where T: DifferentiableTensorView
+    -> (value: T, pullback: (T) -> T)
+    where T: DifferentiableTensorView
 {
     // REVIEW: this is probably wrong
     let value = x.prodNonZeros(alongAxes: axes)
@@ -305,7 +306,7 @@ internal func _vjpProdNonZeros<T>(_ x: T, alongAxes axes: Set<Int>? = nil)
 @inlinable
 @differentiable(where T: DifferentiableTensorView)
 public func min<T>(_ x: T, alongAxes axes: Set<Int>? = nil) -> T
-    where T: TensorView, T.Element: Numeric & Comparable
+    where T: TensorView, T.Element: Comparable
 {
     var result = x.createReductionResult(alongAxes: axes)
     DeviceContext.currentQueue.reduce(x: x,
@@ -336,8 +337,8 @@ public extension TensorView where
 @derivative(of: min)
 @inlinable @inline(__always)
 internal func _vjpMin<T>(_ x: T, alongAxes axes: Set<Int>? = nil)
-    -> (value: T, pullback: (T) -> T) where
-    T: DifferentiableTensorView
+    -> (value: T, pullback: (T) -> T)
+    where T: DifferentiableTensorView, T.Element: Comparable
 {
     fatalError()
 }
@@ -351,7 +352,7 @@ internal func _vjpMin<T>(_ x: T, alongAxes axes: Set<Int>? = nil)
 @inlinable
 @differentiable(where T: DifferentiableTensorView)
 public func max<T>(_ x: T, alongAxes axes: Set<Int>? = nil) -> T
-    where T: TensorView, T.Element: Numeric & Comparable
+    where T: TensorView, T.Element: Comparable
 {
     var result = x.createReductionResult(alongAxes: axes)
     DeviceContext.currentQueue.reduce(x: x,
@@ -383,7 +384,7 @@ public extension TensorView where
 @inlinable @inline(__always)
 internal func _vjpMax<T>(_ x: T, alongAxes axes: Set<Int>? = nil)
     -> (value: T, pullback: (T) -> T) where
-    T: DifferentiableTensorView
+    T: DifferentiableTensorView, T.Element: Comparable
 {
     fatalError()
 }
@@ -429,7 +430,8 @@ public extension TensorView where
 @derivative(of: absmax)
 @inlinable @inline(__always)
 internal func _vjpAbsmax<T>(_ x: T, alongAxes axes: Set<Int>? = nil)
-    -> (value: T, pullback: (T) -> T) where T: DifferentiableTensorView
+    -> (value: T, pullback: (T) -> T)
+    where T: DifferentiableTensorView, T.Element: SignedNumeric & Comparable
 {
     fatalError()
 }
@@ -443,19 +445,19 @@ internal func _vjpAbsmax<T>(_ x: T, alongAxes axes: Set<Int>? = nil)
 @inlinable
 @differentiable(where T: DifferentiableTensorView)
 public func abssum<T>(_ x: T, alongAxes axes: Set<Int>? = nil) -> T
-    where T: TensorView, T.Element: FloatingPoint
+    where T: TensorView, T.Element: SignedNumeric & Comparable
 {
     var result = x.createReductionResult(alongAxes: axes)
     DeviceContext.currentQueue.reduce(x: x,
                                       into: &result,
                                       initialResult: T.Element.zero,
                                       opId: .asum,
-                                      opNext: { $0 + $1.magnitude },
+                                      opNext: { $0 + abs($1) },
                                       opFinal: nil)
     return result
 }
 
-public extension TensorView where Element: FloatingPoint {
+public extension TensorView where Element: SignedNumeric & Comparable {
     @differentiable(where Self: DifferentiableTensorView)
     @inlinable @inline(__always)
     func abssum(alongAxes axes: Set<Int>? = nil) -> Self {
@@ -472,7 +474,8 @@ public extension TensorView where Element: FloatingPoint {
 @derivative(of: abssum)
 @inlinable @inline(__always)
 internal func _vjpAbsSum<T>(_ x: T, alongAxes axes: Set<Int>? = nil)
-    -> (value: T, pullback: (T) -> T) where T: DifferentiableTensorView
+    -> (value: T, pullback: (T) -> T)
+    where T: DifferentiableTensorView, T.Element: SignedNumeric & Comparable
 {
     fatalError()
 }

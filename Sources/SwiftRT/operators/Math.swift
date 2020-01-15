@@ -178,7 +178,7 @@ public extension TensorView where Element: SignedNumeric {
 @inlinable
 @derivative(of: neg)
 internal func _vjpNeg<T>(_ x: T) -> (value: T, pullback: (T) -> T)
-    where T: DifferentiableTensorView
+    where T: DifferentiableTensorView, T.Element: SignedNumeric
 {
     (-x, { v in -v })
 }

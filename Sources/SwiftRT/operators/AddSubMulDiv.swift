@@ -120,7 +120,9 @@ public extension TensorView where Element: AdditiveArithmetic {
 
 //--------------------------------------
 // derivative functions
-public extension TensorView where Self: DifferentiableTensorView {
+public extension TensorView
+    where Self: DifferentiableTensorView, Element: SignedNumeric
+{
     @derivative(of: -)
     @inlinable @inline(__always)
     static func vjpSubtract(lhs: Self, rhs: Self) ->
@@ -257,13 +259,13 @@ public extension TensorView where Element: Field {
 @inlinable @inline(__always)
 internal func _vjpDivide<T>(_ lhs: T, _ rhs: T) ->
     (value: T, pullback: (T) -> (T, T))
-    where T: DifferentiableTensorView, T.Element: Field
+    where T: DifferentiableTensorView, T.Element: SignedNumeric
 {
     (lhs / rhs, { v in (v / rhs, -lhs / rhs.squared() * v) })
 }
 
 public extension TensorView
-    where Self: DifferentiableTensorView, Self.Element: Field
+    where Self: DifferentiableTensorView, Element: SignedNumeric
 {
     @derivative(of: /)
     @inlinable @inline(__always)

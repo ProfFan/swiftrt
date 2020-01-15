@@ -39,7 +39,7 @@ class test_Async: XCTestCase {
         do {
 //            Platform.log.level = .diagnostic
             typealias Pixel = RGB<UInt8>
-            typealias ImageSet = VolumeT<Pixel>
+            typealias ImageSet = VolumeType<Pixel>
             let expected = Pixel(0, 127, 255)
             var trainingSet = ImageSet(extents: (100, 256, 256))
 
