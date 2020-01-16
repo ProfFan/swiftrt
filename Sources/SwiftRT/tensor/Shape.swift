@@ -273,13 +273,11 @@ public extension ShapeProtocol {
     {
         // make sure we have a positive set of axes to squeeze along
         let rank = Self.zeros.count
-        let axesSet = axes == nil ? Set(0..<other.rank) :
-            Set(axes!.enumerated().map {
-                $1 < 0 ? other.extents[$0] + $1 : $1
-            })
-        
         var newExtents = Self.zeros
         var newStrides = Self.zeros
+        let axesSet = axes == nil ?
+            Set(0..<other.rank) :
+            Set(axes!.map { $0 < 0 ? other.rank + $0 : $0 })
 
         var axis = 0
         for otherAxis in 0..<other.rank where

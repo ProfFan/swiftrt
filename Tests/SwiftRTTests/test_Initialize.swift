@@ -61,7 +61,7 @@ class test_Initialize: XCTestCase {
         XCTAssert(m2.extents == [2, 4])
         
         // test negative axes
-        let m3 = Matrix(squeezing: sumVolumeRows, alongAxes: -1)
+        let m3 = Matrix(squeezing: sumVolumeRows, alongAxes: -2)
         XCTAssert(m3.extents == [2, 4])
     }
     
