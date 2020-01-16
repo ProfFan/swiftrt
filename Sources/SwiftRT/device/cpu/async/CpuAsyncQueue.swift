@@ -122,6 +122,29 @@ public final class CpuAsynchronousQueue:
             zip($0.0, $0.1, $0.2).map(into: &$1, op)
         }
     }
+    
+    /// generic mapOp 3R2
+    public func mapOp<T1, T2, T3, R>(
+        _ a: T1, _ b: T2, _ c: T3, _ result1: inout R,  _ result2: inout R,
+        _ op: @escaping (T1.Element, T2.Element, T3.Element) -> (R.Element, R.Element))
+        where T1: TensorView, T2: TensorView, T3: TensorView, R: TensorView
+    {
+        queue(#function,
+              { (a.elements(using: self),
+                 b.elements(using: self),
+                 c.elements(using: self)) },
+              { (result1.mutableElements(),
+                 result2.mutableElements()) })
+        { e, r in
+            for ((av, bv, cv), (i0, i1)) in
+                zip(zip(e.0, e.1, e.2), zip(r.0.indices, r.1.indices))
+            {
+                let (rv0, rv1) = op(av, bv, cv)
+                r.0[i0] = rv0
+                r.1[i1] = rv1
+            }
+        }
+    }
 
     //--------------------------------------------------------------------------
     // does an in place op
@@ -400,7 +423,7 @@ public extension CpuAsynchronousQueue {
     func concat<T>(tensors: [T], alongAxis axis: Int, result: inout T) where
         T: TensorView
     {
-        let inputs: () throws -> ([TensorValueCollection<T>]) = {
+        let inputs: () -> ([TensorValueCollection<T>]) = {
             tensors.map { $0.elements(using: self) }
         }
         

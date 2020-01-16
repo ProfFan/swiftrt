@@ -61,6 +61,11 @@ public protocol DeviceFunctions {
         _ a: T1, _ b: T2, _ c: T3, _ result: inout R,
         _ op: @escaping (T1.Element, T2.Element, T3.Element) -> R.Element) where
         T1: TensorView, T2: TensorView, T3: TensorView, R: TensorView
+    /// mapOp 3R2
+    func mapOp<T1, T2, T3, R>(
+        _ a: T1, _ b: T2, _ c: T3, _ result1: inout R,  _ result2: inout R,
+        _ op: @escaping (T1.Element, T2.Element, T3.Element) -> (R.Element, R.Element))
+        where T1: TensorView, T2: TensorView, T3: TensorView, R: TensorView
     /// inPlaceOp
     /// does in place op on a mutable collection
     func inPlaceOp<T>(_ result: inout T,
