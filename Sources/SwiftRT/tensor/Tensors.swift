@@ -100,20 +100,12 @@ public extension VectorView {
     }
 
     //--------------------------------------------------------------------------
-    // squeezing
-    init<T>(squeezing other: T, alongAxes axes: Set<Int>? = nil)
-        where T: TensorView
-    {
-        fatalError()
-    }
-
-    //--------------------------------------------------------------------------
     // typed views
     func createBoolTensor(with extents: Shape.Array) -> VectorType<Bool> {
         VectorType<Bool>(extents: extents)
     }
     
-    func createIndexTypeensor(with extents: Shape.Array) -> VectorType<IndexType> {
+    func createIndexTensor(with extents: Shape.Array) -> VectorType<IndexType> {
         VectorType<IndexType>(extents: extents)
     }
 }
@@ -317,7 +309,7 @@ public extension MatrixView {
         MatrixType<Bool>(extents: extents)
     }
     
-    func createIndexTypeensor(with extents: Shape.Array) -> MatrixType<IndexType> {
+    func createIndexTensor(with extents: Shape.Array) -> MatrixType<IndexType> {
         MatrixType<IndexType>(extents: extents)
     }
 
@@ -548,7 +540,7 @@ public extension VolumeView {
         VolumeType<Bool>(extents: extents)
     }
     
-    func createIndexTypeensor(with extents: Shape.Array) -> VolumeType<IndexType> {
+    func createIndexTensor(with extents: Shape.Array) -> VolumeType<IndexType> {
         VolumeType<IndexType>(extents: extents)
     }
 }

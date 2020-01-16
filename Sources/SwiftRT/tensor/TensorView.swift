@@ -94,7 +94,7 @@ public protocol TensorView: Codable, Logging {
     func createBoolTensor(with extents: Shape.Array) -> BoolView
     /// creates a new dense tensor where `Element` equals `IndexType`
     /// with the specified extents and initial values
-    func createIndexTypeensor(with extents: Shape.Array) -> IndexView
+    func createIndexTensor(with extents: Shape.Array) -> IndexView
 
     //--------------------------------------------------------------------------
     /// returns a collection of viewed elements

@@ -208,6 +208,9 @@ public protocol ShapeProtocol: Codable {
     /// Flattening initializer
     /// - Parameter flattening: the higher order shape to flatten
     init<S>(flattening other: S) where S: ShapeProtocol
+    /// Squeezing initializer
+    /// - Parameter flattening: the higher order shape to squeeze
+    init<S>(squeezing other: S, alongAxes axes: Set<Int>?) where S: ShapeProtocol
 }
 
 //==============================================================================
@@ -262,6 +265,35 @@ public extension ShapeProtocol {
     @inlinable @inline(__always)
     init(extents: Array) { self.init(extents: extents, strides: nil) }
 
+    //--------------------------------------------------------------------------
+    // init(squeezing:
+    @inlinable @inline(__always)
+    init<S>(squeezing other: S, alongAxes axes: Set<Int>? = nil)
+        where S: ShapeProtocol
+    {
+        // make sure we have a positive set of axes to squeeze along
+        let rank = Self.zeros.count
+        let axesSet = axes == nil ? Set(0..<other.rank) :
+            Set(axes!.enumerated().map {
+                $1 < 0 ? other.extents[$0] + $1 : $1
+            })
+        
+        var newExtents = Self.zeros
+        var newStrides = Self.zeros
+
+        var axis = 0
+        for otherAxis in 0..<other.rank where
+            !(other.extents[otherAxis] == 1 && axesSet.contains(otherAxis))
+        {
+            assert(axis < rank,
+                   "Unsqueezed axes of `other` exceeds rank of this shape")
+            newExtents[axis] = other.extents[otherAxis]
+            newStrides[axis] = other.strides[otherAxis]
+            axis += 1
+        }
+        self.init(extents: newExtents, strides: newStrides)
+    }
+    
     //--------------------------------------------------------------------------
     // equal
     @inlinable @inline(__always)

@@ -56,7 +56,7 @@ public extension TensorView {
     func createBoolTensor() -> BoolView { createBoolTensor(with: extents) }
     /// creates a tensor of the same shape as `self` with `Element`
     /// equal to `IndexType`
-    func createIndexTypeensor() -> IndexView { createIndexTypeensor(with: extents) }
+    func createIndexTensor() -> IndexView { createIndexTensor(with: extents) }
     
     //--------------------------------------------------------------------------
     /// concatenated tensors
@@ -79,6 +79,23 @@ public extension TensorView {
                   tensorArray: other.tensorArray,
                   viewOffset: other.viewOffset,
                   isShared: other.isShared)
+    }
+    
+    //--------------------------------------------------------------------------
+    // squeezing
+    init<T>(squeezing other: T, alongAxes axes: Set<Int>? = nil)
+        where T: TensorView, T.Element == Element
+    {
+        self.init(shape: Shape(squeezing: other.shape, alongAxes: axes),
+                  tensorArray: other.tensorArray,
+                  viewOffset: other.viewOffset,
+                  isShared: other.isShared)
+    }
+    
+    @inlinable @inline(__always)
+    init<T>(squeezing other: T, alongAxes axes: Int...)
+        where T: TensorView, T.Element == Element {
+        self.init(squeezing: other, alongAxes: Set(axes))
     }
 
     //--------------------------------------------------------------------------

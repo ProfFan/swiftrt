@@ -22,6 +22,7 @@ class test_Initialize: XCTestCase {
     // support terminal test run
     static var allTests = [
         ("test_flattening", test_flattening),
+        ("test_squeezing", test_squeezing),
         ("test_cast", test_cast),
         ("test_concatMatrixRows", test_concatMatrixRows),
         ("test_concatMatrixCols", test_concatMatrixCols),
@@ -42,6 +43,26 @@ class test_Initialize: XCTestCase {
 
         let v2 = Vector(flattening: matrix)
         XCTAssert(v2.extents == [24])
+    }
+    
+    //--------------------------------------------------------------------------
+    // test_squeezing
+    func test_squeezing() {
+        let volume = Volume(2, 3, 4, with: 0..<24)
+
+        let sumVolumeCols = volume.sum(alongAxes: 2)
+        XCTAssert(sumVolumeCols.extents == [2, 3, 1])
+        let m0 = Matrix(squeezing: sumVolumeCols)
+        XCTAssert(m0.extents == [2, 3])
+        
+        let sumVolumeRows = volume.sum(alongAxes: 1)
+        XCTAssert(sumVolumeRows.extents == [2, 1, 4])
+        let m2 = Matrix(squeezing: sumVolumeRows, alongAxes: 1)
+        XCTAssert(m2.extents == [2, 4])
+        
+        // test negative axes
+        let m3 = Matrix(squeezing: sumVolumeRows, alongAxes: -1)
+        XCTAssert(m3.extents == [2, 4])
     }
     
     //--------------------------------------------------------------------------
