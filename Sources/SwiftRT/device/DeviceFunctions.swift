@@ -174,8 +174,8 @@ public protocol DeviceFunctions {
     //==========================================================================
     // derivative function declarations
     
-    /// derivativeLogicalCompare
-    func derivativeLogicalCompare<T>(
+    /// vjpMinMax
+    func vjpMinMax<T>(
         x: T, y: T, scale: T, op: @escaping (T.Element, T.Element) -> Bool,
         resultTrue: inout T, resultFalse: inout T)
         where T: TensorView, T.Element: Comparable & Numeric
@@ -460,8 +460,8 @@ public extension DeviceFunctions where Self: DeviceQueue {
 //==============================================================================
 // DeviceQueue default derivative implementations
 public extension DeviceFunctions where Self: DeviceQueue {
-    /// derivativeLogicalCompare
-    func derivativeLogicalCompare<T>(
+    /// vjpMinMax
+    func vjpMinMax<T>(
         x: T, y: T, scale: T, op: @escaping (T.Element, T.Element) -> Bool,
         resultTrue: inout T, resultFalse: inout T)
         where T: TensorView, T.Element: Comparable & Numeric

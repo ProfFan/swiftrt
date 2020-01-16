@@ -25,7 +25,7 @@ func _vjpMinMaxHelper<T>(
 {
     var resultTrue = x.createDense()
     var resultFalse = x.createDense()
-    DeviceContext.currentQueue.derivativeLogicalCompare(
+    DeviceContext.currentQueue.vjpMinMax(
         x: x, y: y, scale: v, op: op,
         resultTrue: &resultTrue, resultFalse: &resultFalse)
     return (resultTrue, resultFalse)
