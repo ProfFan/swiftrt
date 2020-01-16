@@ -35,12 +35,20 @@ class test_Initialize: XCTestCase {
     // test_flattening
     func test_flattening() {
         let volume = Volume(2, 3, 4, with: 0..<24)
+        
+        // volume to matrix
         let matrix = Matrix(flattening: volume)
         XCTAssert(matrix.extents == [2, 12])
 
+        // noop matrix to matrix
+        let m2 = Matrix(flattening: matrix)
+        XCTAssert(m2.extents == [2, 12])
+
+        // volume to vector
         let v1 = Vector(flattening: volume)
         XCTAssert(v1.extents == [24])
 
+        // matrix to vector
         let v2 = Vector(flattening: matrix)
         XCTAssert(v2.extents == [24])
     }

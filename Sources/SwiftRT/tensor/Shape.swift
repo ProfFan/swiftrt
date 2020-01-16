@@ -261,7 +261,7 @@ public extension ShapeProtocol {
     }
     
     //--------------------------------------------------------------------------
-    //
+    // init(extents:
     @inlinable @inline(__always)
     init(extents: Array) { self.init(extents: extents, strides: nil) }
 
@@ -460,7 +460,6 @@ public struct Shape1: ShapeProtocol {
     // init(flattening:
     @inlinable @inline(__always)
     public init<S>(flattening other: S) where S: ShapeProtocol {
-        assert(other.rank > 1, "Only higher ranked shapes can be flattened")
         self.init(extents: Array((other.count)))
     }
 }
@@ -492,7 +491,7 @@ public struct Shape2: ShapeProtocol {
     @inlinable @inline(__always)
     public init<S>(flattening other: S) where S: ShapeProtocol {
         assert(other.isContiguous, "Cannot flatten strided data")
-        assert(other.rank > 2, "Only higher ranked shapes can be flattened")
+        assert(other.rank >= 2, "you can't flatten from a lower rank")
         self.init(extents: Array((other.extents[0],
                                   other.count / other.extents[0])))
     }
@@ -525,7 +524,7 @@ public struct Shape3: ShapeProtocol {
     @inlinable @inline(__always)
     public init<S>(flattening other: S) where S: ShapeProtocol {
         assert(other.isContiguous, "Cannot flatten strided data")
-        assert(other.rank > 3, "Only higher ranked shapes can be flattened")
+        assert(other.rank >= 3, "you can't flatten from a lower rank")
         self.init(extents: Array((
             other.extents[0],
             other.extents[1],
@@ -561,12 +560,50 @@ public struct Shape4: ShapeProtocol {
     @inlinable @inline(__always)
     public init<S>(flattening other: S) where S: ShapeProtocol {
         assert(other.isContiguous, "Cannot flatten strided data")
-        assert(other.rank > 4, "Only higher ranked shapes can be flattened")
+        assert(other.rank >= 4, "you can't flatten from a lower rank")
         self.init(extents: Array((
             other.extents[0],
             other.extents[1],
             other.extents[2],
             other.extents[3...].reduce(0,+)
+        )))
+    }
+}
+
+//==============================================================================
+// Shape5
+public struct Shape5: ShapeProtocol {
+    // constants
+    public typealias Array = ShapeArray<(Int, Int, Int, Int, Int)>
+    public static let zeros = Array((0, 0, 0, 0, 0))
+    public static let ones = Array((1, 1, 1, 1, 1))
+    
+    // properties
+    public let count: Int
+    public let spanCount: Int
+    public let extents: Array
+    public let strides: Array
+    
+    @inlinable @inline(__always)
+    public init(extents: Array, strides: Array? = nil) {
+        self.extents = extents
+        self.strides = strides ?? Self.denseStrides(extents)
+        count = extents.reduce(1, *)
+        spanCount = Self.computeSpanCount(self.extents, self.strides)
+    }
+    
+    //--------------------------------------------------------------------------
+    // init(flattening:
+    @inlinable @inline(__always)
+    public init<S>(flattening other: S) where S: ShapeProtocol {
+        assert(other.isContiguous, "Cannot flatten strided data")
+        assert(other.rank >= 5, "you can't flatten from a lower rank")
+        self.init(extents: Array((
+            other.extents[0],
+            other.extents[1],
+            other.extents[2],
+            other.extents[3],
+            other.extents[4...].reduce(0,+)
         )))
     }
 }
