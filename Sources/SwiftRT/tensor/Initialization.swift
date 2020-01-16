@@ -80,6 +80,13 @@ public extension TensorView {
                   viewOffset: other.viewOffset,
                   isShared: other.isShared)
     }
+
+    // noop flattening case
+    // this might be used when blindly flattening an input to
+    // a dense matmul expression
+    init(flattening other: Self) {
+        self = other
+    }
     
     //--------------------------------------------------------------------------
     // squeezing
