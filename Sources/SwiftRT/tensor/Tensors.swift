@@ -348,8 +348,8 @@ public extension MatrixView {
     /// Swift array of elements
     var array: [[Element]] {
         var result = [[Element]]()
-        for i in 0..<self.items {
-            result.append([Element](self.view(item: i).elements()))
+        for row in 0..<extents[0] {
+            result.append([Element](self[row..|1, ...].elements()))
         }
         return result
     }
@@ -569,6 +569,20 @@ public extension VolumeView {
     }
     var endIndex: VolumeIndex { VolumeIndex(endOf: self) }
     
+    //--------------------------------------------------------------------------
+    /// Swift array of elements
+    var array: [[[Element]]] {
+        var result = [[[Element]]]()
+        for di in 0..<extents[0] {
+            var depth = [[Element]]()
+            for ri in 0..<extents[1] {
+                depth.append([Element](self[di..|1, ri..|1, ...].elements()))
+            }
+            result.append(depth)
+        }
+        return result
+    }
+
     //--------------------------------------------------------------------------
     // single element
     @differentiable(where Self: DifferentiableTensorView)
