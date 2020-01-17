@@ -272,12 +272,6 @@ public extension TensorView {
     
     //--------------------------------------------------------------------------
     /// an array of viewed elements
-    var array: [Element] {
-        return [Element](elements())
-    }
-
-    //--------------------------------------------------------------------------
-    /// an array of viewed elements
     var flatArray: [Element] {
         return [Element](elements())
     }

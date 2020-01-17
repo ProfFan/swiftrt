@@ -62,8 +62,8 @@ public func compareGradients<T>(_ grad: T, _ expected: T,
     if !almostEqual {
         DeviceContext.current[0].writeLog(
             "gradient values do not match numerical jvp values")
-        DeviceContext.current[0].writeLog("gradient: \(grad.array)")
-        DeviceContext.current[0].writeLog("expected: \(expected.array)")
+        DeviceContext.current[0].writeLog("gradient: \(grad.flatArray)")
+        DeviceContext.current[0].writeLog("expected: \(expected.flatArray)")
         let maxDiff = (grad - expected).absmax().element
         DeviceContext.current[0].writeLog("maxDiff: \(maxDiff)")
     }

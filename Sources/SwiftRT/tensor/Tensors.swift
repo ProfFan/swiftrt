@@ -32,7 +32,7 @@ extension VectorType: AdditiveArithmetic where Element: Numeric {
 }
 
 //==============================================================================
-// MatrixView extensions
+// VectorView initialization extensions
 public extension VectorView {
     //--------------------------------------------------------------------------
     /// reserved space
@@ -111,12 +111,16 @@ public extension VectorView {
 }
 
 //==============================================================================
-// VectorView subscripting
+// VectorView subscripting and collections
 public extension VectorView {
     //--------------------------------------------------------------------------
     // TODO: probably move these off onto the TensorViewCollection
     var startIndex: VectorIndex { VectorIndex(view: self, at: Shape.zeros.tuple)}
     var endIndex: VectorIndex { VectorIndex(endOf: self) }
+
+    //--------------------------------------------------------------------------
+    /// Swift array of elements
+    var array: [Element] { [Element](elements()) }
 
     //--------------------------------------------------------------------------
     @differentiable(where Self: DifferentiableTensorView)
@@ -198,7 +202,7 @@ extension MatrixType: AdditiveArithmetic where Element: Numeric {
 }
 
 //==============================================================================
-// MatrixView extensions
+// MatrixView initialization extensions
 public extension MatrixView {
     //--------------------------------------------------------------------------
     /// reserved space
@@ -333,13 +337,23 @@ public extension MatrixView {
 }
 
 //==============================================================================
-// MatrixView extensions
+// MatrixView collection extensions
 public extension MatrixView {
     //--------------------------------------------------------------------------
     // TODO: probably move these off onto the TensorViewCollection
     var startIndex: MatrixIndex { MatrixIndex(view: self, at: Shape.zeros.tuple)}
     var endIndex: MatrixIndex { MatrixIndex(endOf: self) }
     
+    //--------------------------------------------------------------------------
+    /// Swift array of elements
+    var array: [[Element]] {
+        var result = [[Element]]()
+        for i in 0..<self.items {
+            result.append([Element](self.view(item: i).elements()))
+        }
+        return result
+    }
+
     //--------------------------------------------------------------------------
     // single element
     @differentiable(where Self: DifferentiableTensorView)
