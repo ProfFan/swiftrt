@@ -223,7 +223,7 @@ public extension TensorView where Self: DifferentiableTensorView {
 /// - Returns: a new tensor containing the result
 @inlinable @inline(__always)
 public func div<T>(_ lhs: T, _ rhs: T) -> T
-    where T: TensorView, T.Element: Field
+    where T: TensorView, T.Element: AlgebraicField
 {
     let (lhs, rhs) = implicitlyMatchExtents(lhs, rhs)
     assert(lhs.extents == rhs.extents, _messageTensorExtentsMismatch)
@@ -232,7 +232,7 @@ public func div<T>(_ lhs: T, _ rhs: T) -> T
     return result
 }
 
-public extension TensorView where Element: Field {
+public extension TensorView where Element: AlgebraicField {
     @inlinable @inline(__always)
     static func / (lhs: Self, rhs: Self) -> Self { div(lhs, rhs) }
 
@@ -259,13 +259,13 @@ public extension TensorView where Element: Field {
 @inlinable @inline(__always)
 internal func _vjpDivide<T>(_ lhs: T, _ rhs: T) ->
     (value: T, pullback: (T) -> (T, T))
-    where T: DifferentiableTensorView, T.Element: Field & SignedNumeric
+    where T: DifferentiableTensorView, T.Element: AlgebraicField & SignedNumeric
 {
     (lhs / rhs, { v in (v / rhs, -lhs / rhs.squared() * v) })
 }
 
 public extension TensorView
-    where Self: DifferentiableTensorView, Element: Field & SignedNumeric
+    where Self: DifferentiableTensorView, Element: AlgebraicField & SignedNumeric
 {
     @derivative(of: /)
     @inlinable @inline(__always)

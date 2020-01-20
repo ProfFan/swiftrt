@@ -95,7 +95,7 @@ public protocol DeviceFunctions {
         T: TensorView
     /// div
     func div<T>(lhs: T, rhs: T, result: inout T) where
-        T: TensorView, T.Element: Field
+        T: TensorView, T.Element: AlgebraicField
     /// elementsAlmostEqual
     func elementsAlmostEqual<T>(lhs: T, rhs: T, tolerance: T.Element,
                                 result: inout T.BoolView) where
@@ -289,7 +289,7 @@ public extension DeviceFunctions where Self: DeviceQueue {
     }
     /// div
     func div<T>(lhs: T, rhs: T, result: inout T) where
-        T: TensorView, T.Element: Field
+        T: TensorView, T.Element: AlgebraicField
     {
         mapOp(lhs, rhs, &result, /)
     }

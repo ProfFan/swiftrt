@@ -164,7 +164,7 @@ internal func _vjpSum<T>(_ x: T, alongAxes axes: Set<Int>? = nil)
 /// - Parameter alongAxes: the axes to operate on
 @inlinable
 public func mean<T>(_ x: T, alongAxes axes: Set<Int>? = nil) -> T
-    where T: TensorView, T.Element: Field
+    where T: TensorView, T.Element: AlgebraicField
 {
     // the divisor is the product of the `axes` that are summed
     let divisor = (axes?.reduce(T.Element.one) {
@@ -181,7 +181,7 @@ public func mean<T>(_ x: T, alongAxes axes: Set<Int>? = nil) -> T
     return result
 }
 
-public extension TensorView where Element: Field {
+public extension TensorView where Element: AlgebraicField {
     @differentiable(where Self: DifferentiableTensorView)
     @inlinable @inline(__always)
     func mean(alongAxes axes: Set<Int>? = nil) -> Self {
@@ -199,7 +199,7 @@ public extension TensorView where Element: Field {
 @inlinable @inline(__always)
 internal func _vjpMean<T>(_ x: T, alongAxes axes: Set<Int>? = nil)
     -> (value: T, pullback: (T) -> T)
-    where T: DifferentiableTensorView, T.Element: Field
+    where T: DifferentiableTensorView, T.Element: AlgebraicField
 {
     let value = x.mean(alongAxes: axes)
     let count = T.Element(exactly: x.count)!
