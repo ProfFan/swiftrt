@@ -48,8 +48,9 @@ public protocol DeviceErrorHandling: class, _Logging {
 
 public extension DeviceErrorHandling {
     /// safe access
+    @inlinable
     var lastError: Error? {
-        get { return _errorMutex.sync { _lastError } }
+        get { _errorMutex.sync { _lastError } }
         set { _errorMutex.sync { _lastError = newValue } }
     }
     
@@ -57,6 +58,7 @@ public extension DeviceErrorHandling {
     /// report(error:event:
     /// sets and propagates a queue error
     /// - Parameter error: the error to report
+    @inlinable
     func report(_ error: Error) {
         // set the error state
         lastError = error

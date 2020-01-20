@@ -191,6 +191,7 @@ public protocol DeviceFunctions {
 public extension DeviceFunctions where Self: DeviceQueue {
     // mapOp 1
     /// generically maps a tensor
+    @inlinable
     func mapOp<T, R>(_ x: T, _ result: inout R,
                      _ op: @escaping (T.Element) -> R.Element) where
         T: TensorView, R: TensorView
@@ -199,6 +200,7 @@ public extension DeviceFunctions where Self: DeviceQueue {
     }
     // mapOp 2
     /// generically combines two tensors
+    @inlinable
     func mapOp<LHS, RHS, R>(
         _ lhs: LHS, _ rhs: RHS, _ result: inout R,
         _ op: @escaping (LHS.Element, RHS.Element) -> R.Element) where
@@ -208,6 +210,7 @@ public extension DeviceFunctions where Self: DeviceQueue {
     }
     // mapOp 3
     /// generically combines three tensors
+    @inlinable
     func mapOp<T1, T2, T3, R>(
         _ a: T1, _ b: T2, _ c: T3, _ result: inout R,
         _ op: @escaping (T1.Element, T2.Element, T3.Element) -> R.Element) where
@@ -217,6 +220,7 @@ public extension DeviceFunctions where Self: DeviceQueue {
     }
     // mapOp 3R2
     /// generically combines three tensors
+    @inlinable
     func mapOp<T1, T2, T3, R>(
         _ a: T1, _ b: T2, _ c: T3, _ result1: inout R,  _ result2: inout R,
         _ op: @escaping (T1.Element, T2.Element, T3.Element) -> (R.Element, R.Element))
@@ -234,6 +238,7 @@ public extension DeviceFunctions where Self: DeviceQueue {
         }
     }
     // inPlaceOp
+    @inlinable
     func inPlaceOp<T>(_ result: inout T,
                       _ op: @escaping (T.Element) -> T.Element) where
         T: MutableCollection
@@ -241,6 +246,7 @@ public extension DeviceFunctions where Self: DeviceQueue {
         result.indices.forEach { result[$0] = op(result[$0]) }
     }
     // reductionOp
+    @inlinable
     func reductionOp<T, R>(
         _ x: T, _ result: inout R,
         _ op: @escaping (R.Element, T.Element) -> R.Element) where
@@ -251,18 +257,21 @@ public extension DeviceFunctions where Self: DeviceQueue {
     
     //==========================================================================
     /// abs
+    @inlinable
     func abs<T>(x: T, result: inout T) where
         T: TensorView, T.Element: Real
     {
         mapOp(x, &result) { Swift.abs($0) }
     }
     // add
+    @inlinable
     func add<T>(lhs: T, rhs: T, result: inout T) where
         T: TensorView, T.Element: AdditiveArithmetic
     {
         mapOp(lhs, rhs, &result, +)
     }
     /// cast
+    @inlinable
     func cast<T, U>(from view: T, to result: inout U) where
         T: TensorView, T.Element: AnyConvertable,
         U: TensorView, U.Element: AnyConvertable
@@ -270,6 +279,7 @@ public extension DeviceFunctions where Self: DeviceQueue {
         mapOp(view, &result) { U.Element(any: $0) }
     }
     // concat
+    @inlinable
     func concat<T>(tensors: [T], alongAxis axis: Int, result: inout T) where
         T: TensorView
     {
@@ -288,12 +298,14 @@ public extension DeviceFunctions where Self: DeviceQueue {
         }
     }
     /// div
+    @inlinable
     func div<T>(lhs: T, rhs: T, result: inout T) where
         T: TensorView, T.Element: AlgebraicField
     {
         mapOp(lhs, rhs, &result, /)
     }
     /// elementsAlmostEqual
+    @inlinable
     func elementsAlmostEqual<T>(lhs: T, rhs: T, tolerance: T.Element,
                                 result: inout T.BoolView) where
         T: TensorView, T.Element: SignedNumeric & Comparable
@@ -301,24 +313,28 @@ public extension DeviceFunctions where Self: DeviceQueue {
         mapOp(lhs, rhs, &result) { Swift.abs($0 - $1) <= tolerance }
     }
     /// equal
+    @inlinable
     func equal<T>(lhs: T, rhs: T, result: inout T.BoolView) where
         T: TensorView
     {
         mapOp(lhs, rhs, &result, ==)
     }
     /// exp
+    @inlinable
     func exp<T>(x: T, result: inout T) where
         T: TensorView, T.Element: Real
     {
         mapOp(x, &result) { .exp($0) }
     }
     /// fill(result:with:
+    @inlinable
     func fill<T>(result: inout T, with value: T.Element) where T: TensorView
     {
         var elements = result.mutableElements()
         elements.indices.forEach { elements[$0] = value }
     }
     /// fillWithIndex(x:startAt:
+    @inlinable
     func fillWithIndex<T>(result: inout T, startAt: Int) where
         T: TensorView, T.Element: AnyNumeric
     {
@@ -328,72 +344,84 @@ public extension DeviceFunctions where Self: DeviceQueue {
         }
     }
     /// less
+    @inlinable
     func less<T>(lhs: T, rhs: T, result: inout T.BoolView)
         where T: TensorView, T.Element: Comparable
     {
         mapOp(lhs, rhs, &result, <)
     }
     /// lessOrEqual
+    @inlinable
     func lessOrEqual<T>(lhs: T, rhs: T, result: inout T.BoolView)
         where T: TensorView, T.Element: Comparable
     {
         mapOp(lhs, rhs, &result, <=)
     }
     /// greater
+    @inlinable
     func greater<T>(lhs: T, rhs: T, result: inout T.BoolView)
         where T: TensorView, T.Element: Comparable
     {
         mapOp(lhs, rhs, &result, >)
     }
     /// greaterOrEqual
+    @inlinable
     func greaterOrEqual<T>(lhs: T, rhs: T, result: inout T.BoolView)
         where T: TensorView, T.Element: Comparable
     {
         mapOp(lhs, rhs, &result, >=)
     }
     /// log
+    @inlinable
     func log<T>(x: T, result: inout T) where
         T: TensorView, T.Element: Real
     {
         mapOp(x, &result) { .log($0) }
     }
     /// Computes the element-wise maximum of two tensors.
+    @inlinable
     func max<T>(lhs: T, rhs: T, result: inout T) where
         T: TensorView, T.Element: Comparable
     {
         mapOp(lhs, rhs, &result) { $0 >= $1 ? $0 : $1 }
     }
     /// Computes the element-wise minimum of two tensors.
+    @inlinable
     func min<T>(lhs: T, rhs: T, result: inout T) where
         T: TensorView, T.Element: Comparable
     {
         mapOp(lhs, rhs, &result) { $0 <= $1 ? $0 : $1 }
     }
     /// mul
+    @inlinable
     func mul<T>(lhs: T, rhs: T, result: inout T) where
         T: TensorView, T.Element: Numeric
     {
         mapOp(lhs, rhs, &result, *)
     }
     /// neg
+    @inlinable
     func neg<T>(x: T, result: inout T) where
         T: TensorView, T.Element: SignedNumeric
     {
         mapOp(x, &result, -)
     }
     /// notEqual
+    @inlinable
     func notEqual<T>(lhs: T, rhs: T, result: inout T.BoolView)
         where T: TensorView
     {
         mapOp(lhs, rhs, &result, !=)
     }
     /// pow
+    @inlinable
     func pow<T>(x: T, y: T, result: inout T) where
         T: TensorView, T.Element: Real
     {
         mapOp(x, y, &result) { .pow($0, $1) }
     }
     /// replace
+    @inlinable
     func replace<T>(x: T, with y: T, where condition: T.BoolView,
                     result: inout T)
         where T: TensorView
@@ -401,24 +429,28 @@ public extension DeviceFunctions where Self: DeviceQueue {
         mapOp(condition, y, x, &result) { $0 ? $1 : $2 }
     }
     /// sign
+    @inlinable
     func sign<T>(x: T, result: inout T) where
         T: TensorView, T.Element: Real
     {
         mapOp(x, &result) { $0 < 0 ? -1 : 1 }
     }
     /// subtract
+    @inlinable
     func subtract<T>(lhs: T, rhs: T, result: inout T) where
         T: TensorView, T.Element: AdditiveArithmetic
     {
         mapOp(lhs, rhs, &result, -)
     }
     /// sqrt
+    @inlinable
     func sqrt<T>(x: T, result: inout T) where
         T: TensorView, T.Element: Real
     {
         mapOp(x, &result) { .sqrt($0) }
     }
     /// squared
+    @inlinable
     func squared<T>(x: T, result: inout T)
         where T: TensorView, T.Element: Numeric
     {
@@ -433,6 +465,7 @@ public extension DeviceFunctions where Self: DeviceQueue {
     /// - Parameter opNext: the operation to perform on pairs of elements
     /// - Parameter opFinal: the operation to perform on the final result
     /// - Precondition: Each value in `axes` must be in the range `-rank..<rank`.
+    @inlinable
     func reduce<T>(x: T,
                    into result: inout T,
                    initialResult: T.Element,
@@ -466,6 +499,7 @@ public extension DeviceFunctions where Self: DeviceQueue {
 // DeviceQueue default derivative implementations
 public extension DeviceFunctions where Self: DeviceQueue {
     /// vjpMinMax
+    @inlinable
     func vjpMinMax<T>(
         x: T, y: T, scale: T, op: @escaping (T.Element, T.Element) -> Bool,
         resultTrue: inout T, resultFalse: inout T)

@@ -50,29 +50,38 @@ public protocol DeviceQueue:
     //--------------------------------------------------------------------------
     // synchronization functions
     /// creates a QueueEvent
+    @inlinable
     func createEvent(options: QueueEventOptions) throws -> QueueEvent
     /// queues a queue event op. When executed the event is signaled
+    @inlinable
     @discardableResult
     func record(event: QueueEvent) throws -> QueueEvent
     /// records an op on the queue that will perform a queue blocking wait
     /// when it is processed
+    @inlinable
     func wait(for event: QueueEvent) throws
     /// blocks the calling thread until the queue queue has completed all work
+    @inlinable
     func waitUntilQueueIsComplete() throws
 
     //--------------------------------------------------------------------------
     /// copy
     /// performs an indexed copy from view to result
+    @inlinable
     func copy<T>(from view: T, to result: inout T) where T: TensorView
     /// asynchronously copies the contents of another device array
+    @inlinable
     func copyAsync(to array: DeviceArray, from otherArray: DeviceArray) throws
     /// asynchronously copies the contents of an app memory buffer
+    @inlinable
     func copyAsync(to array: DeviceArray,
                    from hostBuffer: UnsafeRawBufferPointer) throws
     /// copies the contents to an app memory buffer asynchronously
+    @inlinable
     func copyAsync(to hostBuffer: UnsafeMutableRawBufferPointer,
                    from array: DeviceArray) throws
     /// clears the array to zero
+    @inlinable
     func zero(array: DeviceArray) throws
 
     //--------------------------------------------------------------------------
@@ -96,6 +105,7 @@ public protocol LocalDeviceQueue: DeviceQueue { }
 public extension LocalDeviceQueue {
     //--------------------------------------------------------------------------
     /// handleDevice(error:
+    @inlinable
     func handleDevice(error: Error) {
         if (deviceErrorHandler?(error) ?? .propagate) == .propagate {
             device.handleDevice(error: error)
@@ -104,6 +114,7 @@ public extension LocalDeviceQueue {
 }
 
 public extension DeviceQueue {
+    @inlinable
     func createEvent() throws -> QueueEvent {
         return try createEvent(options: defaultQueueEventOptions)
     }

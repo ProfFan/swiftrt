@@ -126,6 +126,7 @@ public protocol CpuServiceProtocol {}
 public extension LocalComputeService {
     //--------------------------------------------------------------------------
     /// handleDevice(error:
+    @inlinable
     func handleDevice(error: Error) {
         if (deviceErrorHandler?(error) ?? .propagate) == .propagate {
             platform.handleDevice(error: error)
@@ -191,21 +192,20 @@ public protocol ComputeDevice: ObjectTracking, Logger, DeviceErrorHandling {
 public struct MemoryAttributes: OptionSet, CustomStringConvertible {
     public let rawValue: Int
 
-    public init(rawValue: Int) { self.rawValue = rawValue }
-    
     /// this type is the most efficient for local device access
-    static let deviceLocal     = MemoryAttributes(rawValue: 1 << 0)
-    static let deviceCoherent  = MemoryAttributes(rawValue: 1 << 1)
-    static let deviceUncached  = MemoryAttributes(rawValue: 1 << 2)
+    public static let deviceLocal     = MemoryAttributes(rawValue: 1 << 0)
+    public static let deviceCoherent  = MemoryAttributes(rawValue: 1 << 1)
+    public static let deviceUncached  = MemoryAttributes(rawValue: 1 << 2)
     /// this type can be mapped for host access
-    static let hostVisible     = MemoryAttributes(rawValue: 1 << 3)
+    public static let hostVisible     = MemoryAttributes(rawValue: 1 << 3)
     /// this type specifies that the host and device share unified memory
     /// and no host cache management commands are required for transfer
-    static let hostCoherent    = MemoryAttributes(rawValue: 1 << 4)
-    static let hostCached      = MemoryAttributes(rawValue: 1 << 5)
-    static let lazilyAllocated = MemoryAttributes(rawValue: 1 << 6)
-    static let protected       = MemoryAttributes(rawValue: 1 << 7)
+    public static let hostCoherent    = MemoryAttributes(rawValue: 1 << 4)
+    public static let hostCached      = MemoryAttributes(rawValue: 1 << 5)
+    public static let lazilyAllocated = MemoryAttributes(rawValue: 1 << 6)
+    public static let protected       = MemoryAttributes(rawValue: 1 << 7)
     
+    @inlinable
     public var description: String {
         var string = "["
         if self.contains(.deviceLocal)     { string += ".deviceLocal, " }
@@ -220,6 +220,10 @@ public struct MemoryAttributes: OptionSet, CustomStringConvertible {
         string += "]"
         return string
     }
+
+    //--------------------------------------------------------------------------
+    @inlinable
+    public init(rawValue: Int) { self.rawValue = rawValue }
 }
 
 //==============================================================================
@@ -281,6 +285,7 @@ public protocol LocalComputeDevice: ComputeDevice { }
 public extension LocalComputeDevice {
     //--------------------------------------------------------------------------
     /// handleDevice(error:
+    @inlinable
     func handleDevice(error: Error) {
         if (deviceErrorHandler?(error) ?? .propagate) == .propagate {
             service.handleDevice(error: error)
@@ -327,6 +332,7 @@ public extension QueueEvent {
     /// - Parameter other: the other event used to compute the interval
     /// - Returns: the elapsed interval. Will return `nil` if this event or
     ///   the other have not been recorded.
+    @inlinable
     func elapsedTime(since other: QueueEvent) -> TimeInterval? {
         guard let time = recordedTime,
               let other = other.recordedTime else { return nil }
@@ -335,11 +341,16 @@ public extension QueueEvent {
 }
 
 public struct QueueEventOptions: OptionSet {
-    public init() { self.rawValue = 0 }
-    public init(rawValue: Int) { self.rawValue = rawValue }
     public let rawValue: Int
     public static let timing       = QueueEventOptions(rawValue: 1 << 0)
     public static let interprocess = QueueEventOptions(rawValue: 1 << 1)
+
+    //--------------------------------------------------------------------------
+    @inlinable
+    public init() { self.rawValue = 0 }
+
+    @inlinable
+    public init(rawValue: Int) { self.rawValue = rawValue }
 }
 
 public enum QueueEventError: Error {

@@ -41,7 +41,7 @@ public final class Platform: LocalPlatform {
     /// `ComputeDevice.deviceArrayReplicaKey`
     private static var deviceArrayReplicaKeyCounter = AtomicCounter(value: -1)
     public static var nextDeviceArrayReplicaKey: Int {
-        return Platform.deviceArrayReplicaKeyCounter.increment()
+        Platform.deviceArrayReplicaKeyCounter.increment()
     }
 
     //--------------------------------------------------------------------------
@@ -59,11 +59,11 @@ public final class Platform: LocalPlatform {
     //--------------------------------------------------------------------------
     // these are to aid unit tests
     public static var testCpu1: ComputeDevice = {
-        return Platform.local.services[testCpuServiceName]!.devices[0]
+        Platform.local.services[testCpuServiceName]!.devices[0]
     }()
 
     public static var testCpu2: ComputeDevice = {
-        return Platform.local.services[testCpuServiceName]!.devices[1]
+        Platform.local.services[testCpuServiceName]!.devices[1]
     }()
 
     //--------------------------------------------------------------------------
@@ -72,7 +72,7 @@ public final class Platform: LocalPlatform {
     /// device queue hierarchy, but can be overridden at any point down
     /// the tree
     public var logWriter: Log {
-        get { return logInfo.logWriter }
+        get { logInfo.logWriter }
         set { logInfo.logWriter = newValue }
     }
     
@@ -113,7 +113,7 @@ public extension LocalPlatform {
     /// device queue hierarchy, but can be overridden at any point down
     /// the tree
     static var log: Log {
-        get { return Platform.local.logWriter }
+        get { Platform.local.logWriter }
         set { Platform.local.logWriter = newValue }
     }
     
