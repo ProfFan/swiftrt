@@ -62,8 +62,11 @@ public func almostEquals<T: AnyNumeric>(_ a: T, _ b: T,
 // AtomicCounter
 public final class AtomicCounter {
     // properties
-    public var counter: Int
-    public let mutex = Mutex()
+    @usableFromInline
+    var counter: Int
+
+    @usableFromInline
+    let mutex = Mutex()
     
     @inlinable
     public var value: Int {
@@ -95,7 +98,8 @@ public final class AtomicCounter {
 /// concurrent queue
 public final class Mutex {
     // properties
-    public let queue = DispatchQueue(label: "Mutex")
+    @usableFromInline
+    let queue = DispatchQueue(label: "Mutex")
     
     // functions
     @inlinable

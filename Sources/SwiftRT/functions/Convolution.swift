@@ -25,7 +25,7 @@ public class ConvolutionInferring<T> where
     { fatalError("Abstract") }
 }
 
-public class ConvolutionTraining<T>: ConvolutionInferring<T> where
+public final class ConvolutionTraining<T>: ConvolutionInferring<T> where
     T: TensorView, T.Element: FloatingPoint
 {
     public func gradient(y: T, yDiff: T,

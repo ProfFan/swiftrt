@@ -21,7 +21,7 @@ import CpuAsync
 
 //==============================================================================
 /// CpuAsyncService
-public class CpuAsynchronousService:
+public final class CpuAsynchronousService:
     ComputeService,
     CpuServiceProtocol,
     LocalComputeService

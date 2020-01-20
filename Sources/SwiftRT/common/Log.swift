@@ -21,31 +21,43 @@ import Dispatch
 /// this is used to manage which logWriter to use and message parameters
 public struct LogInfo {
     /// the logWriter to write to
-    var logWriter: Log
+    public var logWriter: Log
     /// the reporting level of the object, which allows different objects
     /// to have different reporting levels to fine tune output
-    var logLevel: LogLevel = .error
+    public var logLevel: LogLevel
     /// `namePath` is used when reporting from hierarchical structures
     /// such as a model, so that duplicate names such as `weights` are
     /// put into context
-    var namePath: String
+    public var namePath: String
     /// the nesting level within a hierarchical model to aid in
     /// message formatting.
-    var nestingLevel: Int
-    /// a helper to create logging info for a child object in a hierarchy
-    public func child(_ name: String) -> LogInfo {
-        return LogInfo(logWriter: logWriter,
-                       logLevel: .error,
-                       namePath: "\(namePath)/\(name)",
-                       nestingLevel: nestingLevel + 1)
+    public var nestingLevel: Int
+ 
+    //--------------------------------------------------------------------------
+    @inlinable
+    public init(logWriter: Log, logLevel: LogLevel,
+                namePath: String, nestingLevel: Int) {
+        self.logWriter = logWriter
+        self.logLevel = logLevel
+        self.namePath = namePath
+        self.nestingLevel = nestingLevel
     }
+    
+    //--------------------------------------------------------------------------
+    /// a helper to create logging info for a child object in a hierarchy
+    @inlinable
+    public func child(_ name: String) -> LogInfo {
+        LogInfo(logWriter: logWriter, logLevel: .error,
+                namePath: "\(namePath)/\(name)", nestingLevel: nestingLevel + 1)
+    }
+
+    //--------------------------------------------------------------------------
     /// a helper to create logging info for an object in a flat
     /// reporting structure
+    @inlinable
     public func flat(_ name: String) -> LogInfo {
-        return LogInfo(logWriter: logWriter,
-                       logLevel: .error,
-                       namePath: "\(namePath)/\(name)",
-                       nestingLevel: nestingLevel)
+        LogInfo(logWriter: logWriter, logLevel: .error,
+                namePath: "\(namePath)/\(name)", nestingLevel: nestingLevel)
     }
 }
 
@@ -98,12 +110,14 @@ public protocol _Logging {
 public extension _Logging {
     //--------------------------------------------------------------------------
     /// writeLog
+    @inlinable
     func willLog(level: LogLevel) -> Bool {
-        return level <= logWriter.level || level <= logLevel
+        level <= logWriter.level || level <= logLevel
     }
 
     //--------------------------------------------------------------------------
     /// writeLog
+    @inlinable
     func writeLog(_ message: @autoclosure () -> String,
                   level: LogLevel = .error,
                   indent: Int = 0,
@@ -120,6 +134,7 @@ public extension _Logging {
     //--------------------------------------------------------------------------
     // diagnostic
     #if DEBUG
+    @inlinable
     func diagnostic(_ message: @autoclosure () -> String,
                     categories: LogCategories,
                     indent: Int = 0,
@@ -138,6 +153,7 @@ public extension _Logging {
                   trailing: trailing, minCount: minCount)
     }
     #else
+    @inlinable
     func diagnostic(_ message: @autoclosure () -> String,
                     categories: LogCategories,
                     indent: Int = 0,
@@ -152,10 +168,14 @@ public extension _Logging {
 public protocol Logging : _Logging { }
 
 public extension Logging {
-    var logWriter: Log { return DeviceContext.local.logInfo.logWriter }
-    var logLevel: LogLevel { return DeviceContext.local.logInfo.logLevel }
-    var logNamePath: String { return DeviceContext.local.logInfo.namePath }
-    var logNestingLevel: Int { return DeviceContext.local.logInfo.nestingLevel }
+    @inlinable
+    var logWriter: Log { DeviceContext.local.logInfo.logWriter }
+    @inlinable
+    var logLevel: LogLevel { DeviceContext.local.logInfo.logLevel }
+    @inlinable
+    var logNamePath: String { DeviceContext.local.logInfo.namePath }
+    @inlinable
+    var logNestingLevel: Int { DeviceContext.local.logInfo.nestingLevel }
 }
 
 //==============================================================================
@@ -165,10 +185,14 @@ public protocol Logger : _Logging {
 }
 
 extension Logger {
-    public var logWriter: Log { return logInfo.logWriter }
-    public var logLevel: LogLevel { return logInfo.logLevel }
-    public var logNamePath: String { return logInfo.namePath }
-    public var logNestingLevel: Int { return logInfo.nestingLevel }
+    @inlinable
+    public var logWriter: Log { logInfo.logWriter }
+    @inlinable
+    public var logLevel: LogLevel { logInfo.logLevel }
+    @inlinable
+    public var logNamePath: String { logInfo.namePath }
+    @inlinable
+    public var logNestingLevel: Int { logInfo.nestingLevel }
 }
 
 //==============================================================================
@@ -212,10 +236,13 @@ public protocol LogWriter: ObjectTracking {
 //==============================================================================
 // LogWriter
 public extension LogWriter {
+    @inlinable
     var silent: Bool {
         get { return queue.sync { return _silent } }
         set { queue.sync { _silent = newValue } }
     }
+
+    @inlinable
     var tabSize: Int {
         get { return queue.sync { return _tabSize } }
         set { queue.sync { _tabSize = newValue } }
@@ -223,6 +250,7 @@ public extension LogWriter {
     
     //--------------------------------------------------------------------------
     /// write
+    @inlinable
     func write(level: LogLevel,
                message: @autoclosure () -> String,
                nestingLevel: Int = 0,
@@ -260,15 +288,15 @@ public extension LogWriter {
 
 //==============================================================================
 // Log
-final public class Log: LogWriter {
+public final class Log: LogWriter {
     // properties
     public var categories: LogCategories?
     public var level: LogLevel
     public var _silent: Bool
     public var _tabSize: Int
-    public private(set) var trackingId: Int = 0
+    public var trackingId: Int
 	public let queue = DispatchQueue(label: "Log.queue")
-    private let logFile: FileHandle
+    public let logFile: FileHandle
 
     //--------------------------------------------------------------------------
     /// init(url:isStatic:
@@ -276,9 +304,11 @@ final public class Log: LogWriter {
     ///   output will be written to stdout
     /// - Parameter isStatic: if `true`, indicates that the object
     /// will be held statically so it won't be reported as a memory leak
+    @inlinable
     public init(url: URL? = nil, isStatic: Bool = true) {
         assert(url == nil || url!.isFileURL, "Log url must be a file URL")
         level = .error
+        trackingId = 0
         _silent = false
         _tabSize = 2
         var file: FileHandle?
@@ -301,11 +331,13 @@ final public class Log: LogWriter {
         trackingId = ObjectTracker.global.register(self, isStatic: isStatic)
     }
     
+    @inlinable
     deinit {
         logFile.closeFile()
         ObjectTracker.global.remove(trackingId: trackingId)
     }
     
+    @inlinable
     public func output(message: String) {
         let message = message + "\n"
         logFile.write(message.data(using: .utf8)!)

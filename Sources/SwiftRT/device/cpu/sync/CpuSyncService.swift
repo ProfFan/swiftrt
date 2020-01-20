@@ -20,7 +20,7 @@ import CpuSync
 
 //==============================================================================
 /// CpuSynchronousService
-public class CpuSynchronousService:
+public final class CpuSynchronousService:
     ComputeService,
     CpuServiceProtocol,
     LocalComputeService

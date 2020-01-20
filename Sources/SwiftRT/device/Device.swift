@@ -229,9 +229,9 @@ public struct MemoryProperties {
     // TODO: this will need to be reexamined when Vulan is added, because
     // some heaps may be host coherent and some not. For now the device
     // is either a uma device or not
-    var addressing: MemoryAddressing
+    public var addressing: MemoryAddressing
     /// collection of device heaps
-    var heaps: [MemoryHeap]
+    public var heaps: [MemoryHeap]
 }
 
 //==============================================================================
@@ -244,14 +244,15 @@ public enum MemoryAddressing {
 /// MemoryHeap
 public struct MemoryHeap {
     /// total memory size in bytes
-    let size: Int
+    public let size: Int
     /// a set of flags describing the heap attributes
-    let attributes: MemoryAttributes
+    public let attributes: MemoryAttributes
     
     /// returns a current estimate of memory used and available in this heap
+    @inlinable
     func budget() throws -> MemoryBudget {
         // TODO
-        return MemoryBudget(available: 0, used: 0)
+        MemoryBudget(available: 0, used: 0)
     }
 }
 
@@ -261,10 +262,16 @@ public struct MemoryBudget {
     /// a rough estimate of how much memory the process can allocate from
     /// the associated heap before allocations may fail or cause
     /// performance degradation
-    var available: Int
+    public var available: Int
     /// an estimate of how much memory the process is currently using
     /// in the associated heap
-    var used: Int
+    public var used: Int
+    
+    @inlinable
+    public init(available: Int, used: Int) {
+        self.available = available
+        self.used = used
+    }
 }
 
 //==============================================================================

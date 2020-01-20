@@ -18,7 +18,7 @@ import Foundation
 //==============================================================================
 /// TestCpuService
 /// A cpu implementation that acts like a discreet memory device
-public class TestCpuService:
+public final class TestCpuService:
     ComputeService,
     CpuServiceProtocol,
     LocalComputeService

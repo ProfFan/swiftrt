@@ -38,7 +38,7 @@ public class ActivationInferring<T> where
     { fatalError("Abstract") }
 }
 
-public class ActivationTraining<T>: ActivationInferring<T> where
+public final class ActivationTraining<T>: ActivationInferring<T> where
     T: TensorView, T.Element: FloatingPoint
 {
     public func gradient(y: T, yDiff: T, x: T, xDiff: inout T) throws

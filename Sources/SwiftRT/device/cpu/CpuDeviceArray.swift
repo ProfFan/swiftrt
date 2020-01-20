@@ -13,7 +13,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 //
-public class CpuDeviceArray : DeviceArray {
+public final class CpuDeviceArray : DeviceArray {
     //--------------------------------------------------------------------------
     // properties
     public private(set) var trackingId = 0

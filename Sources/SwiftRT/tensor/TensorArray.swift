@@ -20,7 +20,7 @@ import Foundation
 /// The TensorArray object is a flat array of values used by the TensorView.
 /// It is responsible for replication and syncing between devices.
 /// It is not created or directly used by end users.
-final public class TensorArray<Element>: ObjectTracking, Codable, Logging
+public final class TensorArray<Element>: ObjectTracking, Codable, Logging
     where Element: TensorElementConformance
 {
     //--------------------------------------------------------------------------

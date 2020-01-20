@@ -18,7 +18,7 @@ import Foundation
 //==============================================================================
 // Platform
 /// The root object to select compute services and devices
-final public class Platform: LocalPlatform {
+public final class Platform: LocalPlatform {
     // properties
     public var _defaultDevice: ComputeDevice?
     public var deviceErrorHandler: DeviceErrorHandler?

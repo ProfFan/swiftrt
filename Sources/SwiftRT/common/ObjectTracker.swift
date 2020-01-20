@@ -28,7 +28,7 @@ public protocol ObjectTracking: class {
 /// ObjectTracker
 /// The object tracker class is used during debug to track the lifetime of
 /// class objects to prevent reference cycles and memory leaks
-final public class ObjectTracker {
+public final class ObjectTracker {
 	//--------------------------------------------------------------------------
 	// types
 	public struct ItemInfo {

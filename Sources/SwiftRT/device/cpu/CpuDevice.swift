@@ -24,7 +24,7 @@ public protocol CpuQueueProtocol: DeviceQueue {
 
 //==============================================================================
 /// CpuDevice
-public class CpuDevice<QueueT>: LocalComputeDevice
+public final class CpuDevice<QueueT>: LocalComputeDevice
     where QueueT: CpuQueueProtocol
 {
     //--------------------------------------------------------------------------
