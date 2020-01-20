@@ -65,7 +65,8 @@ func runMakefile(target: String, workingDir: String) {
 //---------------------------------------
 // the base products, dependencies, and targets
 var products: [PackageDescription.Product] = [
-    .library(name: "SwiftRT", targets: ["SwiftRT"])
+    .library(name: "SwiftRT", type: .dynamic, targets: ["SwiftRT"]),
+    // .library(name: "SwiftRT", type: .static, targets: ["SwiftRT"])
 ]
 var dependencies: [Target.Dependency] = ["Numerics"]
 var exclusions: [String] = []
