@@ -24,15 +24,20 @@ public typealias CStringPointer = UnsafePointer<CChar>
 //==============================================================================
 // Memory sizes
 extension Int {
-    var KB: Int { return self * 1024 }
-    var MB: Int { return self * 1024 * 1024 }
-    var GB: Int { return self * 1024 * 1024 * 1024 }
-    var TB: Int { return self * 1024 * 1024 * 1024 * 1024 }
+    @inlinable
+    var KB: Int { self * 1024 }
+    @inlinable
+    var MB: Int { self * 1024 * 1024 }
+    @inlinable
+    var GB: Int { self * 1024 * 1024 * 1024 }
+    @inlinable
+    var TB: Int { self * 1024 * 1024 * 1024 * 1024 }
 }
 
 //==============================================================================
 // String(timeInterval:
 extension String {
+    @inlinable
     public init(timeInterval: TimeInterval) {
         let milliseconds = Int(timeInterval
             .truncatingRemainder(dividingBy: 1.0) * 1000)
@@ -47,29 +52,33 @@ extension String {
 
 //==============================================================================
 // almostEquals
+@inlinable
 public func almostEquals<T: AnyNumeric>(_ a: T, _ b: T,
                                         tolerance: Double = 0.00001) -> Bool {
-    return abs(a.asDouble - b.asDouble) < tolerance
+    abs(a.asDouble - b.asDouble) < tolerance
 }
 
 //==============================================================================
 // AtomicCounter
 public final class AtomicCounter {
     // properties
-    private var counter: Int
-    private let mutex = Mutex()
+    public var counter: Int
+    public let mutex = Mutex()
     
+    @inlinable
     public var value: Int {
-        get { return mutex.sync { counter } }
-        set { return mutex.sync { counter = newValue } }
+        get { mutex.sync { counter } }
+        set { mutex.sync { counter = newValue } }
     }
     
     // initializers
+    @inlinable
     public init(value: Int = 0) {
         counter = value
     }
     
     // functions
+    @inlinable
     public func increment() -> Int {
         return mutex.sync {
             counter += 1
@@ -86,10 +95,11 @@ public final class AtomicCounter {
 /// concurrent queue
 public final class Mutex {
     // properties
-    private let queue = DispatchQueue(label: "Mutex")
+    public let queue = DispatchQueue(label: "Mutex")
     
     // functions
+    @inlinable
     func sync<R>(execute work: () throws -> R) rethrows -> R {
-        return try queue.sync(execute: work)
+        try queue.sync(execute: work)
     }
 }

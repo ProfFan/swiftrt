@@ -26,15 +26,6 @@ public protocol AnyElement {
 
 public protocol AnyFixedSizeScalar: AnyElement { }
 
-public extension Numeric {
-    static var one: Self { 1 }
-}
-
-extension Complex: AnyElement {
-    public init() {
-        self.init(0)
-    }
-}
 //==============================================================================
 /// AnyConvertable
 /// AnyNumeric enables the use of constants, type conversion, and

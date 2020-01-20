@@ -41,6 +41,20 @@ extension Complex: DifferentiableElement {
 }
 
 //==============================================================================
+// type extensions
+public extension Numeric {
+    @inlinable
+    static var one: Self { 1 }
+}
+
+extension Complex: AnyElement {
+    @inlinable
+    public init() {
+        self.init(0)
+    }
+}
+
+//==============================================================================
 public typealias IndexType = Int32
 //public typealias Complex = ComplexModule.Complex<Float>
 
