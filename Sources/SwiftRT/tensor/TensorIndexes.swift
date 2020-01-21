@@ -28,21 +28,25 @@ public typealias NHWCPosition = (i: Int, r: Int, c: Int, ch: Int)
 /// VectorIndex
 public struct VectorIndex: TensorIndexing {
     // properties
-    public var viewIndex: Int = 0
-    public var dataIndex: Int = 0
+    public var viewIndex: Int
+    public var dataIndex: Int
     public let stride: Int
     
     //--------------------------------------------------------------------------
     // initializers
+    @inlinable @inline(__always)
     public init<T>(view: T, at position: VectorPosition) where T: TensorView {
-        stride = Int(view.strides[0])
         viewIndex = position
+        dataIndex = 0
+        stride = Int(view.strides[0])
         computeDataIndex()
     }
     
+    @inlinable @inline(__always)
     public init<T>(endOf view: T) where T: TensorView {
-        stride = Int(view.strides[0])
         viewIndex = view.count
+        stride = Int(view.strides[0])
+        dataIndex = 0
         computeDataIndex()
     }
     
@@ -81,8 +85,8 @@ public struct VectorIndex: TensorIndexing {
 /// MatrixIndex
 public struct MatrixIndex: TensorIndexing {
     // properties
-    public var viewIndex: Int = 0
-    public var dataIndex: Int = 0
+    public var viewIndex: Int
+    public var dataIndex: Int
     public let rowExtent: Int
     public let rowStride: Int
     public let colExtent: Int
@@ -92,6 +96,7 @@ public struct MatrixIndex: TensorIndexing {
     
     //--------------------------------------------------------------------------
     // initializers
+    @inlinable @inline(__always)
     public init<T>(view: T, at position: MatrixPosition) where T: TensorView {
         rowExtent = Int(view.extents[0])
         rowStride = Int(view.strides[0])
@@ -100,9 +105,11 @@ public struct MatrixIndex: TensorIndexing {
         colStride = Int(view.strides[1])
         col = position.c
         viewIndex = row * rowExtent + col * colExtent
+        dataIndex = 0
         computeDataIndex()
     }
 
+    @inlinable @inline(__always)
     public init<T>(endOf view: T) where T: TensorView {
         rowExtent = Int(view.extents[0])
         rowStride = Int(view.strides[0])
@@ -111,6 +118,7 @@ public struct MatrixIndex: TensorIndexing {
         colStride = Int(view.strides[1])
         col = 0
         viewIndex = view.count
+        dataIndex = 0
         computeDataIndex()
     }
 
@@ -159,8 +167,8 @@ public struct MatrixIndex: TensorIndexing {
 /// VolumeIndex
 public struct VolumeIndex: TensorIndexing {
     // properties
-    public var dataIndex: Int = 0
-    public var viewIndex: Int = 0
+    public var dataIndex: Int
+    public var viewIndex: Int
     public let depExtent: Int
     public let depStride: Int
     public let rowExtent: Int
@@ -173,6 +181,7 @@ public struct VolumeIndex: TensorIndexing {
 
     //--------------------------------------------------------------------------
     // initializers
+    @inlinable @inline(__always)
     public init<T>(view: T, at position: VolumePosition) where T: TensorView {
         depExtent = Int(view.extents[0])
         depStride = Int(view.strides[0])
@@ -184,9 +193,11 @@ public struct VolumeIndex: TensorIndexing {
         colStride = Int(view.strides[2])
         col = position.c
         viewIndex = dep * depExtent + row * rowExtent + col * colExtent
+        dataIndex = 0
         computeDataIndex()
     }
     
+    @inlinable @inline(__always)
     public init<T>(endOf view: T) where T: TensorView {
         depExtent = Int(view.extents[0])
         depStride = Int(view.strides[0])
@@ -198,6 +209,7 @@ public struct VolumeIndex: TensorIndexing {
         colStride = Int(view.strides[2])
         col = 0
         viewIndex = view.count
+        dataIndex = 0
         computeDataIndex()
     }
     
@@ -258,29 +270,33 @@ public struct VolumeIndex: TensorIndexing {
 /// NDIndex
 public struct NDIndex: TensorIndexing {
     // properties
-    public var viewIndex: Int = 0
-    public var dataIndex: Int = 0
+    public var viewIndex: Int
+    public var dataIndex: Int
     public var position: NDPosition
     public let extents: [Int]
     public let strides: [Int]
     
     //--------------------------------------------------------------------------
     // initializers
+    @inlinable @inline(__always)
     public init<T>(view: T, at position: NDPosition) where T: TensorView {
         assert(position.count == 1 || position.count == view.rank)
         extents = view.extents.array
         strides = view.strides.array
         self.position = position.count == 1 ? T.Shape.zeros.array : position
         viewIndex = zip(position, extents).reduce(0) { $0 + $1.0 * $1.1 }
+        dataIndex = 0
         computeDataIndex()
     }
     
+    @inlinable @inline(__always)
     public init<T>(endOf view: T) where T: TensorView {
         position = [Int](repeating: 0, count: view.rank)
         position[0] = Int(view.extents[0])
         extents = view.extents.array
         strides = view.strides.array
         viewIndex = view.count
+        dataIndex = 0
         computeDataIndex()
     }
     

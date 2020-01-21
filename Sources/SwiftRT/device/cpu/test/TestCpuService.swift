@@ -73,5 +73,7 @@ public final class TestCpuService:
                                                        addressing: .discreet,
                                                        timeout: timeout))
     }
+    
+    @inlinable
     deinit { ObjectTracker.global.remove(trackingId: trackingId) }
 }

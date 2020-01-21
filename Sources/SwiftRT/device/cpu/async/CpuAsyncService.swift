@@ -66,5 +66,6 @@ public final class CpuAsynchronousService:
                                                        timeout: timeout))
     }
 
+    @inlinable
     deinit { ObjectTracker.global.remove(trackingId: trackingId) }
 }

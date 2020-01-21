@@ -21,20 +21,25 @@ import Foundation
 /// the wait semaphore
 public final class CpuAsyncEvent : QueueEvent {
     // properties
-    public private(set) var trackingId = 0
-    public private(set) var occurred: Bool = false
+    public var trackingId: Int
+    public var occurred: Bool
     public var recordedTime: Date?
 
     public let options: QueueEventOptions
-    private let timeout: TimeInterval?
-    private let barrier = Mutex()
-    private let semaphore = DispatchSemaphore(value: 0)
+    public let timeout: TimeInterval?
+    public let barrier: Mutex
+    public let semaphore: DispatchSemaphore
 
     //--------------------------------------------------------------------------
     // initializers
+    @inlinable
     public init(options: QueueEventOptions, timeout: TimeInterval?) {
         self.options = options
         self.timeout = timeout
+        self.barrier = Mutex()
+        self.occurred = false
+        self.semaphore = DispatchSemaphore(value: 0)
+        trackingId = 0
         #if DEBUG
         trackingId = ObjectTracker.global.register(self)
         #endif
@@ -42,6 +47,7 @@ public final class CpuAsyncEvent : QueueEvent {
     
     //--------------------------------------------------------------------------
     // deinit
+    @inlinable
     deinit {
         // signal if anyone was waiting
         signal()
@@ -54,6 +60,7 @@ public final class CpuAsyncEvent : QueueEvent {
     //--------------------------------------------------------------------------
     /// signal
     /// signals that the event has occurred
+    @inlinable
     public func signal() {
         semaphore.signal()
     }
@@ -63,6 +70,7 @@ public final class CpuAsyncEvent : QueueEvent {
     /// the first thread goes through the barrier.sync and waits on the
     /// semaphore. When it is signaled `occurred` is set to `true` and all
     /// future threads will pass through without waiting
+    @inlinable
     public func wait() throws {
         try barrier.sync {
             guard !occurred else { return }

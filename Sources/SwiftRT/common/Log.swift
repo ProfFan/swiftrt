@@ -398,25 +398,26 @@ public struct LogCategories: OptionSet {
 }
 
 // strings
-let allocString      = "[\(setText("ALLOCATE ", color: .cyan))]"
-let blockString      = "[\(setText("BLOCK    ", color: .red))]"
-let copyString       = "[\(setText("COPY     ", color: .blue))]"
-let createString     = "[\(setText("CREATE   ", color: .cyan))]"
-let mutationString   = "[\(setText("MUTATE   ", color: .blue))]"
-let recordString     = "[\(setText("RECORD   ", color: .cyan))]"
-let referenceString  = "[\(setText("REFERENCE", color: .cyan))]"
-let releaseString    = "[\(setText("RELEASE  ", color: .cyan))]"
-let schedulingString = "\(setText("~~scheduling", color: .yellow))"
-let signaledString   = "[\(setText("SIGNALED ", color: .green))]"
-let syncString       = "[\(setText("SYNC     ", color: .yellow))]"
-let timeoutString    = "[\(setText("TIMEOUT  ", color: .red))]"
-let waitString       = "[\(setText("WAIT     ", color: .red))]"
+public let allocString      = "[\(setText("ALLOCATE ", color: .cyan))]"
+public let blockString      = "[\(setText("BLOCK    ", color: .red))]"
+public let copyString       = "[\(setText("COPY     ", color: .blue))]"
+public let createString     = "[\(setText("CREATE   ", color: .cyan))]"
+public let mutationString   = "[\(setText("MUTATE   ", color: .blue))]"
+public let recordString     = "[\(setText("RECORD   ", color: .cyan))]"
+public let referenceString  = "[\(setText("REFERENCE", color: .cyan))]"
+public let releaseString    = "[\(setText("RELEASE  ", color: .cyan))]"
+public let schedulingString = "\(setText("~~scheduling", color: .yellow))"
+public let signaledString   = "[\(setText("SIGNALED ", color: .green))]"
+public let syncString       = "[\(setText("SYNC     ", color: .yellow))]"
+public let timeoutString    = "[\(setText("TIMEOUT  ", color: .red))]"
+public let waitString       = "[\(setText("WAIT     ", color: .red))]"
 
 //------------------------------------------------------------------------------
 // LogLevel
 public enum LogLevel: Int, Comparable {
 	case error, warning, status, diagnostic
 
+    @inlinable
 	public init?(string: String) {
 		switch string {
 		case "error"     : self = .error
@@ -431,6 +432,7 @@ public enum LogLevel: Int, Comparable {
         String(describing: LogLevel.diagnostic).count
 }
 
+@inlinable
 public func<(lhs: LogLevel, rhs: LogLevel) -> Bool {
-	return lhs.rawValue < rhs.rawValue
+    lhs.rawValue < rhs.rawValue
 }

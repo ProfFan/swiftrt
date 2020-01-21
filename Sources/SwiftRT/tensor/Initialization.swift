@@ -16,16 +16,17 @@
 
 //==============================================================================
 // error messages
-let _messageElementCountMismatch =
+public let _messageElementCountMismatch =
 "the number of initial elements must equal the tensor size"
 
-let _messageNewTensorsShouldBeDense = "new tensors should be dense"
+public let _messageNewTensorsShouldBeDense = "new tensors should be dense"
 
 //==============================================================================
 // casting for convertable types
 public extension TensorView where Element: AnyConvertable {
     //--------------------------------------------------------------------------
     /// casting
+    @inlinable
     init<U>(_ other: U) where
         U: TensorView, U.Element: AnyConvertable, Shape == U.Shape
     {
@@ -43,6 +44,7 @@ public extension TensorView {
     /// empty
     /// creates an empty tensor that can be used where a return
     /// value is needed in an error condition.
+    @inlinable
     init() {
         self.init(shape: Shape(extents: Shape.zeros),
                   tensorArray: TensorArray(),
@@ -53,19 +55,23 @@ public extension TensorView {
     //--------------------------------------------------------------------------
     /// creates a tensor of the same type and shape as `self` with `Element`
     /// equal to `Bool`
+    @inlinable
     func createBoolTensor() -> BoolView { createBoolTensor(with: extents) }
     /// creates a tensor of the same shape as `self` with `Element`
     /// equal to `IndexType`
+    @inlinable
     func createIndexTensor() -> IndexView { createIndexTensor(with: extents) }
     
     //--------------------------------------------------------------------------
     /// concatenated tensors
+    @inlinable
     init(concatenating tensors: Self..., alongAxis axis: Int = 0,
          name: String? = nil)
     {
         self = Self(concatenating: tensors, alongAxis: axis, name: name)
     }
     
+    @inlinable
     init(concatenating tensors: [Self], alongAxis axis: Int = 0,
          name: String? = nil)
     {
@@ -74,6 +80,7 @@ public extension TensorView {
     
     //--------------------------------------------------------------------------
     // flattening
+    @inlinable
     init<T>(flattening other: T) where T: TensorView, T.Element == Element {
         self.init(shape: Shape(flattening: other.shape),
                   tensorArray: other.tensorArray,
@@ -84,12 +91,14 @@ public extension TensorView {
     // noop flattening case
     // this might be used when blindly flattening an input to
     // a dense matmul expression
+    @inlinable
     init(flattening other: Self) {
         self = other
     }
     
     //--------------------------------------------------------------------------
     // squeezing
+    @inlinable
     init<T>(squeezing other: T, alongAxes axes: Set<Int>? = nil)
         where T: TensorView, T.Element == Element
     {
@@ -107,6 +116,7 @@ public extension TensorView {
 
     //--------------------------------------------------------------------------
     /// repeating element
+    @inlinable
     @differentiable(where Self: DifferentiableTensorView)
     init(repeating value: Element, to extents: Shape.Array, name: String? = nil)
     {
@@ -116,6 +126,7 @@ public extension TensorView {
     
     //--------------------------------------------------------------------------
     /// repeating element
+    @inlinable
     @differentiable(where Self: DifferentiableTensorView)
     init<U>(repeating value: Element, like other: U, name: String? = nil)
         where U: TensorView, Self.Shape == U.Shape
@@ -125,12 +136,14 @@ public extension TensorView {
     
     //--------------------------------------------------------------------------
     /// createDense(shape:
+    @inlinable
     func createDense(with shape: Shape, name: String? = nil) -> Self {
         Self.create(shape.dense, name)
     }
     
     //--------------------------------------------------------------------------
     /// createDense(extents:
+    @inlinable
     func createDense(with extents: Shape.Array, name: String? = nil) -> Self {
         let newShape = isContiguous ?
             Shape(extents: extents, strides: self.shape.strides) :
@@ -140,11 +153,13 @@ public extension TensorView {
     
     //--------------------------------------------------------------------------
     /// createDense()
+    @inlinable
     func createDense() -> Self { return createDense(with: shape) }
     
     //--------------------------------------------------------------------------
     /// createReductionResult
     /// creates a tensor of suitable form to recieve a reduction result.
+    @inlinable
     func createReductionResult(alongAxes axes: Set<Int>?) -> Self {
         guard let axes = axes else { return createSingleElement() }
         assert(axes.isSubset(of: 0..<rank), "axis is out of bounds")
@@ -156,12 +171,14 @@ public extension TensorView {
     //--------------------------------------------------------------------------
     /// createSingleElement
     /// helper to create a rank extended value
+    @inlinable
     func createSingleElement(name: String? = nil) -> Self {
         Self.create(Shape(extents: Shape.ones, strides: Shape.ones), name)
     }
     
     //==========================================================================
     // utility functions for creating shaped types
+    @inlinable
     static func create(_ shape: Shape, _ name: String?) -> Self {
         let name = name ?? String(describing: Self.self)
         let array = TensorArray<Element>(count: shape.count, name: name)
@@ -169,6 +186,7 @@ public extension TensorView {
                     viewOffset: 0, isShared: false)
     }
     
+    @inlinable
     static func create(referenceTo buffer: UnsafeBufferPointer<Element>,
                        _ shape: Shape, _ name: String?) -> Self {
         assert(shape.count == buffer.count,
@@ -180,6 +198,7 @@ public extension TensorView {
                     viewOffset: 0, isShared: false)
     }
     
+    @inlinable
     static func create(referenceTo buffer: UnsafeMutableBufferPointer<Element>,
                        _ shape: Shape, _ name: String?) -> Self {
         assert(shape.count == buffer.count,
@@ -191,6 +210,7 @@ public extension TensorView {
                     viewOffset: 0, isShared: false)
     }
     
+    @inlinable
     static func create<C>(_ elements: C, _ shape: Shape,
                           _ name: String?) -> Self where
         C: Collection, C.Element == Element
@@ -207,6 +227,7 @@ public extension TensorView {
 //==============================================================================
 //
 public extension TensorView where Self: DifferentiableTensorView {
+    @inlinable
     @derivative(of: init(repeating:to:name:))
     static func _vjpInit(repeating value: Element, to extents: Shape.Array,
                          name: String?) ->

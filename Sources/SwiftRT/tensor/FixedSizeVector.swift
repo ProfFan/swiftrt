@@ -27,8 +27,9 @@ public protocol FixedSizeVector: Equatable {
 }
 
 public extension FixedSizeVector {
+    @inlinable
     static var count: Int {
-        return MemoryLayout<Self>.size / MemoryLayout<Scalar>.size
+        MemoryLayout<Self>.size / MemoryLayout<Scalar>.size
     }
 }
 
@@ -44,6 +45,7 @@ public protocol RGBProtocol: FixedSizeVector, AnyElement, Codable {
 public extension RGBProtocol {
     // useful discussion on Codable
     // https://www.raywenderlich.com/3418439-encoding-and-decoding-in-swift
+    @inlinable
     func encode(to encoder: Encoder) throws {
         var container = encoder.unkeyedContainer()
         try container.encode(r)
@@ -51,6 +53,7 @@ public extension RGBProtocol {
         try container.encode(b)
     }
 
+    @inlinable
     init(from decoder: Decoder) throws {
         var container = try decoder.unkeyedContainer()
         try self.init(container.decode(Scalar.self),
@@ -84,6 +87,7 @@ public protocol RGBAProtocol: FixedSizeVector, AnyElement, Codable {
 }
 
 public extension RGBAProtocol {
+    @inlinable
     func encode(to encoder: Encoder) throws {
         var container = encoder.unkeyedContainer()
         try container.encode(r)
@@ -92,6 +96,7 @@ public extension RGBAProtocol {
         try container.encode(a)
     }
     
+    @inlinable
     init(from decoder: Decoder) throws {
         var container = try decoder.unkeyedContainer()
         try self.init(container.decode(Scalar.self),

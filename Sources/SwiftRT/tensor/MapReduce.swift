@@ -49,6 +49,7 @@ public extension TensorView {
     /// reduce to a multi-dimensional tensor
     /// result must have the same extents as `self`, but the actual storage
     /// can be less via strides for reduction dimensions
+    @inlinable
     func reduce<T>(
         into result: inout T,
         _ nextPartialResult: (Element, Element) -> Element)
@@ -191,15 +192,17 @@ public extension Zip3Sequence {
 
 //==============================================================================
 // zip
+@inlinable
 public func zip<T1, T2>(_ t1: T1, _ t2: T2) ->
     Zip2Sequence<TensorValueCollection<T1>, TensorValueCollection<T2>>
     where T1: TensorView, T2: TensorView
 {
-    return zip(t1.elements(), t2.elements())
+    zip(t1.elements(), t2.elements())
 }
 
 //==============================================================================
 // zip
+@inlinable
 public func zip<T1, T2, T3>(_ t1: T1, _ t2: T2, _ t3: T3) ->
     Zip3Sequence<
     TensorValueCollection<T1>,
@@ -207,13 +210,14 @@ public func zip<T1, T2, T3>(_ t1: T1, _ t2: T2, _ t3: T3) ->
     TensorValueCollection<T3>>
     where T1: TensorView, T2: TensorView
 {
-    return zip(t1.elements(), t2.elements(), t3.elements())
+    zip(t1.elements(), t2.elements(), t3.elements())
 }
 
 //==============================================================================
 // reduce
 public extension Sequence {
     /// reduce to a tensor
+    @inlinable
     func reduce<T>(
         into result: inout T,
         _ initialResult: Element,

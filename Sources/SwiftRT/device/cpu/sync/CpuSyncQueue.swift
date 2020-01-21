@@ -18,8 +18,8 @@ import Foundation
 // @Target(type:"cpu", appliedTo:"CpuSynchronousQueue", protocol: DeviceFunctions)
 public final class CpuSynchronousQueue: CpuQueueProtocol, LocalDeviceQueue {
 	// protocol properties
-	public private(set) var trackingId = 0
-    public var defaultQueueEventOptions = QueueEventOptions()
+    public var trackingId: Int
+    public var defaultQueueEventOptions: QueueEventOptions
 	public let device: ComputeDevice
     public let id: Int
 	public let name: String
@@ -31,10 +31,12 @@ public final class CpuSynchronousQueue: CpuQueueProtocol, LocalDeviceQueue {
     public var _errorMutex: Mutex = Mutex()
     
     /// used to detect accidental queue access by other threads
-    private let creatorThread: Thread
+    @usableFromInline
+    let creatorThread: Thread
 
     //--------------------------------------------------------------------------
     // initializers
+    @inlinable
     public init(logInfo: LogInfo, device: ComputeDevice, name: String, id: Int)
     {
         // create a completion event
@@ -43,7 +45,9 @@ public final class CpuSynchronousQueue: CpuQueueProtocol, LocalDeviceQueue {
         self.id = id
         self.name = name
         self.creatorThread = Thread.current
+        self.defaultQueueEventOptions = QueueEventOptions()
         let path = logInfo.namePath
+        trackingId = 0
         trackingId = ObjectTracker.global
             .register(self, namePath: path, isStatic: true)
         
@@ -54,6 +58,7 @@ public final class CpuSynchronousQueue: CpuQueueProtocol, LocalDeviceQueue {
     //--------------------------------------------------------------------------
     /// deinit
     /// waits for the queue to finish
+    @inlinable
     deinit {
         assert(Thread.current === creatorThread,
                "Queue has been captured and is being released by a " +
@@ -80,6 +85,7 @@ public final class CpuSynchronousQueue: CpuQueueProtocol, LocalDeviceQueue {
     //--------------------------------------------------------------------------
     /// createEvent
     /// creates an event object used for queue synchronization
+    @inlinable
     public func createEvent(options: QueueEventOptions) throws -> QueueEvent {
         let event = CpuSyncEvent(options: options, timeout: timeout)
         diagnostic("\(createString) QueueEvent(\(event.trackingId)) on " +
@@ -89,6 +95,7 @@ public final class CpuSynchronousQueue: CpuQueueProtocol, LocalDeviceQueue {
     
     //--------------------------------------------------------------------------
     /// record(event:
+    @inlinable
     @discardableResult
     public func record(event: QueueEvent) throws -> QueueEvent {
         guard lastError == nil else { throw lastError! }
@@ -107,6 +114,7 @@ public final class CpuSynchronousQueue: CpuQueueProtocol, LocalDeviceQueue {
     //--------------------------------------------------------------------------
     /// wait(for event:
     /// waits until the event has occurred
+    @inlinable
     public func wait(for event: QueueEvent) throws {
         guard lastError == nil else { throw lastError! }
         guard !event.occurred else { return }
@@ -118,6 +126,7 @@ public final class CpuSynchronousQueue: CpuQueueProtocol, LocalDeviceQueue {
     //--------------------------------------------------------------------------
     /// waitUntilQueueIsComplete
     /// blocks the calling thread until the command queue is empty
+    @inlinable
     public func waitUntilQueueIsComplete() throws {
         let event = try record(event: createEvent())
         diagnostic("\(waitString) QueueEvent(\(event.trackingId)) " +
@@ -130,6 +139,7 @@ public final class CpuSynchronousQueue: CpuQueueProtocol, LocalDeviceQueue {
     
     //--------------------------------------------------------------------------
     /// perform indexed copy from source view to result view
+    @inlinable
     public func copy<T>(from view: T, to result: inout T) where T : TensorView {
         // if the queue is in an error state, no additional work
         // will be queued
@@ -139,6 +149,7 @@ public final class CpuSynchronousQueue: CpuQueueProtocol, LocalDeviceQueue {
 
     //--------------------------------------------------------------------------
     /// copies from one device array to another
+    @inlinable
     public func copyAsync(to array: DeviceArray,
                           from otherArray: DeviceArray) throws {
         assert(!array.isReadOnly, "cannot mutate read only reference buffer")
@@ -150,6 +161,7 @@ public final class CpuSynchronousQueue: CpuQueueProtocol, LocalDeviceQueue {
 
     //--------------------------------------------------------------------------
     /// copies a host buffer to a device array
+    @inlinable
     public func copyAsync(to array: DeviceArray,
                           from hostBuffer: UnsafeRawBufferPointer) throws
     {
@@ -162,6 +174,7 @@ public final class CpuSynchronousQueue: CpuQueueProtocol, LocalDeviceQueue {
     
     //--------------------------------------------------------------------------
     /// copies a device array to a host buffer
+    @inlinable
     public func copyAsync(to hostBuffer: UnsafeMutableRawBufferPointer,
                           from array: DeviceArray) throws
     {
@@ -173,6 +186,7 @@ public final class CpuSynchronousQueue: CpuQueueProtocol, LocalDeviceQueue {
 
     //--------------------------------------------------------------------------
     /// fills the device array with zeros
+    @inlinable
     public func zero(array: DeviceArray) throws {
         assert(!array.isReadOnly, "cannot mutate read only reference buffer")
         array.buffer.initializeMemory(as: UInt8.self, repeating: 0)

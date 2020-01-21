@@ -16,14 +16,15 @@
 public final class CpuDeviceArray : DeviceArray {
     //--------------------------------------------------------------------------
     // properties
-    public private(set) var trackingId = 0
+    public var trackingId: Int
     public let buffer: UnsafeMutableRawBufferPointer
     public let device: ComputeDevice
-    public var version = 0
+    public var version: Int
     public let isReadOnly: Bool
     
     //--------------------------------------------------------------------------
 	/// with count
+    @inlinable
 	public init(device: ComputeDevice, byteCount: Int, zero: Bool) {
         self.device = device
         buffer = UnsafeMutableRawBufferPointer.allocate(
@@ -31,12 +32,15 @@ public final class CpuDeviceArray : DeviceArray {
         if zero {
             buffer.initializeMemory(as: UInt8.self, repeating: 0)
         }
+        self.version = 0
         self.isReadOnly = false
+        self.trackingId = 0
         self.trackingId = ObjectTracker.global.register(self)
 	}
 
     //--------------------------------------------------------------------------
     /// readOnly uma buffer
+    @inlinable
     public init(device: ComputeDevice, buffer: UnsafeRawBufferPointer) {
         assert(buffer.baseAddress != nil)
         self.isReadOnly = true
@@ -44,17 +48,23 @@ public final class CpuDeviceArray : DeviceArray {
         let pointer = UnsafeMutableRawPointer(mutating: buffer.baseAddress!)
         self.buffer = UnsafeMutableRawBufferPointer(start: pointer,
                                                     count: buffer.count)
+        self.version = 0
+        self.trackingId = 0
         self.trackingId = ObjectTracker.global.register(self)
     }
 
     //--------------------------------------------------------------------------
     /// readWrite uma buffer
+    @inlinable
     public init(device: ComputeDevice, buffer: UnsafeMutableRawBufferPointer) {
         self.isReadOnly = false
         self.device = device
         self.buffer = buffer
+        self.version = 0
+        self.trackingId = 0
         self.trackingId = ObjectTracker.global.register(self)
     }
 
+    @inlinable
     deinit { ObjectTracker.global.remove(trackingId: trackingId) }
 }

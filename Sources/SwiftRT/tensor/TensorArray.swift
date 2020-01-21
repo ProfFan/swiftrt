@@ -25,18 +25,18 @@ public final class TensorArray<Element>: ObjectTracking, Codable, Logging
 {
     //--------------------------------------------------------------------------
     /// used by TensorViews to synchronize access to this object
-    public let accessQueue = DispatchQueue(label: "TensorArray.accessQueue")
+    public let accessQueue: DispatchQueue
     /// the number of elements in the data array
     public let count: Int
     /// `true` if the data array references an existing read only buffer
     public let isReadOnly: Bool
     /// testing: `true` if the last access caused the contents of the
     /// buffer to be copied
-    public private(set) var lastAccessCopiedBuffer = false
+    public var lastAccessCopiedBuffer: Bool
     /// testing: is `true` if the last data access caused the view's underlying
     /// tensorArray object to be copied. It's stored here instead of on the
     /// view, because the view is immutable when taking a read only pointer
-    public var lastAccessMutatedView: Bool = false
+    public var lastAccessMutatedView: Bool
     /// the last queue id that wrote to the tensor
     public var lastMutatingQueue: DeviceQueue?
     /// whenever a buffer write pointer is taken, the associated DeviceArray
@@ -44,67 +44,75 @@ public final class TensorArray<Element>: ObjectTracking, Codable, Logging
     /// is still required for taking multiple write pointers, however
     /// this does automatically synchronize data migrations.
     /// The value will be `nil` if no access has been taken yet
-    private var master: DeviceArray?
+    @usableFromInline
+    var master: DeviceArray?
     /// this is incremented each time a write pointer is taken
     /// all replicated buffers will stay in sync with this version
-    private var masterVersion = -1
+    @usableFromInline
+    var masterVersion: Int
     /// name label used for logging
     public let name: String
     /// replication collection
-    private var replicas = [Int : DeviceArray]()
+    @usableFromInline
+    var replicas: [Int : DeviceArray]
     /// the object tracking id
-    public private(set) var trackingId = 0
+    public var trackingId = 0
 
     //--------------------------------------------------------------------------
+    // common
+    @inlinable @inline(__always)
+    public init(count: Int, isReadOnly: Bool, name: String) {
+        self.accessQueue = DispatchQueue(label: "TensorArray.accessQueue")
+        self.count = count
+        self.isReadOnly = isReadOnly
+        self.lastAccessCopiedBuffer = false
+        self.lastAccessMutatedView = false
+        self.masterVersion = -1
+        self.name = name
+        self.replicas = [Int : DeviceArray]()
+        self.trackingId = 0
+        #if DEBUG
+        trackingId = ObjectTracker.global
+            .register(self, namePath: logNamePath, supplementalInfo:
+                "\(String(describing: Element.self))[\(count)]")
+
+        diagnostic("\(createString) \(name)(\(trackingId)) " +
+            "\(String(describing: Element.self))[\(count)]",
+            categories: .dataAlloc)
+        #endif
+    }
+    
+    //--------------------------------------------------------------------------
     // empty
-    public init() {
-        count = 0
-        isReadOnly = false
-        name = ""
+    @inlinable @inline(__always)
+    public convenience init() {
+        self.init(count: 0, isReadOnly: false, name: "")
     }
 
     //--------------------------------------------------------------------------
     // casting used for safe conversion between FixedSizeVector and Scalar
-    public init<T>(_ other: TensorArray<T>) where
+    @inlinable @inline(__always)
+    public convenience init<T>(_ other: TensorArray<T>) where
         T: FixedSizeVector, T.Scalar == Element
     {
-        self.name = other.name
-        self.count = other.count * T.count
+        self.init(count: other.count * T.count, isReadOnly: false, name: other.name)
         self.replicas = other.replicas
-        isReadOnly = false
-        register()
-        
-        diagnostic("\(createString) \(name)(\(trackingId)) " +
-            "\(String(describing: Element.self))[\(count)]",
-            categories: .dataAlloc)
     }
 
     //--------------------------------------------------------------------------
     // create a new element array
-    public init(count: Int, name: String) {
-        self.name = name
-        self.count = count
-        isReadOnly = false
-        register()
-        
-        diagnostic("\(createString) \(name)(\(trackingId)) " +
-            "\(String(describing: Element.self))[\(count)]",
-            categories: .dataAlloc)
+    @inlinable @inline(__always)
+    public convenience init(count: Int, name: String) {
+        self.init(count: count, isReadOnly: false, name: name)
     }
 
     //--------------------------------------------------------------------------
     // create a new element array initialized with values
-    public init<C>(elements: C, name: String) where
+    @inlinable @inline(__always)
+    public convenience init<C>(elements: C, name: String) where
         C: Collection, C.Element == Element
     {
-        self.name = name
-        self.count = elements.count
-        isReadOnly = false
-        register()
-        
-        diagnostic("\(createString) \(name)(\(trackingId)) " +
-            "initializing with \(String(describing: Element.self))[\(count)]",
-            categories: .dataAlloc)
+        self.init(count: elements.count, isReadOnly: false, name: name)
         
         // this should never fail since it is copying from host buffer to
         // host buffer. It is synchronous, so we don't need to create or
@@ -118,11 +126,12 @@ public final class TensorArray<Element>: ObjectTracking, Codable, Logging
     //--------------------------------------------------------------------------
     // All initializers copy the data except this one which creates a
     // read only reference to avoid unnecessary copying from the source
-    public init(referenceTo buffer: UnsafeBufferPointer<Element>, name: String){
-        self.name = name
-        self.count = buffer.count
+    @inlinable @inline(__always)
+    public convenience init(referenceTo buffer: UnsafeBufferPointer<Element>,
+                            name: String)
+    {
+        self.init(count: buffer.count, isReadOnly: true, name: name)
         masterVersion = 0
-        isReadOnly = true
         
         // create the replica device array
         let queue = DeviceContext.currentQueue
@@ -131,23 +140,18 @@ public final class TensorArray<Element>: ObjectTracking, Codable, Logging
         let array = queue.device.createReferenceArray(buffer: bytes)
         array.version = -1
         replicas[key] = array
-        register()
-
-        diagnostic("\(referenceString) \(name)(\(trackingId)) " +
-            "readOnly device array reference on \(queue.device.name) " +
-            "\(String(describing: Element.self))[\(count)]",
-            categories: .dataAlloc)
     }
     
     //--------------------------------------------------------------------------
     /// uses the specified UnsafeMutableBufferPointer as the host
     /// backing stored
-    public init(referenceTo buffer: UnsafeMutableBufferPointer<Element>,
-                name: String) {
-        self.name = name
-        self.count = buffer.count
+    @inlinable @inline(__always)
+    public convenience init(
+        referenceTo buffer: UnsafeMutableBufferPointer<Element>,
+        name: String)
+    {
+        self.init(count: buffer.count, isReadOnly: false, name: name)
         masterVersion = 0
-        isReadOnly = false
         
         // create the replica device array
         let queue = DeviceContext.currentQueue
@@ -156,30 +160,17 @@ public final class TensorArray<Element>: ObjectTracking, Codable, Logging
         let array = queue.device.createMutableReferenceArray(buffer: bytes)
         array.version = -1
         replicas[key] = array
-        register()
-
-        diagnostic("\(referenceString) \(name)(\(trackingId)) " +
-            "readWrite device array reference on \(queue.device.name) " +
-            "\(String(describing: Element.self))[\(count)]",
-            categories: .dataAlloc)
     }
     
     //--------------------------------------------------------------------------
     // init from other TensorArray
-    public init(copying other: TensorArray, using queue: DeviceQueue) throws {
-        // initialize members
-        isReadOnly = other.isReadOnly
-        count = other.count
-        name = other.name
+    @inlinable @inline(__always)
+    public convenience init(copying other: TensorArray,
+                            using queue: DeviceQueue) throws
+    {
+        self.init(count: other.count, isReadOnly: other.isReadOnly,
+                  name: other.name)
         masterVersion = 0
-        register()
-        
-        // report
-        diagnostic("\(createString) \(name)(\(trackingId)) init" +
-            "\(setText(" copying", color: .blue)) from " +
-            "\(name)(\(other.trackingId)) " +
-            "\(String(describing: Element.self))[\(count)]",
-            categories: [.dataAlloc, .dataCopy])
 
         // make sure there is something to copy
         guard let otherMaster = other.master else { return }
@@ -200,20 +191,15 @@ public final class TensorArray<Element>: ObjectTracking, Codable, Logging
     }
 
     //--------------------------------------------------------------------------
-    // object lifetime tracking for leak detection
-    private func register() {
-        trackingId = ObjectTracker.global
-            .register(self, namePath: logNamePath, supplementalInfo:
-                "\(String(describing: Element.self))[\(count)]")
-    }
-    
-    //--------------------------------------------------------------------------
+    @inlinable @inline(__always)
     deinit {
+        #if DEBUG
         ObjectTracker.global.remove(trackingId: trackingId)
         if count > 0 {
             diagnostic("\(releaseString) \(name)(\(trackingId)) ",
                 categories: .dataAlloc)
         }
+        #endif
     }
 
     //--------------------------------------------------------------------------
@@ -351,7 +337,8 @@ public final class TensorArray<Element>: ObjectTracking, Codable, Logging
     // getArray(queue:
     // This manages a dictionary of replicated device arrays indexed
     // by serviceId and id. It will lazily create a device array if needed
-    private func getArray(for queue: DeviceQueue) throws -> DeviceArray {
+    @inlinable
+    public func getArray(for queue: DeviceQueue) throws -> DeviceArray {
         // lookup array associated with this queue
         let key = queue.device.deviceArrayReplicaKey
         if let replica = replicas[key] {
@@ -377,9 +364,10 @@ public final class TensorArray<Element>: ObjectTracking, Codable, Logging
     // Codable
     // useful discussion on techniques
     // https://www.raywenderlich.com/3418439-encoding-and-decoding-in-swift
-    enum CodingKeys: String, CodingKey { case name, data }
+    public enum CodingKeys: String, CodingKey { case name, data }
     
     /// encodes the contents of the array
+    @inlinable
     public func encode(to encoder: Encoder) throws {
         var container = encoder.container(keyedBy: CodingKeys.self)
         try container.encode(name, forKey: .name)
@@ -390,6 +378,7 @@ public final class TensorArray<Element>: ObjectTracking, Codable, Logging
         }
     }
     
+    @inlinable
     public convenience init(from decoder: Decoder) throws {
         let container = try decoder.container(keyedBy: CodingKeys.self)
         let name = try container.decode(String.self, forKey: .name)

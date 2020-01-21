@@ -18,6 +18,7 @@
 /// concat
 /// - Parameter tensors: array of tensors whose elements will be joined
 /// - Parameter axis: dimension to append the elements
+@inlinable
 func concat<T>(tensors: [T], alongAxis axis: Int = 0,
                name: String? = nil) -> T where T: TensorView
 {
@@ -31,6 +32,7 @@ func concat<T>(tensors: [T], alongAxis axis: Int = 0,
 }
 
 public extension TensorView {
+    @inlinable
     func concat(_ others: Self..., alongAxis axis: Int = 0) -> Self {
         SwiftRT.concat(tensors: [self] + others, alongAxis: axis)
     }
@@ -52,6 +54,7 @@ public func copy<T>(from view: T, to result: inout T) where T: TensorView
 //==============================================================================
 /// fill<T>(result:value:
 /// fills the view with the specified value
+@inlinable
 public func fill<T>(_ result: inout T, with element: T.Element)
     where T: TensorView
 {
@@ -61,6 +64,7 @@ public func fill<T>(_ result: inout T, with element: T.Element)
 public extension TensorView {
     /// filled
     /// creates a tensor and fills on device
+    @inlinable
     func filled(with element: Element) -> Self {
         var result = createDense()
         fill(&result, with: element)
@@ -71,6 +75,7 @@ public extension TensorView {
 //==============================================================================
 /// fillWithIndex(x:startAt:
 /// fills the view with the spatial sequential index
+@inlinable
 public func fillWithIndex<T>(_ result: inout T, startAt index: Int = 0) where
     T: TensorView, T.Element: AnyNumeric
 {
@@ -78,6 +83,7 @@ public func fillWithIndex<T>(_ result: inout T, startAt index: Int = 0) where
 }
 
 public extension TensorView where Element: AnyNumeric {
+    @inlinable
     func filledWithIndex(startAt index: Int = 0) -> Self {
         var result = createDense()
         SwiftRT.fillWithIndex(&result, startAt: index)
@@ -88,6 +94,7 @@ public extension TensorView where Element: AnyNumeric {
 //==============================================================================
 /// replace<T>(x:with:result:
 /// fills the view with the specified value
+@inlinable
 public func replace<T>(x: T, with y: T, where condition: T.BoolView,
                        result: inout T) where T: TensorView
 {
@@ -96,6 +103,7 @@ public func replace<T>(x: T, with y: T, where condition: T.BoolView,
 }
 
 public extension TensorView where Element: Comparable {
+    @inlinable
     func replacing(with y: Self, where condition: BoolView) -> Self
     {
         var result = createDense()
@@ -103,6 +111,7 @@ public extension TensorView where Element: Comparable {
         return result
     }
 
+    @inlinable
     func replacing(with value: Element, where condition: BoolView) -> Self {
         replacing(with: Self(repeating: value, like: self), where: condition)
     }

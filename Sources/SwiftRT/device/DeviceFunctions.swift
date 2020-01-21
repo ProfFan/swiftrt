@@ -191,7 +191,7 @@ public protocol DeviceFunctions {
 public extension DeviceFunctions where Self: DeviceQueue {
     // mapOp 1
     /// generically maps a tensor
-    @inlinable
+    @inlinable @inline(__always)
     func mapOp<T, R>(_ x: T, _ result: inout R,
                      _ op: @escaping (T.Element) -> R.Element) where
         T: TensorView, R: TensorView
@@ -200,7 +200,7 @@ public extension DeviceFunctions where Self: DeviceQueue {
     }
     // mapOp 2
     /// generically combines two tensors
-    @inlinable
+    @inlinable @inline(__always)
     func mapOp<LHS, RHS, R>(
         _ lhs: LHS, _ rhs: RHS, _ result: inout R,
         _ op: @escaping (LHS.Element, RHS.Element) -> R.Element) where
@@ -210,7 +210,7 @@ public extension DeviceFunctions where Self: DeviceQueue {
     }
     // mapOp 3
     /// generically combines three tensors
-    @inlinable
+    @inlinable @inline(__always)
     func mapOp<T1, T2, T3, R>(
         _ a: T1, _ b: T2, _ c: T3, _ result: inout R,
         _ op: @escaping (T1.Element, T2.Element, T3.Element) -> R.Element) where
@@ -220,7 +220,7 @@ public extension DeviceFunctions where Self: DeviceQueue {
     }
     // mapOp 3R2
     /// generically combines three tensors
-    @inlinable
+    @inlinable @inline(__always)
     func mapOp<T1, T2, T3, R>(
         _ a: T1, _ b: T2, _ c: T3, _ result1: inout R,  _ result2: inout R,
         _ op: @escaping (T1.Element, T2.Element, T3.Element) -> (R.Element, R.Element))
@@ -238,7 +238,7 @@ public extension DeviceFunctions where Self: DeviceQueue {
         }
     }
     // inPlaceOp
-    @inlinable
+    @inlinable @inline(__always)
     func inPlaceOp<T>(_ result: inout T,
                       _ op: @escaping (T.Element) -> T.Element) where
         T: MutableCollection
@@ -246,7 +246,7 @@ public extension DeviceFunctions where Self: DeviceQueue {
         result.indices.forEach { result[$0] = op(result[$0]) }
     }
     // reductionOp
-    @inlinable
+    @inlinable @inline(__always)
     func reductionOp<T, R>(
         _ x: T, _ result: inout R,
         _ op: @escaping (R.Element, T.Element) -> R.Element) where
@@ -257,14 +257,14 @@ public extension DeviceFunctions where Self: DeviceQueue {
     
     //==========================================================================
     /// abs
-    @inlinable
+    @inlinable @inline(__always)
     func abs<T>(x: T, result: inout T) where
         T: TensorView, T.Element: Real
     {
         mapOp(x, &result) { Swift.abs($0) }
     }
     // add
-    @inlinable
+    @inlinable @inline(__always)
     func add<T>(lhs: T, rhs: T, result: inout T) where
         T: TensorView, T.Element: AdditiveArithmetic
     {

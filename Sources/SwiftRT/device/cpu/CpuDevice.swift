@@ -88,31 +88,36 @@ public final class CpuDevice<QueueT>: LocalComputeDevice
         trackingId = ObjectTracker.global
             .register(self, namePath: logNamePath, isStatic: true)
 	}
+
+    @inlinable
 	deinit { ObjectTracker.global.remove(trackingId: trackingId) }
 
     //--------------------------------------------------------------------------
 	// createArray
 	//	This creates memory on the device
+    @inlinable
     public func createArray(byteCount: Int, heapIndex: Int, zero: Bool) throws
         -> DeviceArray
     {
-        return CpuDeviceArray(device: self, byteCount: byteCount, zero: zero)
+        CpuDeviceArray(device: self, byteCount: byteCount, zero: zero)
 	}
     
     //--------------------------------------------------------------------------
     // createMutableReferenceArray
     /// creates a device array from a uma buffer.
+    @inlinable
     public func createMutableReferenceArray(
         buffer: UnsafeMutableRawBufferPointer) -> DeviceArray {
-        return CpuDeviceArray(device: self, buffer: buffer)
+        CpuDeviceArray(device: self, buffer: buffer)
     }
     
     //--------------------------------------------------------------------------
     // createReferenceArray
     /// creates a device array from a uma buffer.
+    @inlinable
     public func createReferenceArray(buffer: UnsafeRawBufferPointer)
         -> DeviceArray
     {
-        return CpuDeviceArray(device: self, buffer: buffer)
+        CpuDeviceArray(device: self, buffer: buffer)
     }
 }

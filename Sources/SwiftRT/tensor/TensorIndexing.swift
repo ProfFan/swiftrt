@@ -45,7 +45,7 @@ public extension TensorView {
     /// - Parameter steps: the step interval along each dimension. This
     ///                    value can be negative to perform reverse traversal
     /// - Returns: the extents and strides to be used to create a subview
-    @inlinable
+    @inlinable @inline(__always)
     func getExtents(_ lower: Shape.Array,
                     _ upper: Shape.Array,
                     _ steps: Shape.Array) ->
@@ -170,6 +170,7 @@ public struct TensorValueCollection<View>: RandomAccessCollection
     public let endIndex: View.Index
     public let count: Int
 
+    @inlinable @inline(__always)
     public init(view: View, buffer: UnsafeBufferPointer<View.Element>) {
         self.view = view
         self.buffer = buffer
@@ -178,6 +179,7 @@ public struct TensorValueCollection<View>: RandomAccessCollection
         count = view.count
     }
 
+    @inlinable @inline(__always)
     public init(view: View) {
         self.view = view
         self.buffer = UnsafeBufferPointer<View.Element>(start: nil, count: 0)
@@ -211,6 +213,7 @@ public struct TensorMutableValueCollection<View>: RandomAccessCollection,
     public let endIndex: View.Index
     public let count: Int
     
+    @inlinable @inline(__always)
     public init(view: inout View,
                 buffer: UnsafeMutableBufferPointer<View.Element>) {
         self.buffer = buffer
@@ -219,6 +222,7 @@ public struct TensorMutableValueCollection<View>: RandomAccessCollection,
         count = view.count
     }
     
+    @inlinable @inline(__always)
     public init(view: inout View) {
         self.buffer = UnsafeMutableBufferPointer<View.Element>(start: nil,
                                                                count: 0)
@@ -230,19 +234,15 @@ public struct TensorMutableValueCollection<View>: RandomAccessCollection,
     //--------------------------------------------------------------------------
     // Collection
     @inlinable @inline(__always)
-    public func index(before i: View.Index) -> View.Index {
-        return i.advanced(by: -1)
-    }
+    public func index(before i: View.Index) -> View.Index { i.advanced(by: -1) }
     
     @inlinable @inline(__always)
-    public func index(after i: View.Index) -> View.Index {
-        return i.increment()
-    }
+    public func index(after i: View.Index) -> View.Index { i.increment() }
     
     @inlinable @inline(__always)
     public subscript(index: View.Index) -> View.Element {
         get {
-            return buffer[index.dataIndex]
+            buffer[index.dataIndex]
         }
         set {
             buffer[index.dataIndex] = newValue

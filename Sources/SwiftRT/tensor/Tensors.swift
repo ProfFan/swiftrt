@@ -26,6 +26,7 @@ extension VectorType: CustomStringConvertible where Element: AnyConvertable {
 extension VectorType: Equatable where Element: Equatable { }
 
 extension VectorType: AdditiveArithmetic where Element: Numeric {
+    @inlinable @inline(__always)
     public static var zero: VectorType<Element> {
         VectorType<Element>(element: Element.zero)
     }
@@ -36,26 +37,31 @@ extension VectorType: AdditiveArithmetic where Element: Numeric {
 public extension VectorView {
     //--------------------------------------------------------------------------
     /// reserved space
+    @inlinable @inline(__always)
     init(extents: Shape.Array, name: String? = nil) {
         self = Self.create(Shape(extents: extents), name)
     }
     
+    @inlinable @inline(__always)
     init(extents: Shape.Tuple, name: String? = nil) {
         self.init(extents: Shape.Array(extents), name: name)
     }
     
+    @inlinable @inline(__always)
     init(count: Int, name: String? = nil) {
         self.init(extents: (count), name: name)
     }
     
     //--------------------------------------------------------------------------
     /// from single `Element`
+    @inlinable @inline(__always)
     init(element: Element, name: String? = nil) {
         self = Self.create([element], Shape(extents: (1)), name)
     }
     
     //--------------------------------------------------------------------------
     /// from single `AnyConvertable`
+    @inlinable @inline(__always)
     init<T>(with element: T, name: String? = nil) where
         T: AnyConvertable, Element: AnyConvertable
     {
@@ -64,6 +70,7 @@ public extension VectorView {
     
     //--------------------------------------------------------------------------
     /// from flat `Element` collection
+    @inlinable @inline(__always)
     init<C>(elements: C, name: String? = nil) where
         C: Collection, C.Element == Element
     {
@@ -83,6 +90,7 @@ public extension VectorView {
     //--------------------------------------------------------------------------
     /// with reference to read only buffer
     /// useful for memory mapped databases, or hardware device buffers
+    @inlinable @inline(__always)
     init(referenceTo buffer: UnsafeBufferPointer<Element>, name: String? = nil)
     {
         let shape = Shape(extents: (buffer.count))
@@ -92,6 +100,7 @@ public extension VectorView {
     //--------------------------------------------------------------------------
     /// with reference to read write buffer
     /// useful for memory mapped databases, or hardware device buffers
+    @inlinable @inline(__always)
     init(referenceTo buffer: UnsafeMutableBufferPointer<Element>,
          name: String? = nil)
     {
@@ -101,10 +110,12 @@ public extension VectorView {
 
     //--------------------------------------------------------------------------
     // typed views
+    @inlinable @inline(__always)
     func createBoolTensor(with extents: Shape.Array) -> VectorType<Bool> {
         VectorType<Bool>(extents: extents)
     }
     
+    @inlinable @inline(__always)
     func createIndexTensor(with extents: Shape.Array) -> VectorType<IndexType> {
         VectorType<IndexType>(extents: extents)
     }
@@ -115,26 +126,31 @@ public extension VectorView {
 public extension VectorView {
     //--------------------------------------------------------------------------
     // TODO: probably move these off onto the TensorViewCollection
+    @inlinable @inline(__always)
     var startIndex: VectorIndex { VectorIndex(view: self, at: Shape.zeros.tuple)}
+
+    @inlinable @inline(__always)
     var endIndex: VectorIndex { VectorIndex(endOf: self) }
 
     //--------------------------------------------------------------------------
     /// Swift array of elements
+    @inlinable @inline(__always)
     var array: [Element] { [Element](elements()) }
 
     //--------------------------------------------------------------------------
-    @differentiable(where Self: DifferentiableTensorView)
     @inlinable @inline(__always)
+    @differentiable(where Self: DifferentiableTensorView)
     subscript(index: Int) -> Self {
         get { self[(index), (index + 1), Shape.ones.tuple] }
         set { self[(index), (index + 1), Shape.ones.tuple] = newValue }
     }
     
+    @inlinable @inline(__always)
     @differentiable(where Self: DifferentiableTensorView)
     subscript(r: UnboundedRange) -> Self { self }
 
-    @differentiable(where Self: DifferentiableTensorView)
     @inlinable @inline(__always)
+    @differentiable(where Self: DifferentiableTensorView)
     subscript<R>(range: R) -> Self
         where R: PartialRangeExpression, R.Bound == Int
     {
@@ -156,11 +172,12 @@ public struct VectorType<Element>: VectorView
 {
     // properties
     public let isShared: Bool
-    public let format: TensorFormat = .vector
+    public let format: TensorFormat
     public let shape: Shape1
     public var tensorArray: TensorArray<Element>
     public let viewOffset: Int
     
+    @inlinable @inline(__always)
     public init(shape: Shape1,
                 tensorArray: TensorArray<Element>,
                 viewOffset: Int,
@@ -170,6 +187,7 @@ public struct VectorType<Element>: VectorView
         self.tensorArray = tensorArray
         self.viewOffset = viewOffset
         self.isShared = isShared
+        self.format = .vector
     }
 }
 
@@ -196,6 +214,7 @@ extension MatrixType: CustomStringConvertible where Element: AnyConvertable {
 extension MatrixType: Equatable where Element: Equatable { }
 
 extension MatrixType: AdditiveArithmetic where Element: Numeric {
+    @inlinable @inline(__always)
     public static var zero: MatrixType<Element> {
         MatrixType<Element>(element: Element.zero)
     }
@@ -206,18 +225,21 @@ extension MatrixType: AdditiveArithmetic where Element: Numeric {
 public extension MatrixView {
     //--------------------------------------------------------------------------
     /// reserved space
+    @inlinable @inline(__always)
     init(extents: Shape.Array, layout: MatrixLayout = .rowMajor,
          name: String? = nil)
     {
         self.init(extents: extents.storage, layout: layout, name: name)
     }
     
+    @inlinable @inline(__always)
     init(extents: Shape.Tuple, layout: MatrixLayout = .rowMajor,
          name: String? = nil)
     {
         self = Self.create(Self.matrixShape(extents, layout), name)
     }
     
+    @inlinable @inline(__always)
     init(_ rows: Int, _ cols: Int, layout: MatrixLayout = .rowMajor,
          name: String? = nil)
     {
@@ -226,6 +248,7 @@ public extension MatrixView {
 
     //--------------------------------------------------------------------------
     /// from single `Element`
+    @inlinable @inline(__always)
     init(element: Element, name: String? = nil) {
         let shape = Shape(extents: Shape.ones)
         self = Self.create([element], shape, name)
@@ -233,6 +256,7 @@ public extension MatrixView {
 
     //--------------------------------------------------------------------------
     /// from single `AnyConvertable`
+    @inlinable @inline(__always)
     init<T>(with element: T, name: String? = nil) where
         T: AnyConvertable, Element: AnyConvertable
     {
@@ -242,6 +266,7 @@ public extension MatrixView {
 
     //--------------------------------------------------------------------------
     /// from flat `Element` collection
+    @inlinable @inline(__always)
     init<C>(_ rows: Int , _ cols: Int, elements: C,
             layout: MatrixLayout = .rowMajor,
             name: String? = nil) where
@@ -254,6 +279,7 @@ public extension MatrixView {
 
     //--------------------------------------------------------------------------
     /// from flat `AnyConvertable` collection
+    @inlinable @inline(__always)
     init<C>(_ rows: Int, _ cols: Int, with elements: C,
             layout: MatrixLayout = .rowMajor,
             name: String? = nil) where
@@ -266,6 +292,7 @@ public extension MatrixView {
     
     //--------------------------------------------------------------------------
     /// from structred 2D `Element` collection
+    @inlinable @inline(__always)
     init<T>(elements: [[T]], name: String? = nil) where T == Element{
         let shape = Shape(extents: (elements.count, elements.first!.count))
         self = Self.create(elements.joined(), shape, name)
@@ -273,6 +300,7 @@ public extension MatrixView {
     
     //--------------------------------------------------------------------------
     /// from structred 2D `AnyConvertable` collection
+    @inlinable @inline(__always)
     init<T>(with elements: [[T]], name: String? = nil)
         where T: AnyConvertable, Element: AnyConvertable
     {
@@ -286,6 +314,7 @@ public extension MatrixView {
     //--------------------------------------------------------------------------
     /// with reference to read only buffer
     /// useful for memory mapped databases, or hardware device buffers
+    @inlinable @inline(__always)
     init(_ rows: Int, _ cols: Int,
          referenceTo buffer: UnsafeBufferPointer<Element>,
          layout: MatrixLayout = .rowMajor,
@@ -298,6 +327,7 @@ public extension MatrixView {
     //--------------------------------------------------------------------------
     /// with reference to read write buffer
     /// useful for memory mapped databases, or hardware device buffers
+    @inlinable @inline(__always)
     init(_ rows: Int, _ cols: Int,
          referenceTo buffer: UnsafeMutableBufferPointer<Element>,
          layout: MatrixLayout = .rowMajor,
@@ -309,27 +339,31 @@ public extension MatrixView {
     
     //--------------------------------------------------------------------------
     // typed views
+    @inlinable @inline(__always)
     func createBoolTensor(with extents: Shape.Array) -> MatrixType<Bool> {
         MatrixType<Bool>(extents: extents)
     }
     
+    @inlinable @inline(__always)
     func createIndexTensor(with extents: Shape.Array) -> MatrixType<IndexType> {
         MatrixType<IndexType>(extents: extents)
     }
 
     //--------------------------------------------------------------------------
     // transpose
+    @inlinable @inline(__always)
     var t: Self {
-        return Self.init(shape: shape.transposed(),
-                         tensorArray: tensorArray,
-                         viewOffset: viewOffset,
-                         isShared: isShared)
+        Self.init(shape: shape.transposed(),
+                  tensorArray: tensorArray,
+                  viewOffset: viewOffset,
+                  isShared: isShared)
     }
     
     //--------------------------------------------------------------------------
     // utilities
-    private static func matrixShape(_ extents: Shape.Tuple,
-                                    _ layout: MatrixLayout) -> Shape
+    @inlinable @inline(__always)
+    static func matrixShape(_ extents: Shape.Tuple,
+                            _ layout: MatrixLayout) -> Shape
     {
         let shape = Shape(extents: extents)
         return layout == .rowMajor ? shape : shape.columnMajor
@@ -341,11 +375,15 @@ public extension MatrixView {
 public extension MatrixView {
     //--------------------------------------------------------------------------
     // TODO: probably move these off onto the TensorViewCollection
+    @inlinable @inline(__always)
     var startIndex: MatrixIndex { MatrixIndex(view: self, at: Shape.zeros.tuple)}
+
+    @inlinable @inline(__always)
     var endIndex: MatrixIndex { MatrixIndex(endOf: self) }
     
     //--------------------------------------------------------------------------
     /// Swift array of elements
+    @inlinable @inline(__always)
     var array: [[Element]] {
         var result = [[Element]]()
         for row in 0..<extents[0] {
@@ -356,15 +394,15 @@ public extension MatrixView {
 
     //--------------------------------------------------------------------------
     // single element
-    @differentiable(where Self: DifferentiableTensorView)
     @inlinable @inline(__always)
+    @differentiable(where Self: DifferentiableTensorView)
     subscript(r: Int, c: Int) -> Self {
         get { self[(r, c), (r + 1, c + 1), Shape.ones.tuple] }
         set { self[(r, c), (r + 1, c + 1), Shape.ones.tuple] = newValue }
     }
 
-    @differentiable(where Self: DifferentiableTensorView)
     @inlinable @inline(__always)
+    @differentiable(where Self: DifferentiableTensorView)
     subscript<R, C>(rows: R, cols: C) -> Self where
         R: PartialRangeExpression, R.Bound == Int,
         C: PartialRangeExpression, C.Bound == Int
@@ -382,6 +420,7 @@ public extension MatrixView {
         }
     }
     
+    @inlinable @inline(__always)
     @differentiable(where Self: DifferentiableTensorView)
     subscript<R>(rows: R, cols: UnboundedRange) -> Self
         where R: PartialRangeExpression, R.Bound == Int {
@@ -389,6 +428,7 @@ public extension MatrixView {
         set { self[rows, 0...] = newValue }
     }
     
+    @inlinable @inline(__always)
     @differentiable(where Self: DifferentiableTensorView)
     subscript<C>(rows: UnboundedRange, cols: C) -> Self
         where C: PartialRangeExpression, C.Bound == Int {
@@ -404,11 +444,12 @@ public struct MatrixType<Element>: MatrixView
 {
     // properties
     public let isShared: Bool
-    public let format: TensorFormat = .matrix
+    public let format: TensorFormat
     public let shape: Shape2
     public var tensorArray: TensorArray<Element>
     public let viewOffset: Int
 
+    @inlinable @inline(__always)
     public init(shape: Shape2,
                 tensorArray: TensorArray<Element>,
                 viewOffset: Int,
@@ -418,6 +459,7 @@ public struct MatrixType<Element>: MatrixView
         self.tensorArray = tensorArray
         self.viewOffset = viewOffset
         self.isShared = isShared
+        self.format = .matrix
     }
 }
 
@@ -442,6 +484,7 @@ extension VolumeType: CustomStringConvertible where Element: AnyConvertable {
 extension VolumeType: Equatable where Element: Equatable { }
 
 extension VolumeType: AdditiveArithmetic where Element: Numeric {
+    @inlinable @inline(__always)
     public static var zero: VolumeType<Element> {
         VolumeType<Element>(element: Element.zero)
     }
@@ -452,20 +495,24 @@ extension VolumeType: AdditiveArithmetic where Element: Numeric {
 public extension VolumeView {
     //--------------------------------------------------------------------------
     /// reserved space
+    @inlinable @inline(__always)
     init(extents: Shape.Array, name: String? = nil) {
         self = Self.create(Shape(extents: extents), name)
     }
     
+    @inlinable @inline(__always)
     init(extents: Shape.Tuple, name: String? = nil) {
         self.init(extents: Shape.Array(extents), name: name)
     }
 
+    @inlinable @inline(__always)
     init(_ deps: Int, _ rows: Int, _ cols: Int, name: String? = nil) {
         self.init(extents: (deps, rows, cols), name: name)
     }
     
     //--------------------------------------------------------------------------
     /// from single `Element`
+    @inlinable @inline(__always)
     init(element: Element, name: String? = nil) {
         let shape = Shape(extents: Shape.ones)
         self = Self.create([element], shape, name)
@@ -473,6 +520,7 @@ public extension VolumeView {
 
     //--------------------------------------------------------------------------
     /// from single `AnyConvertable`
+    @inlinable @inline(__always)
     init<T>(with element: T, name: String? = nil) where
         T: AnyConvertable, Element: AnyConvertable
     {
@@ -482,6 +530,7 @@ public extension VolumeView {
     
     //--------------------------------------------------------------------------
     /// from flat `Element` collection
+    @inlinable @inline(__always)
     init<C>(_ deps: Int, _ rows: Int, _ cols: Int,
             elements: C, name: String? = nil) where
         C: Collection, C.Element == Element
@@ -493,6 +542,7 @@ public extension VolumeView {
     
     //--------------------------------------------------------------------------
     /// from flat `AnyConvertable` collection
+    @inlinable @inline(__always)
     init<C>(_ deps: Int, _ rows: Int, _ cols: Int,
             with elements: C, name: String? = nil) where
         C: Collection, C.Element: AnyConvertable, Element: AnyConvertable
@@ -504,6 +554,7 @@ public extension VolumeView {
     
     //--------------------------------------------------------------------------
     /// from structred 3D `Element` collection
+    @inlinable @inline(__always)
     init<T>(elements: [[[T]]], name: String? = nil) where T == Element{
         let shape = Shape(extents: (elements.count,
                                     elements.first!.count,
@@ -514,6 +565,7 @@ public extension VolumeView {
     
     //--------------------------------------------------------------------------
     /// from structred 3D `AnyConvertable` collection
+    @inlinable @inline(__always)
     init<T>(with elements: [[[T]]], name: String? = nil)
         where T: AnyConvertable, Element: AnyConvertable
     {
@@ -529,6 +581,7 @@ public extension VolumeView {
     //--------------------------------------------------------------------------
     /// with reference to read only buffer
     /// useful for memory mapped databases, or hardware device buffers
+    @inlinable @inline(__always)
     init(_ deps: Int, _ rows: Int, _ cols: Int,
          referenceTo buffer: UnsafeBufferPointer<Element>,
          name: String? = nil)
@@ -540,6 +593,7 @@ public extension VolumeView {
     //--------------------------------------------------------------------------
     /// with reference to read write buffer
     /// useful for memory mapped databases, or hardware device buffers
+    @inlinable @inline(__always)
     init(_ deps: Int, _ rows: Int, _ cols: Int,
          referenceTo buffer: UnsafeMutableBufferPointer<Element>,
          name: String? = nil)
@@ -550,10 +604,12 @@ public extension VolumeView {
     
     //--------------------------------------------------------------------------
     // typed views
+    @inlinable @inline(__always)
     func createBoolTensor(with extents: Shape.Array) -> VolumeType<Bool> {
         VolumeType<Bool>(extents: extents)
     }
     
+    @inlinable @inline(__always)
     func createIndexTensor(with extents: Shape.Array) -> VolumeType<IndexType> {
         VolumeType<IndexType>(extents: extents)
     }
@@ -564,13 +620,17 @@ public extension VolumeView {
 public extension VolumeView {
     //--------------------------------------------------------------------------
     // TODO: probably move these off onto the TensorViewCollection
+    @inlinable @inline(__always)
     var startIndex: VolumeIndex {
         VolumeIndex(view: self, at: Shape.zeros.tuple)
     }
+
+    @inlinable @inline(__always)
     var endIndex: VolumeIndex { VolumeIndex(endOf: self) }
     
     //--------------------------------------------------------------------------
     /// Swift array of elements
+    @inlinable @inline(__always)
     var array: [[[Element]]] {
         var result = [[[Element]]]()
         for di in 0..<extents[0] {
@@ -585,16 +645,16 @@ public extension VolumeView {
 
     //--------------------------------------------------------------------------
     // single element
-    @differentiable(where Self: DifferentiableTensorView)
     @inlinable @inline(__always)
+    @differentiable(where Self: DifferentiableTensorView)
     subscript(d: Int, r: Int, c: Int) -> Self {
         get { self[(d, r, c), (d + 1, r + 1, c + 1), Shape.ones.tuple] }
         set { self[(d, r, c), (d + 1, r + 1, c + 1), Shape.ones.tuple] =
             newValue }
     }
     
-    @differentiable(where Self: DifferentiableTensorView)
     @inlinable @inline(__always)
+    @differentiable(where Self: DifferentiableTensorView)
     subscript<D, R, C>(deps: D, rows: R, cols: C) -> Self where
         D: PartialRangeExpression, D.Bound == Int,
         R: PartialRangeExpression, R.Bound == Int,
@@ -619,6 +679,7 @@ public extension VolumeView {
         }
     }
     
+    @inlinable @inline(__always)
     @differentiable(where Self: DifferentiableTensorView)
     subscript<D>(deps: D, rows: UnboundedRange, cols: UnboundedRange) -> Self
         where D: PartialRangeExpression, D.Bound == Int {
@@ -626,6 +687,7 @@ public extension VolumeView {
         set { self[deps, 0..., 0...] = newValue }
     }
     
+    @inlinable @inline(__always)
     @differentiable(where Self: DifferentiableTensorView)
     subscript<D, R>(deps: D, rows: R, cols: UnboundedRange) -> Self where
         D: PartialRangeExpression, D.Bound == Int,
@@ -634,6 +696,7 @@ public extension VolumeView {
         set { self[deps, rows, 0...] = newValue }
     }
     
+    @inlinable @inline(__always)
     @differentiable(where Self: DifferentiableTensorView)
     subscript<D, C>(deps: D, rows: UnboundedRange, cols: C) -> Self where
         D: PartialRangeExpression, D.Bound == Int,
@@ -642,6 +705,7 @@ public extension VolumeView {
         set { self[deps, 0..., cols] = newValue }
     }
 
+    @inlinable @inline(__always)
     @differentiable(where Self: DifferentiableTensorView)
     subscript<R>(deps: UnboundedRange, rows: R, cols: UnboundedRange) -> Self
         where R: PartialRangeExpression, R.Bound == Int {
@@ -649,6 +713,7 @@ public extension VolumeView {
         set { self[0..., rows, 0...] = newValue }
     }
     
+    @inlinable @inline(__always)
     @differentiable(where Self: DifferentiableTensorView)
     subscript<C>(deps: UnboundedRange, rows: UnboundedRange, cols: C) -> Self
         where C: PartialRangeExpression, C.Bound == Int {
@@ -664,11 +729,12 @@ public struct VolumeType<Element>: VolumeView
 {
     // properties
     public let isShared: Bool
-    public let format: TensorFormat = .volume
+    public let format: TensorFormat
     public let shape: Shape3
     public var tensorArray: TensorArray<Element>
     public let viewOffset: Int
     
+    @inlinable @inline(__always)
     public init(shape: Shape3,
                 tensorArray: TensorArray<Element>,
                 viewOffset: Int,
@@ -678,6 +744,7 @@ public struct VolumeType<Element>: VolumeView
         self.tensorArray = tensorArray
         self.viewOffset = viewOffset
         self.isShared = isShared
+        self.format = .volume
     }
 }
 

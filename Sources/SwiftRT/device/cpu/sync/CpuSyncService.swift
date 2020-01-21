@@ -65,5 +65,7 @@ public final class CpuSynchronousService:
                                                     timeout: timeout)
         devices.append(device)
     }
+
+    @inlinable
     deinit { ObjectTracker.global.remove(trackingId: trackingId) }
 }

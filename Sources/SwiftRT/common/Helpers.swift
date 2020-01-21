@@ -99,7 +99,12 @@ public final class AtomicCounter {
 public final class Mutex {
     // properties
     @usableFromInline
-    let queue = DispatchQueue(label: "Mutex")
+    let queue: DispatchQueue
+    
+    @inlinable
+    public init() {
+        queue = DispatchQueue(label: "Mutex")
+    }
     
     // functions
     @inlinable

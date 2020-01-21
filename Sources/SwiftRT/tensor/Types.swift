@@ -43,12 +43,12 @@ extension Complex: DifferentiableElement {
 //==============================================================================
 // type extensions
 public extension Numeric {
-    @inlinable
+    @inlinable @inline(__always)
     static var one: Self { 1 }
 }
 
 extension Complex: AnyElement {
-    @inlinable
+    @inlinable @inline(__always)
     public init() {
         self.init(0)
     }

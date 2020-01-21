@@ -20,8 +20,8 @@ public final class CpuAsynchronousQueue:
     DeviceQueue, CpuQueueProtocol, LocalDeviceQueue
 {
 	// protocol properties
-	public private(set) var trackingId = 0
-    public var defaultQueueEventOptions = QueueEventOptions()
+    public var trackingId: Int
+    public var defaultQueueEventOptions: QueueEventOptions
 	public let device: ComputeDevice
     public let id: Int
 	public let name: String
@@ -33,12 +33,15 @@ public final class CpuAsynchronousQueue:
     public var _errorMutex: Mutex = Mutex()
     
     /// used to detect accidental queue access by other threads
-    private let creatorThread: Thread
+    @usableFromInline
+    let creatorThread: Thread
     /// the queue used for command execution
-    private let commandQueue: DispatchQueue
+    @usableFromInline
+    let commandQueue: DispatchQueue
 
     //--------------------------------------------------------------------------
     // initializers
+    @inlinable
     public init(logInfo: LogInfo, device: ComputeDevice, name: String, id: Int)
     {
         // create serial command queue
@@ -50,7 +53,9 @@ public final class CpuAsynchronousQueue:
         self.id = id
         self.name = name
         self.creatorThread = Thread.current
+        defaultQueueEventOptions = QueueEventOptions()
         let path = logInfo.namePath
+        trackingId = 0
         trackingId = ObjectTracker.global
             .register(self, namePath: path, isStatic: true)
         
@@ -61,6 +66,7 @@ public final class CpuAsynchronousQueue:
     //--------------------------------------------------------------------------
     /// deinit
     /// waits for the queue to finish
+    @inlinable
     deinit {
         assert(Thread.current === creatorThread,
                "Queue has been captured and is being released by a " +
@@ -87,6 +93,7 @@ public final class CpuAsynchronousQueue:
     //==========================================================================
     // generic helpers
     // generic map 1
+    @inlinable
     public func mapOp<T, R>(_ x: T, _ result: inout R,
                             _ op: @escaping (T.Element) -> R.Element) where
         T: TensorView, R: TensorView
@@ -97,6 +104,7 @@ public final class CpuAsynchronousQueue:
     }
     
     // generic map 2
+    @inlinable
     public func mapOp<LHS, RHS, R>(
         _ lhs: LHS, _ rhs: RHS, _ result: inout R,
         _ op: @escaping (LHS.Element, RHS.Element) -> R.Element) where
@@ -110,6 +118,7 @@ public final class CpuAsynchronousQueue:
     }
     
     // generic map 3
+    @inlinable
     public func mapOp<T1, T2, T3, R>(
         _ a: T1, _ b: T2, _ c: T3, _ result: inout R,
         _ op: @escaping (T1.Element, T2.Element, T3.Element) -> R.Element) where
@@ -124,6 +133,7 @@ public final class CpuAsynchronousQueue:
     }
     
     /// generic mapOp 3R2
+    @inlinable
     public func mapOp<T1, T2, T3, R>(
         _ a: T1, _ b: T2, _ c: T3, _ result1: inout R,  _ result2: inout R,
         _ op: @escaping (T1.Element, T2.Element, T3.Element) -> (R.Element, R.Element))
@@ -148,6 +158,7 @@ public final class CpuAsynchronousQueue:
 
     //--------------------------------------------------------------------------
     // does an in place op
+    @inlinable
     public func inPlaceOp<T>(_ result: inout T,
                              _ op: @escaping (T.Element) -> T.Element) where
         T: MutableCollection
@@ -161,6 +172,7 @@ public final class CpuAsynchronousQueue:
 
     //--------------------------------------------------------------------------
     // does a reduction op
+    @inlinable
     public func reductionOp<T, R>(
         _ x: T, _ result: inout R,
         _ op: @escaping (R.Element, T.Element) -> R.Element) where
@@ -177,6 +189,7 @@ public final class CpuAsynchronousQueue:
     /// queues a closure on the queue for execution
     /// This will catch and propagate the last asynchronous error thrown.
     ///
+    @inlinable
     public func queue<Inputs, R>(
         _ functionName: @autoclosure () -> String,
         _ inputs: () -> Inputs,
@@ -184,8 +197,7 @@ public final class CpuAsynchronousQueue:
         _ body: @escaping (Inputs, inout R.MutableValues)
         -> Void) where R: TensorView
     {
-        // if the queue is in an error state, no additional work
-        // will be queued
+        // if the queue is in an error state, no additional work is queued
         guard lastError == nil else { return }
         
         // schedule the work
@@ -211,6 +223,7 @@ public final class CpuAsynchronousQueue:
     //--------------------------------------------------------------------------
     /// queues a closure on the queue for execution
     /// This will catch and propagate the last asynchronous error thrown.
+    @inlinable
     public func queue<Inputs, Outputs>(
         _ functionName: @autoclosure () -> String,
         _ inputs: () throws -> Inputs,
@@ -248,7 +261,8 @@ public final class CpuAsynchronousQueue:
     //--------------------------------------------------------------------------
     /// queues a closure on the queue for execution
     /// This will catch and propagate the last asynchronous error thrown.
-    private func queue(body: @escaping () throws -> Void) {
+    @usableFromInline
+    func queue(body: @escaping () throws -> Void) {
         // if the queue is in an error state, no additional work
         // will be queued
         guard lastError == nil else { return }
@@ -273,6 +287,7 @@ public final class CpuAsynchronousQueue:
     //--------------------------------------------------------------------------
     /// createEvent
     /// creates an event object used for queue synchronization
+    @inlinable
     public func createEvent(options: QueueEventOptions) throws -> QueueEvent {
         let event = CpuAsyncEvent(options: options, timeout: timeout)
         diagnostic("\(createString) QueueEvent(\(event.trackingId)) on " +
@@ -282,6 +297,7 @@ public final class CpuAsynchronousQueue:
     
     //--------------------------------------------------------------------------
     /// record(event:
+    @inlinable
     @discardableResult
     public func record(event: QueueEvent) throws -> QueueEvent {
         guard lastError == nil else { throw lastError! }
@@ -303,6 +319,7 @@ public final class CpuAsynchronousQueue:
     //--------------------------------------------------------------------------
     /// wait(for event:
     /// waits until the event has occurred
+    @inlinable
     public func wait(for event: QueueEvent) throws {
         guard lastError == nil else { throw lastError! }
         guard !event.occurred else { return }
@@ -317,6 +334,7 @@ public final class CpuAsynchronousQueue:
     //--------------------------------------------------------------------------
     /// waitUntilQueueIsComplete
     /// blocks the calling thread until the command queue is empty
+    @inlinable
     public func waitUntilQueueIsComplete() throws {
         let event = try record(event: createEvent())
         diagnostic("\(waitString) QueueEvent(\(event.trackingId)) " +
@@ -329,6 +347,7 @@ public final class CpuAsynchronousQueue:
     
     //--------------------------------------------------------------------------
     /// perform indexed copy from source view to result view
+    @inlinable
     public func copy<T>(from view: T, to result: inout T) where T : TensorView {
         queue(#function, { view.elements() }, &result) {
             $0.map(into: &$1) { $0 }
@@ -337,6 +356,7 @@ public final class CpuAsynchronousQueue:
 
     //--------------------------------------------------------------------------
     /// copies from one device array to another
+    @inlinable
     public func copyAsync(to array: DeviceArray,
                           from otherArray: DeviceArray) throws {
         assert(!array.isReadOnly, "cannot mutate read only reference buffer")
@@ -350,6 +370,7 @@ public final class CpuAsynchronousQueue:
 
     //--------------------------------------------------------------------------
     /// copies a host buffer to a device array
+    @inlinable
     public func copyAsync(to array: DeviceArray,
                           from hostBuffer: UnsafeRawBufferPointer) throws
     {
@@ -364,6 +385,7 @@ public final class CpuAsynchronousQueue:
     
     //--------------------------------------------------------------------------
     /// copies a device array to a host buffer
+    @inlinable
     public func copyAsync(to hostBuffer: UnsafeMutableRawBufferPointer,
                           from array: DeviceArray) throws
     {
@@ -377,6 +399,7 @@ public final class CpuAsynchronousQueue:
 
     //--------------------------------------------------------------------------
     /// fills the device array with zeros
+    @inlinable
     public func zero(array: DeviceArray) throws {
         assert(!array.isReadOnly, "cannot mutate read only reference buffer")
         queue {
@@ -420,6 +443,7 @@ public final class CpuAsynchronousQueue:
 //==============================================================================
 // functions that don't operate on elements
 public extension CpuAsynchronousQueue {
+    @inlinable
     func concat<T>(tensors: [T], alongAxis axis: Int, result: inout T) where
         T: TensorView
     {
@@ -451,6 +475,7 @@ public extension CpuAsynchronousQueue {
     
     //--------------------------------------------------------------------------
     /// fill(result:with:
+    @inlinable
     func fill<T>(_ result: inout T, with value: T.Element) where T: TensorView {
         queue(#function, {}, &result) { _, elements in
             elements.indices.forEach { elements[$0] = value }
@@ -459,6 +484,7 @@ public extension CpuAsynchronousQueue {
     
     //--------------------------------------------------------------------------
     /// fillWithIndex(x:startAt:
+    @inlinable
     func fillWithIndex<T>(_ result: inout T, startAt: Int) where
         T: TensorView, T.Element: AnyNumeric
     {
