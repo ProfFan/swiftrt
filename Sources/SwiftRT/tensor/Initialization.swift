@@ -57,7 +57,7 @@ public extension TensorView {
     /// creates a tensor of the same shape as `self` with `Element`
     /// equal to `IndexType`
     func createIndexTensor() -> IndexView { createIndexTensor(with: extents) }
-    
+
     //--------------------------------------------------------------------------
     /// concatenated tensors
     init(concatenating tensors: Self..., alongAxis axis: Int = 0,
@@ -140,17 +140,17 @@ public extension TensorView {
     
     //--------------------------------------------------------------------------
     /// createDense()
-    func createDense() -> Self { return createDense(with: shape) }
-    
+    func createDense() -> Self { createDense(with: shape) }
+
     //--------------------------------------------------------------------------
-    /// createReductionResult
-    /// creates a tensor of suitable form to recieve a reduction result.
-    func createReductionResult(alongAxes axes: Set<Int>?) -> Self {
-        guard let axes = axes else { return createSingleElement() }
+    /// reductionExtents
+    /// determines the extents of a reduction result along the specified axes
+    func reductionExtents(alongAxes axes: Set<Int>?) -> Shape.Array {
+        guard let axes = axes else { return Shape.ones }
         assert(axes.isSubset(of: 0..<rank), "axis is out of bounds")
         var resultExtents = extents
         axes.forEach { resultExtents[$0] = 1 }
-        return Self.create(Shape(extents: resultExtents), nil)
+        return resultExtents
     }
 
     //--------------------------------------------------------------------------

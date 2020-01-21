@@ -162,15 +162,13 @@ public protocol DeviceFunctions {
     /// reduce
     /// Reduces `x` along the specified axes
     /// - Parameter x: value tensor
-    /// - Parameter into result: the scalar tensor where the result will
-    ///  be written. Dimensions with extent of 1 will be reduced
-    /// - Parameter initialResult: the initial value of the result
+    /// - Parameter result: contains the initial value of the result on entry
+    ///  and then final reduction result on return
     /// - Parameter opNext: the operation to perform on pairs of elements
     /// - Parameter opFinal: the operation to perform on the final result
     /// - Precondition: Each value in `axes` must be in the range `-rank..<rank`.
     func reduce<T>(x: T,
                    into result: inout T,
-                   initialResult: T.Element,
                    opId: ReductionOp,
                    opNext: @escaping (T.Element, T.Element) -> T.Element,
                    opFinal: ReduceOpFinal<T>?)
@@ -427,37 +425,35 @@ public extension DeviceFunctions where Self: DeviceQueue {
     /// reduce
     /// Reduces `x` along the specified axes
     /// - Parameter x: value tensor
-    /// - Parameter into result: the scalar tensor where the result will
-    ///  be written. Dimensions with extent of 1 will be reduced
-    /// - Parameter initialResult: the initial value of the result
+    /// - Parameter result: contains the initial value of the result on entry
+    ///  and then final reduction result on return
     /// - Parameter opNext: the operation to perform on pairs of elements
     /// - Parameter opFinal: the operation to perform on the final result
-    /// - Precondition: Each value in `axes` must be in the range `-rank..<rank`.
+    /// - Precondition: Each value in `axes` must be in the range `-rank..<rank`
     func reduce<T>(x: T,
                    into result: inout T,
-                   initialResult: T.Element,
                    opId: ReductionOp,
                    opNext: @escaping (T.Element, T.Element) -> T.Element,
                    opFinal: ReduceOpFinal<T>?)
         where T: TensorView
     {
-        // fill with the initial result
-        fill(result: &result, with: initialResult)
+        assert(result.isContiguous, "Result storage must be contiguous")
         
         do {
-            // create a temporary view that is repeated to match the input
-            var v = try result.sharedView(
+            // created a repeated view of the initial results to match `x`
+            var repeated = try result.sharedView(
                 using: self, reshaped: result.shape.repeated(to: x.extents))
-            var resultElements = v.mutableElements()
+            var repeatedElements = repeated.mutableElements(using: self)
+
             // do the reduction
-            reductionOp(x.elements, &resultElements, opNext)
-            
-            if let op = opFinal {
-                var elements = result.mutableElements(using: self)
-                inPlaceOp(&elements, op)
-            }
+            reductionOp(x.elements, &repeatedElements, opNext)
         } catch {
             device.report(error)
+        }
+
+        if let op = opFinal {
+            var elements = result.mutableElements(using: self)
+            inPlaceOp(&elements, op)
         }
     }
 }

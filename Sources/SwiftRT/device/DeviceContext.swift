@@ -100,14 +100,14 @@ public class DeviceContext {
     //--------------------------------------------------------------------------
     /// current
     public static var current: [ComputeDevice] {
-        return DeviceContext.local.devicesStack.last!
+        DeviceContext.local.devicesStack.last!
     }
 
     //--------------------------------------------------------------------------
     /// currentQueue
     // TODO: temporary scheme
     public static var currentQueue: DeviceQueue {
-        return DeviceContext.local.devicesStack.last![0].queues[0]
+        DeviceContext.local.devicesStack.last![0].queues[0]
     }
     
     //--------------------------------------------------------------------------

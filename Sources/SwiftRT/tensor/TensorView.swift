@@ -260,10 +260,10 @@ public extension TensorView {
     //--------------------------------------------------------------------------
     /// repeated(to extents:
     func repeated(to extents: Shape.Array) -> Self {
-        Self(shape: shape.repeated(to: extents),
-             tensorArray: tensorArray,
-             viewOffset: viewOffset,
-             isShared: isShared)
+        return Self(shape: shape.repeated(to: extents),
+                    tensorArray: tensorArray,
+                    viewOffset: viewOffset,
+                    isShared: isShared)
     }
     
     func repeated(to extents: Shape.Tuple) -> Self {

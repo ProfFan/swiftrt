@@ -56,10 +56,12 @@ public typealias ReduceOpFinal<T: TensorView> = (T.Element) -> T.Element
 public func all<T>(_ x: T, alongAxes axes: Set<Int>? = nil) -> T
     where T: TensorView, T.Element == Bool
 {
-    var result = x.createReductionResult(alongAxes: axes)
+    let extents = x.reductionExtents(alongAxes: axes)
+    var result = x.createDense(with: extents)
+    copy(from: x.view(at: T.Shape.zeros, extents: extents), to: &result)
+
     DeviceContext.currentQueue.reduce(x: x,
                                       into: &result,
-                                      initialResult: x.first,
                                       opId: .compare,
                                       opNext: { $0 && $1 },
                                       opFinal: nil)
@@ -91,10 +93,12 @@ public extension TensorView where Element == Bool {
 public func any<T>(_ x: T, alongAxes axes: Set<Int>? = nil) -> T
     where T: TensorView, T.Element == Bool
 {
-    var result = x.createReductionResult(alongAxes: axes)
+    let extents = x.reductionExtents(alongAxes: axes)
+    var result = x.createDense(with: extents)
+    copy(from: x.view(at: T.Shape.zeros, extents: extents), to: &result)
+
     DeviceContext.currentQueue.reduce(x: x,
                                       into: &result,
-                                      initialResult: x.first,
                                       opId: .compare,
                                       opNext: { $0 || $1 },
                                       opFinal: nil)
@@ -123,10 +127,11 @@ public extension TensorView where Element == Bool {
 public func sum<T>(_ x: T, alongAxes axes: Set<Int>? = nil) -> T
     where T: TensorView, T.Element: Numeric
 {
-    var result = x.createReductionResult(alongAxes: axes)
+    let extents = x.reductionExtents(alongAxes: axes)
+    var result = x.createDense(with: extents).filled(with: T.Element.zero)
+    
     DeviceContext.currentQueue.reduce(x: x,
                                       into: &result,
-                                      initialResult: T.Element.zero,
                                       opId: .add,
                                       opNext: +,
                                       opFinal: nil)
@@ -171,10 +176,11 @@ public func mean<T>(_ x: T, alongAxes axes: Set<Int>? = nil) -> T
         $0 * T.Element(exactly: x.extents[$1])!
     }) ?? T.Element(exactly: x.count)!
     
-    var result = x.createReductionResult(alongAxes: axes)
+    let extents = x.reductionExtents(alongAxes: axes)
+    var result = x.createDense(with: extents).filled(with: T.Element.zero)
+
     DeviceContext.currentQueue.reduce(x: x,
                                       into: &result,
-                                      initialResult: T.Element.zero,
                                       opId: .add,
                                       opNext: +,
                                       opFinal: { $0 / divisor })
@@ -216,10 +222,11 @@ internal func _vjpMean<T>(_ x: T, alongAxes axes: Set<Int>? = nil)
 public func prod<T>(_ x: T, alongAxes axes: Set<Int>? = nil) -> T
     where T: TensorView, T.Element: Numeric
 {
-    var result = x.createReductionResult(alongAxes: axes)
+    let extents = x.reductionExtents(alongAxes: axes)
+    var result = x.createDense(with: extents).filled(with: T.Element.one)
+    
     DeviceContext.currentQueue.reduce(x: x,
                                       into: &result,
-                                      initialResult: T.Element.one,
                                       opId: .mul,
                                       opNext: { $0 * $1 },
                                       opFinal: nil)
@@ -259,10 +266,11 @@ internal func _vjpProd<T>(_ x: T, alongAxes axes: Set<Int>? = nil)
 public func prodNonZeros<T>(_ x: T, alongAxes axes: Set<Int>? = nil) -> T
     where T: TensorView, T.Element: Numeric
 {
-    var result = x.createReductionResult(alongAxes: axes)
+    let extents = x.reductionExtents(alongAxes: axes)
+    var result = x.createDense(with: extents).filled(with: T.Element.one)
+
     DeviceContext.currentQueue.reduce(x: x,
                                       into: &result,
-                                      initialResult: T.Element.one,
                                       opId: .mulNonZeros,
                                       opNext: { $1 == 0 ? $0 : $0 * $1 },
                                       opFinal: nil)
@@ -308,10 +316,12 @@ internal func _vjpProdNonZeros<T>(_ x: T, alongAxes axes: Set<Int>? = nil)
 public func min<T>(_ x: T, alongAxes axes: Set<Int>? = nil) -> T
     where T: TensorView, T.Element: Comparable
 {
-    var result = x.createReductionResult(alongAxes: axes)
+    let extents = x.reductionExtents(alongAxes: axes)
+    var result = x.createDense(with: extents)
+    copy(from: x.view(at: T.Shape.zeros, extents: extents), to: &result)
+
     DeviceContext.currentQueue.reduce(x: x,
                                       into: &result,
-                                      initialResult: x.first,
                                       opId: .min,
                                       opNext: { $0 <= $1 ? $0 : $1 },
                                       opFinal: nil)
@@ -354,10 +364,12 @@ internal func _vjpMin<T>(_ x: T, alongAxes axes: Set<Int>? = nil)
 public func max<T>(_ x: T, alongAxes axes: Set<Int>? = nil) -> T
     where T: TensorView, T.Element: Comparable
 {
-    var result = x.createReductionResult(alongAxes: axes)
+    let extents = x.reductionExtents(alongAxes: axes)
+    var result = x.createDense(with: extents)
+    copy(from: x.view(at: T.Shape.zeros, extents: extents), to: &result)
+
     DeviceContext.currentQueue.reduce(x: x,
                                       into: &result,
-                                      initialResult: x.first,
                                       opId: .max,
                                       opNext: { $0 > $1 ? $0 : $1 },
                                       opFinal: nil)
@@ -399,10 +411,12 @@ internal func _vjpMax<T>(_ x: T, alongAxes axes: Set<Int>? = nil)
 public func absmax<T>(_ x: T, alongAxes axes: Set<Int>? = nil) -> T
     where T: TensorView, T.Element: SignedNumeric & Comparable
 {
-    var result = x.createReductionResult(alongAxes: axes)
+    let extents = x.reductionExtents(alongAxes: axes)
+    var result = x.createDense(with: extents)
+    copy(from: x.view(at: T.Shape.zeros, extents: extents), to: &result)
+    
     DeviceContext.currentQueue.reduce(x: x,
                                       into: &result,
-                                      initialResult: x.first,
                                       opId: .amax,
                                       opNext: { max(abs($0), abs($1)) },
                                       opFinal: nil)
@@ -447,10 +461,11 @@ internal func _vjpAbsmax<T>(_ x: T, alongAxes axes: Set<Int>? = nil)
 public func abssum<T>(_ x: T, alongAxes axes: Set<Int>? = nil) -> T
     where T: TensorView, T.Element: SignedNumeric & Comparable
 {
-    var result = x.createReductionResult(alongAxes: axes)
+    let extents = x.reductionExtents(alongAxes: axes)
+    var result = x.createDense(with: extents).filled(with: T.Element.zero)
+
     DeviceContext.currentQueue.reduce(x: x,
                                       into: &result,
-                                      initialResult: T.Element.zero,
                                       opId: .asum,
                                       opNext: { $0 + abs($1) },
                                       opFinal: nil)
@@ -490,10 +505,11 @@ internal func _vjpAbsSum<T>(_ x: T, alongAxes axes: Set<Int>? = nil)
 public func sqrtSumSquares<T>(_ x: T, alongAxes axes: Set<Int>? = nil) -> T
     where T: TensorView, T.Element: Real
 {
-    var result = x.createReductionResult(alongAxes: axes)
+    let extents = x.reductionExtents(alongAxes: axes)
+    var result = x.createDense(with: extents).filled(with: T.Element.zero)
+
     DeviceContext.currentQueue.reduce(x: x,
                                       into: &result,
-                                      initialResult: T.Element.zero,
                                       opId: .sqrtSumSquares,
                                       opNext: { $0 + $1 * $1 },
                                       opFinal: { .sqrt($0) })
