@@ -22,20 +22,14 @@ import Foundation
 public final class CpuSyncEvent : QueueEvent {
     // properties
     public var trackingId: Int
-    public var occurred: Bool = false
+    public var occurred: Bool
     public var recordedTime: Date?
-
-    public let options: QueueEventOptions
-    public let timeout: TimeInterval?
-    public let barrier = Mutex()
-    public let semaphore = DispatchSemaphore(value: 0)
 
     //--------------------------------------------------------------------------
     // initializers
     @inlinable
     public init(options: QueueEventOptions, timeout: TimeInterval?) {
-        self.options = options
-        self.timeout = timeout
+        occurred = true
         trackingId = 0
         #if DEBUG
         trackingId = ObjectTracker.global.register(self)
@@ -46,39 +40,13 @@ public final class CpuSyncEvent : QueueEvent {
     // deinit
     @inlinable
     deinit {
-        // signal if anyone was waiting
-        signal()
-        
         #if DEBUG
         ObjectTracker.global.remove(trackingId: trackingId)
         #endif
     }
     
     //--------------------------------------------------------------------------
-    /// signal
-    /// signals that the event has occurred
-    @inlinable
-    public func signal() {
-        semaphore.signal()
-    }
-    
-    //--------------------------------------------------------------------------
     /// wait
-    /// the first thread goes through the barrier.sync and waits on the
-    /// semaphore. When it is signaled `occurred` is set to `true` and all
-    /// future threads will pass through without waiting
     @inlinable
-    public func wait() throws {
-        try barrier.sync {
-            guard !occurred else { return }
-            if let timeout = self.timeout, timeout > 0 {
-                if semaphore.wait(timeout: .now() + timeout) == .timedOut {
-                    throw QueueEventError.timedOut
-                }
-            } else {
-                semaphore.wait()
-            }
-            occurred = true
-        }
-    }
+    public func wait() throws { }
 }

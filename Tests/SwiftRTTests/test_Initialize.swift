@@ -70,8 +70,8 @@ class test_Initialize: XCTestCase {
     //--------------------------------------------------------------------------
     // test_perfReadOnlyAccess
     func test_perfReadOnlyAccess() {
-//        Platform.local.servicePriority = [cpuSynchronousServiceName]
-        #if !DEBUG
+        Platform.local.servicePriority = [cpuSynchronousServiceName]
+//        #if !DEBUG
         let iterations = 100000
         var value: Float = 0
         let matrix = Matrix(2, 2, with: 1...4)
@@ -86,13 +86,13 @@ class test_Initialize: XCTestCase {
             }
         }
         XCTAssert(value == 1)
-        #endif
+//        #endif
     }
     
     //--------------------------------------------------------------------------
     // test_perfReadWriteAccess
     func test_perfReadWriteAccess() {
-//        Platform.local.servicePriority = [cpuSynchronousServiceName]
+        Platform.local.servicePriority = [cpuSynchronousServiceName]
         #if !DEBUG
         let iterations = 100000
         let value: Float = 1

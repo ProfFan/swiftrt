@@ -69,17 +69,6 @@ public final class CpuSynchronousQueue: CpuQueueProtocol, LocalDeviceQueue {
         
         // release
         ObjectTracker.global.remove(trackingId: trackingId)
-
-        // wait for the command queue to complete before shutting down
-        do {
-            try waitUntilQueueIsComplete()
-        } catch {
-            if let timeout = self.timeout {
-                diagnostic("\(timeoutString) DeviceQueue(\(trackingId)) " +
-                        "\(device.name)_\(name) timeout: \(timeout)",
-                        categories: [.queueAlloc])
-            }
-        }
     }
 
     //--------------------------------------------------------------------------
@@ -107,7 +96,6 @@ public final class CpuSynchronousQueue: CpuQueueProtocol, LocalDeviceQueue {
         if defaultQueueEventOptions.contains(.timing) {
             event.recordedTime = Date()
         }
-        event.signal()
         return event
     }
 
@@ -116,26 +104,19 @@ public final class CpuSynchronousQueue: CpuQueueProtocol, LocalDeviceQueue {
     /// waits until the event has occurred
     @inlinable
     public func wait(for event: QueueEvent) throws {
-        guard lastError == nil else { throw lastError! }
         guard !event.occurred else { return }
+        guard lastError == nil else { throw lastError! }
         diagnostic("\(waitString) QueueEvent(\(event.trackingId)) on " +
             "\(device.name)_\(name)", categories: .queueSync)
         try event.wait()
     }
 
     //--------------------------------------------------------------------------
-    /// waitUntilQueueIsComplete
-    /// blocks the calling thread until the command queue is empty
+    // waitUntilQueueIsComplete
+    // the synchronous queue completes work as it is queued,
+    // so it is always complete
     @inlinable
-    public func waitUntilQueueIsComplete() throws {
-        let event = try record(event: createEvent())
-        diagnostic("\(waitString) QueueEvent(\(event.trackingId)) " +
-            "waiting for \(device.name)_\(name) to complete",
-            categories: .queueSync)
-        try event.wait()
-        diagnostic("\(signaledString) QueueEvent(\(event.trackingId)) on " +
-            "\(device.name)_\(name)", categories: .queueSync)
-    }
+    public func waitUntilQueueIsComplete() throws { }
     
     //--------------------------------------------------------------------------
     /// perform indexed copy from source view to result view
@@ -155,8 +136,7 @@ public final class CpuSynchronousQueue: CpuQueueProtocol, LocalDeviceQueue {
         assert(!array.isReadOnly, "cannot mutate read only reference buffer")
         assert(array.buffer.count == otherArray.buffer.count,
                "buffer sizes don't match")
-        array.buffer.copyMemory(
-            from: UnsafeRawBufferPointer(otherArray.buffer))
+        array.buffer.copyMemory(from: UnsafeRawBufferPointer(otherArray.buffer))
     }
 
     //--------------------------------------------------------------------------
