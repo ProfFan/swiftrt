@@ -24,6 +24,9 @@ import Foundation
 ///
 /// Data can be safely accessed on the app thread and asynchronously on
 /// device queues without the user needing be concerned with synchronization.
+/// A tensor view is a value type. It should not be used simultaneously by
+/// more than one thread. However, copying it into a closure used by another
+/// thread is safe. The behavior should be the same as a Swift array type.
 ///
 /// When a tensor is created, no memory is allocated until the first time
 /// access is requested. The location of the access determines where the
@@ -36,8 +39,6 @@ import Foundation
 ///
 /// TensorViews are references to data and respect copy on write semantics,
 /// locally and on device. Many operations can be performed with zero copy.
-///
-/// Data repeating (broadcasting) is an instrinsic feature
 ///
 public protocol TensorView: Codable, Logging {
     //--------------------------------------------------------------------------
@@ -220,11 +221,6 @@ public extension TensorView {
     /// the number of items in the tensor, which is equal to `extents[0]`
     @inlinable
     var items: Int { shape.items }
-    /// is `true` if the last data access caused the view's underlying
-    /// tensorArray object to be copied.
-    /// Used primarily for debugging and unit testing
-    @inlinable
-    var lastAccessMutatedView: Bool { tensorArray.lastAccessMutatedView }
     /// the name of the view, which can optionally be set to aid in debugging
     @inlinable
     var name: String { tensorArray.name }
@@ -267,17 +263,11 @@ public extension TensorView {
     @inlinable
     mutating func sharedView(using queue: DeviceQueue,
                              reshaped: Shape? = nil) throws -> Self {
-        // get the queue, if we reference it as a tensorArray member it
-        // it adds a ref count which messes things up
-        let accessQueue = tensorArray.accessQueue
-        
-        return try accessQueue.sync {
-            try copyIfMutates(using: queue)
-            return Self(shape: reshaped ?? shape,
-                        tensorArray: tensorArray,
-                        viewOffset: viewOffset,
-                        isShared: true)
-        }
+        try copyIfMutates(using: queue)
+        return Self(shape: reshaped ?? shape,
+                    tensorArray: tensorArray,
+                    viewOffset: viewOffset,
+                    isShared: true)
     }
 
     //--------------------------------------------------------------------------
@@ -304,15 +294,24 @@ public extension TensorView {
     }
     
     //--------------------------------------------------------------------------
+    /// writeWillMutateView
+    /// `true` if write access will cause the underlying `tensorArray`
+    ///  to be copied
+    @inlinable
+    mutating func writeWillMutateView() -> Bool {
+        !isUniqueReference() && !isShared
+    }
+    
+    //--------------------------------------------------------------------------
     /// copyIfMutates
     /// Creates a copy of the tensorArray if read-write access causes mutation
-    /// NOTE: this must be called from inside the accessQueue.sync block
+    /// - Parameter using: the device queue to use for data transfer
+    /// - Returns: `true` if the `tensorArray` was copied
     @inlinable
     mutating func copyIfMutates(using queue: DeviceQueue) throws {
-        // for unit tests
-        tensorArray.lastAccessMutatedView = false
-        guard !isShared && !isUniqueReference() else { return }
+        guard writeWillMutateView() else { return }
         
+        // the reference is not unique so a copy of the array must be made
         diagnostic("\(mutationString) \(name)(\(tensorArray.trackingId)) " +
             "\(String(describing: Element.self))[\(shape.count)]",
             categories: [.dataCopy, .dataMutation])
@@ -320,7 +319,6 @@ public extension TensorView {
         // create the new array and copy the values
         tensorArray = try TensorArray<Element>(copying: tensorArray,
                                                using: queue)
-        tensorArray.lastAccessMutatedView = true
     }
 
     //--------------------------------------------------------------------------
@@ -355,32 +353,23 @@ public extension TensorView {
         // if no queue is specified then use the hostQueue
         let deviceQueue = queue ?? DeviceContext.hostQueue
         if let lastError = deviceQueue.lastError { throw lastError }
-
-        // get the queue, if we reference it directly as a dataArray member it
-        // it adds a ref count which messes things up
-        let accessQueue = tensorArray.accessQueue
         
-        return try accessQueue.sync {
-            // this is only used for unit testing
-            tensorArray.lastAccessMutatedView = false
-
-            // sync queues
-            try synchronize(queue: tensorArray.lastMutatingQueue,
-                            with: deviceQueue)
-            // get the buffer
-            let buffer = try tensorArray.readOnly(using: deviceQueue)
-
-            // if `queue` is nil then the deviceQueue is the hostQueue
-            // and the caller wants to synchronize with the app thread
-            if queue == nil {
-                assert(deviceQueue.device.memory.addressing == .unified)
-                try deviceQueue.waitUntilQueueIsComplete()
-            }
-
-            return UnsafeBufferPointer(
-                start: buffer.baseAddress!.advanced(by: viewOffset),
-                count: shape.spanCount)
+        // sync queues
+        try synchronize(queue: tensorArray.lastMutatingQueue,
+                        with: deviceQueue)
+        // get the buffer
+        let buffer = try tensorArray.readOnly(using: deviceQueue)
+        
+        // if `queue` is nil then the deviceQueue is the hostQueue
+        // and the caller wants to synchronize with the app thread
+        if queue == nil {
+            assert(deviceQueue.device.memory.addressing == .unified)
+            try deviceQueue.waitUntilQueueIsComplete()
         }
+        
+        return UnsafeBufferPointer(
+            start: buffer.baseAddress!.advanced(by: viewOffset),
+            count: shape.spanCount)
     }
     
     //--------------------------------------------------------------------------
@@ -406,31 +395,25 @@ public extension TensorView {
         let deviceQueue = queue ?? DeviceContext.hostQueue
         if let lastError = deviceQueue.lastError { throw lastError }
 
-        // get the queue, if we reference it as a dataArray member it
-        // it adds a ref count which messes things up
-        let accessQueue = tensorArray.accessQueue
+        // sync queues
+        try synchronize(queue: tensorArray.lastMutatingQueue,
+                        with: deviceQueue)
+        // mutating write?
+        try copyIfMutates(using: deviceQueue)
         
-        return try accessQueue.sync {
-            // sync queues
-            try synchronize(queue: tensorArray.lastMutatingQueue,
-                            with: deviceQueue)
-            // mutating write?
-            try copyIfMutates(using: deviceQueue)
-
-            // get the buffer
-            let buffer = try tensorArray.readWrite(using: deviceQueue)
-            
-            // if `queue` is nil then the deviceQueue is the hostQueue
-            // and the caller wants to synchronize with the app thread
-            if queue == nil {
-                assert(deviceQueue.device.memory.addressing == .unified)
-                try deviceQueue.waitUntilQueueIsComplete()
-            }
-
-            return UnsafeMutableBufferPointer(
-                start: buffer.baseAddress!.advanced(by: viewOffset),
-                count: shape.spanCount)
+        // get the buffer
+        let buffer = try tensorArray.readWrite(using: deviceQueue)
+        
+        // if `queue` is nil then the deviceQueue is the hostQueue
+        // and the caller wants to synchronize with the app thread
+        if queue == nil {
+            assert(deviceQueue.device.memory.addressing == .unified)
+            try deviceQueue.waitUntilQueueIsComplete()
         }
+        
+        return UnsafeMutableBufferPointer(
+            start: buffer.baseAddress!.advanced(by: viewOffset),
+            count: shape.spanCount)
     }
     
     //--------------------------------------------------------------------------
@@ -582,18 +565,13 @@ public extension TensorView {
                "readWrite(using: DeviceContext.hostQueue) must be called first")
         let lastQueue = tensorArray.lastMutatingQueue!
         assert(lastQueue.device.memory.addressing == .unified)
-        // get the queue, if we reference it as a dataArray member it
-        // it adds a ref count which messes things up
-        let queue = tensorArray.accessQueue
+
+        // the buffer is already in host memory so it can't fail
+        let buffer = try! tensorArray.readWrite(using: lastQueue)
         
-        return queue.sync {
-            // the buffer is already in host memory so it can't fail
-            let buffer = try! tensorArray.readWrite(using: lastQueue)
-            
-            return UnsafeMutableBufferPointer(
-                start: buffer.baseAddress!.advanced(by: viewOffset),
-                count: shape.spanCount)
-        }
+        return UnsafeMutableBufferPointer(
+            start: buffer.baseAddress!.advanced(by: viewOffset),
+            count: shape.spanCount)
     }
 }
 

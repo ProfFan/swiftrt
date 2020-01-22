@@ -24,8 +24,6 @@ public final class TensorArray<Element>: ObjectTracking, Codable, Logging
     where Element: TensorElementConformance
 {
     //--------------------------------------------------------------------------
-    /// used by TensorViews to synchronize access to this object
-    public let accessQueue: DispatchQueue
     /// the number of elements in the data array
     public let count: Int
     /// `true` if the data array references an existing read only buffer
@@ -33,10 +31,6 @@ public final class TensorArray<Element>: ObjectTracking, Codable, Logging
     /// testing: `true` if the last access caused the contents of the
     /// buffer to be copied
     public var lastAccessCopiedBuffer: Bool
-    /// testing: is `true` if the last data access caused the view's underlying
-    /// tensorArray object to be copied. It's stored here instead of on the
-    /// view, because the view is immutable when taking a read only pointer
-    public var lastAccessMutatedView: Bool
     /// the last queue id that wrote to the tensor
     public var lastMutatingQueue: DeviceQueue?
     /// whenever a buffer write pointer is taken, the associated DeviceArray
@@ -56,17 +50,15 @@ public final class TensorArray<Element>: ObjectTracking, Codable, Logging
     @usableFromInline
     var replicas: [Int : DeviceArray]
     /// the object tracking id
-    public var trackingId = 0
+    public var trackingId: Int
 
     //--------------------------------------------------------------------------
     // common
     @inlinable
     public init(count: Int, isReadOnly: Bool, name: String) {
-        self.accessQueue = DispatchQueue(label: "TensorArray.accessQueue")
         self.count = count
         self.isReadOnly = isReadOnly
         self.lastAccessCopiedBuffer = false
-        self.lastAccessMutatedView = false
         self.masterVersion = -1
         self.name = name
         self.replicas = [Int : DeviceArray]()

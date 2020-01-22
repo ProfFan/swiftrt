@@ -72,30 +72,33 @@ class test_DataMigration: XCTestCase {
             // create a Matrix and give it an optional name for logging
             var m0 = Matrix(3, 4, with: 0..<12, name: "weights")
             
+            XCTAssert(!m0.writeWillMutateView())
             let _ = try m0.readWrite()
-            XCTAssert(!m0.lastAccessMutatedView)
+
+            XCTAssert(!m0.writeWillMutateView())
             let _ = try m0.readOnly()
-            XCTAssert(!m0.lastAccessMutatedView)
+
+            XCTAssert(!m0.writeWillMutateView())
             let _ = try m0.readWrite()
-            XCTAssert(!m0.lastAccessMutatedView)
             
             // copy the view
             var m1 = m0
             // rw access m0 should mutate m0
+            XCTAssert(m0.writeWillMutateView())
             let _ = try m0.readWrite()
-            XCTAssert(m0.lastAccessMutatedView)
+
             // m1 should now be unique reference
             XCTAssert(m1.isUniqueReference())
+            XCTAssert(!m1.writeWillMutateView())
             let _ = try m1.readOnly()
-            XCTAssert(!m1.lastAccessMutatedView)
 
             // copy the view
             var m2 = m0
             let _ = try m2.readOnly()
-            XCTAssert(!m2.lastAccessMutatedView)
+
             // rw request should cause copy of m0 data
+            XCTAssert(m2.writeWillMutateView())
             let _ = try m2.readWrite()
-            XCTAssert(m2.lastAccessMutatedView)
             // m2 should now be unique reference
             XCTAssert(m2.isUniqueReference())
             
