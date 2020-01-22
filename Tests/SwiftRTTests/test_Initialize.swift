@@ -23,6 +23,8 @@ class test_Initialize: XCTestCase {
     static var allTests = [
         ("test_perfCreateTensorArray", test_perfCreateTensorArray),
         ("test_perfCreateMatrix", test_perfCreateMatrix),
+        ("test_perfReadOnlyAccess", test_perfReadOnlyAccess),
+        ("test_perfReadWriteAccess", test_perfReadWriteAccess),
         ("test_flattening", test_flattening),
         ("test_squeezing", test_squeezing),
         ("test_cast", test_cast),
@@ -62,6 +64,48 @@ class test_Initialize: XCTestCase {
             }
         }
         XCTAssert(count == iterations)
+        #endif
+    }
+    
+    //--------------------------------------------------------------------------
+    // test_perfReadOnlyAccess
+    func test_perfReadOnlyAccess() {
+        #if !DEBUG
+        let iterations = 100000
+        var value: Float = 0
+        let matrix = Matrix(2, 2, with: 1...4)
+        
+        measure {
+            do {
+                for _ in 1...iterations {
+                    value = try matrix.readOnly()[0]
+                }
+            } catch {
+                XCTFail()
+            }
+        }
+        XCTAssert(value == 1)
+        #endif
+    }
+    
+    //--------------------------------------------------------------------------
+    // test_perfReadWriteAccess
+    func test_perfReadWriteAccess() {
+        #if !DEBUG
+        let iterations = 100000
+        let value: Float = 1
+        var matrix = Matrix(2, 2, with: 1...4)
+        
+        measure {
+            do {
+                for _ in 1...iterations {
+                    try matrix.readWrite()[0] = value
+                }
+                XCTAssert(try matrix.readWrite()[0] == value)
+            } catch {
+                XCTFail()
+            }
+        }
         #endif
     }
     
