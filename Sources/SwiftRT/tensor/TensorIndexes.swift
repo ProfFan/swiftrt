@@ -34,7 +34,7 @@ public struct VectorIndex: TensorIndexing {
     
     //--------------------------------------------------------------------------
     // initializers
-    @inlinable @inline(__always)
+    @inlinable
     public init<T>(view: T, at position: VectorPosition) where T: TensorView {
         viewIndex = position
         dataIndex = 0
@@ -42,7 +42,7 @@ public struct VectorIndex: TensorIndexing {
         computeDataIndex()
     }
     
-    @inlinable @inline(__always)
+    @inlinable
     public init<T>(endOf view: T) where T: TensorView {
         viewIndex = view.count
         stride = Int(view.strides[0])
@@ -52,7 +52,7 @@ public struct VectorIndex: TensorIndexing {
     
     //--------------------------------------------------------------------------
     /// computeDataIndex
-    @inlinable @inline(__always)
+    @inlinable
     public mutating func computeDataIndex() {
         dataIndex = viewIndex * stride
     }
@@ -60,7 +60,7 @@ public struct VectorIndex: TensorIndexing {
     //--------------------------------------------------------------------------
     /// increment
     /// incremental update of indexes used for iteration
-    @inlinable @inline(__always)
+    @inlinable
     public func increment() -> VectorIndex {
         var next = self
         next.viewIndex += 1
@@ -71,7 +71,7 @@ public struct VectorIndex: TensorIndexing {
     //--------------------------------------------------------------------------
     /// advanced(by n:
     /// bidirectional jump or movement
-    @inlinable @inline(__always)
+    @inlinable
     public func advanced(by n: Int) -> VectorIndex {
         guard n != 1 else { return increment() }
         var next = self
@@ -96,7 +96,7 @@ public struct MatrixIndex: TensorIndexing {
     
     //--------------------------------------------------------------------------
     // initializers
-    @inlinable @inline(__always)
+    @inlinable
     public init<T>(view: T, at position: MatrixPosition) where T: TensorView {
         rowExtent = Int(view.extents[0])
         rowStride = Int(view.strides[0])
@@ -109,7 +109,7 @@ public struct MatrixIndex: TensorIndexing {
         computeDataIndex()
     }
 
-    @inlinable @inline(__always)
+    @inlinable
     public init<T>(endOf view: T) where T: TensorView {
         rowExtent = Int(view.extents[0])
         rowStride = Int(view.strides[0])
@@ -124,7 +124,7 @@ public struct MatrixIndex: TensorIndexing {
 
     //--------------------------------------------------------------------------
     /// computeDataIndex
-    @inlinable @inline(__always)
+    @inlinable
     public mutating func computeDataIndex() {
         dataIndex = row * rowStride + col * colStride
     }
@@ -132,7 +132,7 @@ public struct MatrixIndex: TensorIndexing {
     //--------------------------------------------------------------------------
     /// increment
     /// incremental update of indexes used for iteration
-    @inlinable @inline(__always)
+    @inlinable
     public func increment() -> MatrixIndex {
         var next = self
         next.viewIndex += 1
@@ -150,7 +150,7 @@ public struct MatrixIndex: TensorIndexing {
     //--------------------------------------------------------------------------
     /// advanced(by n:
     /// bidirectional jump or movement
-    @inlinable @inline(__always)
+    @inlinable
     public func advanced(by n: Int) -> MatrixIndex {
         guard n != 1 else { return increment() }
         let jump = n.quotientAndRemainder(dividingBy: rowExtent)
@@ -181,7 +181,7 @@ public struct VolumeIndex: TensorIndexing {
 
     //--------------------------------------------------------------------------
     // initializers
-    @inlinable @inline(__always)
+    @inlinable
     public init<T>(view: T, at position: VolumePosition) where T: TensorView {
         depExtent = Int(view.extents[0])
         depStride = Int(view.strides[0])
@@ -197,7 +197,7 @@ public struct VolumeIndex: TensorIndexing {
         computeDataIndex()
     }
     
-    @inlinable @inline(__always)
+    @inlinable
     public init<T>(endOf view: T) where T: TensorView {
         depExtent = Int(view.extents[0])
         depStride = Int(view.strides[0])
@@ -215,7 +215,7 @@ public struct VolumeIndex: TensorIndexing {
     
     //--------------------------------------------------------------------------
     /// computeDataIndex
-    @inlinable @inline(__always)
+    @inlinable
     public mutating func computeDataIndex() {
         dataIndex = dep * depStride + row * rowStride + col * colStride
     }
@@ -223,7 +223,7 @@ public struct VolumeIndex: TensorIndexing {
     //--------------------------------------------------------------------------
     /// increment
     /// incremental update of indexes used for iteration
-    @inlinable @inline(__always)
+    @inlinable
     public func increment() -> VolumeIndex {
         var next = self
         next.viewIndex += 1
@@ -245,7 +245,7 @@ public struct VolumeIndex: TensorIndexing {
     //--------------------------------------------------------------------------
     /// advanced(by n:
     /// bidirectional jump or movement
-    @inlinable @inline(__always)
+    @inlinable
     public func advanced(by n: Int) -> VolumeIndex {
         guard n != 1 else { return increment() }
         var next = self
@@ -278,7 +278,7 @@ public struct NDIndex: TensorIndexing {
     
     //--------------------------------------------------------------------------
     // initializers
-    @inlinable @inline(__always)
+    @inlinable
     public init<T>(view: T, at position: NDPosition) where T: TensorView {
         assert(position.count == 1 || position.count == view.rank)
         extents = view.extents.array
@@ -289,7 +289,7 @@ public struct NDIndex: TensorIndexing {
         computeDataIndex()
     }
     
-    @inlinable @inline(__always)
+    @inlinable
     public init<T>(endOf view: T) where T: TensorView {
         position = [Int](repeating: 0, count: view.rank)
         position[0] = Int(view.extents[0])
@@ -302,7 +302,7 @@ public struct NDIndex: TensorIndexing {
     
     //--------------------------------------------------------------------------
     /// computeDataIndex
-    @inlinable @inline(__always)
+    @inlinable
     public mutating func computeDataIndex() {
         dataIndex = zip(position, strides).reduce(0) {
             $0 + $1.0 * $1.1
@@ -312,7 +312,7 @@ public struct NDIndex: TensorIndexing {
     //--------------------------------------------------------------------------
     /// increment
     /// incremental update of indexes used for iteration
-    @inlinable @inline(__always)
+    @inlinable
     public func increment() -> NDIndex {
         var next = self
         next.viewIndex += 1
@@ -337,7 +337,7 @@ public struct NDIndex: TensorIndexing {
     //--------------------------------------------------------------------------
     /// advanced(by n:
     /// bidirectional jump or movement
-    @inlinable @inline(__always)
+    @inlinable
     public func advanced(by n: Int) -> NDIndex {
         guard n != 1 else { return increment() }
         var next = self

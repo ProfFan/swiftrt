@@ -22,7 +22,7 @@ public extension TensorView {
     /// - Parameter lower: the lower bound of the subview
     /// - Parameter upper: the upper bound of the subview
     /// - Returns: the extents to be used to create a subview
-    @inlinable @inline(__always)
+    @inlinable
     func getExtents(from lower: Shape.Array, to upper: Shape.Array)
         -> Shape.Array
     {
@@ -45,7 +45,7 @@ public extension TensorView {
     /// - Parameter steps: the step interval along each dimension. This
     ///                    value can be negative to perform reverse traversal
     /// - Returns: the extents and strides to be used to create a subview
-    @inlinable @inline(__always)
+    @inlinable
     func getExtents(_ lower: Shape.Array,
                     _ upper: Shape.Array,
                     _ steps: Shape.Array) ->
@@ -74,7 +74,7 @@ public extension TensorView {
     }
 
     //--------------------------------------------------------------------------
-    @inlinable @inline(__always)
+    @inlinable
     @differentiable(where Self: DifferentiableTensorView)
     subscript(lower: Shape.Tuple, upper: Shape.Tuple, steps: Shape.Tuple)
         -> Self {
@@ -87,7 +87,7 @@ public extension TensorView {
     
     //--------------------------------------------------------------------------
     // views will have the same shared state as the parent
-    @inlinable @inline(__always)
+    @inlinable
     @differentiable(where Self: DifferentiableTensorView)
     subscript(lower: Shape.Array, upper: Shape.Array,
               steps: Shape.Array) -> Self
@@ -110,7 +110,7 @@ public extension TensorView {
 /// Derivative registration
 extension TensorView where Self: DifferentiableTensorView {
     // https://github.com/apple/swift/blob/37b507b31c77ef969151f385cd1902dd44fb3b7f/stdlib/public/core/Array.swift#L2091
-    @inlinable @inline(__always)
+    @inlinable
     @derivative(of: subscript)
     func _vjpSubscript(lower: Shape.Array, upper: Shape.Array, steps: Shape.Array)
         -> (value: Self, pullback: (Self) -> Self)
@@ -143,18 +143,18 @@ public protocol TensorIndexing: Strideable {
 
 public extension TensorIndexing {
     // Equatable
-    @inlinable @inline(__always)
+    @inlinable
     static func == (lhs: Self, rhs: Self) -> Bool {
         lhs.viewIndex == rhs.viewIndex
     }
     
     // Comparable
-    @inlinable @inline(__always)
+    @inlinable
     static func < (lhs: Self, rhs: Self) -> Bool {
         lhs.viewIndex < rhs.viewIndex
     }
     
-    @inlinable @inline(__always)
+    @inlinable
     func distance(to other: Self) -> Int { other.viewIndex - viewIndex }
 }
 
@@ -170,7 +170,7 @@ public struct TensorValueCollection<View>: RandomAccessCollection
     public let endIndex: View.Index
     public let count: Int
 
-    @inlinable @inline(__always)
+    @inlinable
     public init(view: View, buffer: UnsafeBufferPointer<View.Element>) {
         self.view = view
         self.buffer = buffer
@@ -179,7 +179,7 @@ public struct TensorValueCollection<View>: RandomAccessCollection
         count = view.count
     }
 
-    @inlinable @inline(__always)
+    @inlinable
     public init(view: View) {
         self.view = view
         self.buffer = UnsafeBufferPointer<View.Element>(start: nil, count: 0)
@@ -190,13 +190,13 @@ public struct TensorValueCollection<View>: RandomAccessCollection
     
     //--------------------------------------------------------------------------
     // Collection
-    @inlinable @inline(__always)
+    @inlinable
     public func index(before i: View.Index) -> View.Index { i.advanced(by: -1) }
     
-    @inlinable @inline(__always)
+    @inlinable
     public func index(after i: View.Index) -> View.Index { i.increment() }
     
-    @inlinable @inline(__always)
+    @inlinable
     public subscript(index: View.Index) -> View.Element {
         buffer[index.dataIndex]
     }
@@ -213,7 +213,7 @@ public struct TensorMutableValueCollection<View>: RandomAccessCollection,
     public let endIndex: View.Index
     public let count: Int
     
-    @inlinable @inline(__always)
+    @inlinable
     public init(view: inout View,
                 buffer: UnsafeMutableBufferPointer<View.Element>) {
         self.buffer = buffer
@@ -222,7 +222,7 @@ public struct TensorMutableValueCollection<View>: RandomAccessCollection,
         count = view.count
     }
     
-    @inlinable @inline(__always)
+    @inlinable
     public init(view: inout View) {
         self.buffer = UnsafeMutableBufferPointer<View.Element>(start: nil,
                                                                count: 0)
@@ -233,13 +233,13 @@ public struct TensorMutableValueCollection<View>: RandomAccessCollection,
     
     //--------------------------------------------------------------------------
     // Collection
-    @inlinable @inline(__always)
+    @inlinable
     public func index(before i: View.Index) -> View.Index { i.advanced(by: -1) }
     
-    @inlinable @inline(__always)
+    @inlinable
     public func index(after i: View.Index) -> View.Index { i.increment() }
     
-    @inlinable @inline(__always)
+    @inlinable
     public subscript(index: View.Index) -> View.Element {
         get {
             buffer[index.dataIndex]

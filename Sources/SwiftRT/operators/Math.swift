@@ -22,7 +22,7 @@ import Real
 /// with placement
 /// - Parameter other: value tensor
 /// - Returns: result
-@inlinable @inline(__always)
+@inlinable
 public func cast<T, U>(_ other: U) -> T where
     T: TensorView, T.Element: AnyConvertable,
     U: TensorView, U.Element: AnyConvertable, U.Shape == T.Shape
@@ -42,7 +42,7 @@ public func cast<T, U>(_ other: U) -> T where
 ///
 /// - Parameter x: value tensor
 /// - Returns: result
-@inlinable @inline(__always)
+@inlinable
 public func abs<T>(_ x: T) -> T
     where T: TensorView, T.Element: Real
 {
@@ -54,18 +54,18 @@ public func abs<T>(_ x: T) -> T
 public extension TensorView where Element: Real {
     // make glboal function visible for extension implementations
     @differentiable(where Self: DifferentiableTensorView)
-    @inlinable @inline(__always)
+    @inlinable
     func abs(_ x: Self) -> Self { SwiftRT.abs(x) }
     
     @differentiable(where Self: DifferentiableTensorView)
-    @inlinable @inline(__always)
+    @inlinable
     func abs() -> Self { abs(self) }
 }
 
 //--------------------------------------
 // derivative functions
 @derivative(of: abs)
-@inlinable @inline(__always)
+@inlinable
 internal func _vjpAbs<T>(_ x: T) -> (value: T, pullback: (T) -> T)
     where T: DifferentiableTensorView, T.Element: Real
 {
@@ -79,7 +79,7 @@ internal func _vjpAbs<T>(_ x: T) -> (value: T, pullback: (T) -> T)
 ///
 /// - Parameter x: value tensor
 /// - Returns: result
-@inlinable @inline(__always)
+@inlinable
 public func exp<T>(_ x: T) -> T
     where T: TensorView, T.Element: Real
 {
@@ -91,18 +91,18 @@ public func exp<T>(_ x: T) -> T
 public extension TensorView where Element: Real {
     // make glboal function visible for extension implementations
     @differentiable(where Self: DifferentiableTensorView)
-    @inlinable @inline(__always)
+    @inlinable
     func exp(_ x: Self) -> Self { SwiftRT.exp(x) }
 
     @differentiable(where Self: DifferentiableTensorView)
-    @inlinable @inline(__always)
+    @inlinable
     func exp() -> Self { exp(self) }
 }
 
 //--------------------------------------
 // derivative functions
 @derivative(of: exp)
-@inlinable @inline(__always)
+@inlinable
 internal func _vjpExp<T>(_ x: T) -> (value: T, pullback: (T) -> T)
     where T: DifferentiableTensorView, T.Element: Real
 {
@@ -116,7 +116,7 @@ internal func _vjpExp<T>(_ x: T) -> (value: T, pullback: (T) -> T)
 ///
 /// - Parameter x: value tensor
 /// - Returns: result
-@inlinable @inline(__always)
+@inlinable
 public func log<T>(_ x: T) -> T
     where T: TensorView, T.Element: Real
 {
@@ -128,18 +128,18 @@ public func log<T>(_ x: T) -> T
 public extension TensorView where Element: Real {
     // make glboal function visible for extension implementations
     @differentiable(where Self: DifferentiableTensorView)
-    @inlinable @inline(__always)
+    @inlinable
     func log(_ x: Self) -> Self { SwiftRT.log(x) }
 
     @differentiable(where Self: DifferentiableTensorView)
-    @inlinable @inline(__always)
+    @inlinable
     func log() -> Self { log(self) }
 }
 
 //--------------------------------------
 // derivative functions
 @derivative(of: log)
-@inlinable @inline(__always)
+@inlinable
 internal func _vjpLog<T>(_ x: T) -> (value: T, pullback: (T) -> T)
     where T: DifferentiableTensorView, T.Element: Real
 {
@@ -153,7 +153,7 @@ internal func _vjpLog<T>(_ x: T) -> (value: T, pullback: (T) -> T)
 /// with placement
 /// - Parameter x: value tensor
 /// - Returns: result
-@inlinable @inline(__always)
+@inlinable
 public func neg<T>(_ x: T) -> T
     where T: TensorView, T.Element: SignedNumeric
 {
@@ -165,11 +165,11 @@ public func neg<T>(_ x: T) -> T
 public extension TensorView where Element: SignedNumeric {
     // make glboal function visible for extension implementations
     @differentiable(where Self: DifferentiableTensorView)
-    @inlinable @inline(__always)
+    @inlinable
     static prefix func - (x: Self) -> Self { SwiftRT.neg(x) }
 
     @differentiable(where Self: DifferentiableTensorView)
-    @inlinable @inline(__always)
+    @inlinable
     func neg() -> Self { SwiftRT.neg(self) }
 }
 
@@ -189,7 +189,7 @@ internal func _vjpNeg<T>(_ x: T) -> (value: T, pullback: (T) -> T)
 ///
 /// - Parameter x: value tensor
 /// - Returns: result
-@inlinable @inline(__always)
+@inlinable
 public func squared<T>(_ x: T) -> T
     where T: TensorView, T.Element: Numeric
 {
@@ -201,11 +201,11 @@ public func squared<T>(_ x: T) -> T
 public extension TensorView where Element: Numeric {
     // make glboal function visible for extension implementations
     @differentiable(where Self: DifferentiableTensorView)
-    @inlinable @inline(__always)
+    @inlinable
     func squared(_ x: Self) -> Self { SwiftRT.squared(x) }
 
     @differentiable(where Self: DifferentiableTensorView)
-    @inlinable @inline(__always)
+    @inlinable
     func squared() -> Self { squared(self) }
 }
 
@@ -231,7 +231,7 @@ internal func _vjpSquared<T>(_ x: T) -> (value: T, pullback: (T) -> (T))
 /// - Parameter x: value tensor
 /// - Parameter y: power tensor
 /// - Returns: result
-@inlinable @inline(__always)
+@inlinable
 public func pow<T>(_ x: T, _ y: T) -> T
     where T: TensorView, T.Element: Real
 {
@@ -244,21 +244,21 @@ public func pow<T>(_ x: T, _ y: T) -> T
 public extension TensorView where Element: Real {
     // make glboal function visible for extension implementations
     @differentiable(where Self: DifferentiableTensorView)
-    @inlinable @inline(__always)
+    @inlinable
     func pow(_ x: Self, _ y: Self) -> Self { SwiftRT.pow(x, y) }
 
     @differentiable(where Self: DifferentiableTensorView)
-    @inlinable @inline(__always)
+    @inlinable
     static func **(_ x: Self, _ y: Self) -> Self { SwiftRT.pow(x, y) }
 
 //    @differentiable(where Self: DifferentiableTensorView)
-    @inlinable @inline(__always)
+    @inlinable
     static func **(_ x: Self, _ y: Element) -> Self {
         y == 2 ? x.squared() : x ** Self(repeating: y, like: x)
     }
 
 //    @differentiable(where Self: DifferentiableTensorView)
-    @inlinable @inline(__always)
+    @inlinable
     static func **(_ x: Element, _ y: Self) -> Self {
         Self(repeating: x, like: y) ** y
     }
@@ -288,7 +288,7 @@ internal func _vjpPow<T>(_ x: T, _ y: T) -> (value: T, pullback: (T) -> (T, T))
 /// with placement
 /// - Parameter x: value tensor
 /// - Returns: result
-@inlinable @inline(__always)
+@inlinable
 public func sqrt<T>(_ x: T) -> T
     where T: TensorView, T.Element: Real
 {
@@ -300,18 +300,18 @@ public func sqrt<T>(_ x: T) -> T
 public extension TensorView where Element: Real {
     // make glboal function visible for extension implementations
     @differentiable(where Self: DifferentiableTensorView)
-    @inlinable @inline(__always)
+    @inlinable
     func sqrt(_ x: Self) -> Self { SwiftRT.sqrt(x) }
 
     @differentiable(where Self: DifferentiableTensorView)
-    @inlinable @inline(__always)
+    @inlinable
     func sqrt() -> Self { sqrt(self) }
 }
 
 //--------------------------------------
 // derivative functions
 @derivative(of: sqrt)
-@inlinable @inline(__always)
+@inlinable
 internal func _vjpSqrt<T>(_ x: T) -> (value: T, pullback: (T) -> T)
     where T: DifferentiableTensorView, T.Element: Real
 {
@@ -324,7 +324,7 @@ internal func _vjpSqrt<T>(_ x: T) -> (value: T, pullback: (T) -> T)
 ///
 /// - Parameter x: value tensor
 /// - Returns: the signs of `x`. -1 for negative `x` values, 1 for positive
-@inlinable @inline(__always)
+@inlinable
 public func sign<T>(_ x: T) -> T
     where T: TensorView, T.Element: Real
 {
@@ -336,18 +336,18 @@ public func sign<T>(_ x: T) -> T
 public extension TensorView where Element: Real {
     // make glboal function visible for extension implementations
     @differentiable(where Self: DifferentiableTensorView)
-    @inlinable @inline(__always)
+    @inlinable
     func sign(_ x: Self) -> Self { SwiftRT.sign(x) }
     
     @differentiable(where Self: DifferentiableTensorView)
-    @inlinable @inline(__always)
+    @inlinable
     func sign() -> Self { sign(self) }
 }
 
 //--------------------------------------
 // derivative functions
 @derivative(of: sign)
-@inlinable @inline(__always)
+@inlinable
 internal func _vjpSign<T>(_ x: T) -> (value: T, pullback: (T) -> T)
     where T: DifferentiableTensorView, T.Element: Real
 {

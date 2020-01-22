@@ -111,7 +111,7 @@ public typealias TensorElementConformance = AnyElement & Codable & Equatable
 public extension TensorView {
     //--------------------------------------------------------------------------
     /// returns a collection of read only elements
-    @inlinable @inline(__always)
+    @inlinable
     func elements(using queue: DeviceQueue? = nil)
         -> TensorValueCollection<Self>
     {
@@ -124,12 +124,12 @@ public extension TensorView {
         }
     }
     
-    @inlinable @inline(__always)
+    @inlinable
     var elements: TensorValueCollection<Self> { elements() }
 
     //--------------------------------------------------------------------------
     /// returns a collection of read write values
-    @inlinable @inline(__always)
+    @inlinable
     mutating func mutableElements(using queue: DeviceQueue? = nil)
         -> TensorMutableValueCollection<Self>
     {
@@ -179,9 +179,9 @@ public enum TensorFormat: Int, Codable {
 //==============================================================================
 // TensorView default implementation
 public extension TensorView where Element: AnyElement {
-    /// element
+    /// first
     /// - Returns: the first element in the tensor
-    @inlinable @inline(__always)
+    @inlinable
     var first: Element {
         do {
             return try readOnly()[0]
@@ -191,12 +191,16 @@ public extension TensorView where Element: AnyElement {
         }
     }
 
+    /// element
+    /// can get and set the value of a single element tensor.
     /// - Returns: the only element in the tensor
-    @inlinable @inline(__always)
+    @inlinable
     var element: Element {
-        assert(shape.isScalar, "the `element` property expects " +
-            "the tensor to have a single Element. Use `first` for sets")
-        return first
+        get {
+            assert(shape.isScalar, "the `element` property expects " +
+                "the tensor to have a single Element. Use `first` for sets")
+            return first
+        }
     }
 }
 
@@ -205,39 +209,39 @@ public extension TensorView where Element: AnyElement {
 public extension TensorView {
     //--------------------------------------------------------------------------
     /// the number of elements in the collection
-    @inlinable @inline(__always)
+    @inlinable
     var count: Int { shape.count }
     /// the extents of the view
-    @inlinable @inline(__always)
+    @inlinable
     var extents: Shape.Array { shape.extents }
     /// `true` if the values are contiguosly arranged in memory
-    @inlinable @inline(__always)
+    @inlinable
     var isContiguous: Bool { shape.isContiguous }
     /// the number of items in the tensor, which is equal to `extents[0]`
-    @inlinable @inline(__always)
+    @inlinable
     var items: Int { shape.items }
     /// is `true` if the last data access caused the view's underlying
     /// tensorArray object to be copied.
     /// Used primarily for debugging and unit testing
-    @inlinable @inline(__always)
+    @inlinable
     var lastAccessMutatedView: Bool { tensorArray.lastAccessMutatedView }
     /// the name of the view, which can optionally be set to aid in debugging
-    @inlinable @inline(__always)
+    @inlinable
     var name: String { tensorArray.name }
     /// the number of dimensions in the view
-    @inlinable @inline(__always)
+    @inlinable
     var rank: Int { shape.rank }
     /// the strides of the tensor elements
-    @inlinable @inline(__always)
+    @inlinable
     var strides: Shape.Array { shape.strides }
     /// an array of viewed elements
-    @inlinable @inline(__always)
+    @inlinable
     var flatArray: [Element] { [Element](elements()) }
 
     //--------------------------------------------------------------------------
     /// createView
     /// Returns a view of the tensorArray relative to this view
-    @inlinable @inline(__always)
+    @inlinable
     func createView(at offset: Shape.Array, extents: Shape.Array,
                     strides: Shape.Array, isReference: Bool) -> Self
     {
@@ -260,7 +264,7 @@ public extension TensorView {
     /// The data will be copied before view creation if
     /// not uniquely held. Shared views will not perform
     /// copy-on-write when a write pointer is taken
-    @inlinable @inline(__always)
+    @inlinable
     mutating func sharedView(using queue: DeviceQueue,
                              reshaped: Shape? = nil) throws -> Self {
         // get the queue, if we reference it as a tensorArray member it
@@ -278,39 +282,23 @@ public extension TensorView {
 
     //--------------------------------------------------------------------------
     /// repeated(to extents:
-    @inlinable @inline(__always)
+    @inlinable
     func repeated(to extents: Shape.Array) -> Self {
-        Self(shape: shape.repeated(to: extents),
-             tensorArray: tensorArray,
-             viewOffset: viewOffset,
-             isShared: isShared)
+        return Self(shape: shape.repeated(to: extents),
+                    tensorArray: tensorArray,
+                    viewOffset: viewOffset,
+                    isShared: isShared)
     }
     
-    @inlinable @inline(__always)
+    @inlinable
     func repeated(to extents: Shape.Tuple) -> Self {
         repeated(to: Shape.Array(extents))
     }
     
-//    //--------------------------------------------------------------------------
-//    /// get a single value at the specified index
-//    func value(at position: Index.Position) throws -> Element {
-//        let buffer = try readOnly()
-//        let index = Index(view: self, at: position)
-//        return buffer[index.dataIndex]
-//    }
-//
-//    //--------------------------------------------------------------------------
-//    /// set a single value at the specified index
-//    mutating func set(value: Element, at position: Index.Position) throws {
-//        let buffer = try readWrite()
-//        let index = Index(view: self, at: position)
-//        buffer[index.dataIndex] = value
-//    }
-//
     //--------------------------------------------------------------------------
     /// isUniqueReference
     /// `true` if this view is the only view holding a reference to tensorArray
-    @inlinable @inline(__always)
+    @inlinable
     mutating func isUniqueReference() -> Bool {
         isKnownUniquelyReferenced(&tensorArray)
     }
@@ -399,7 +387,7 @@ public extension TensorView {
     /// deviceReadOnly(using queue:
     /// Returns a read only device raw memory pointer synced with the specified
     /// queue.
-    @inlinable @inline(__always)
+    @inlinable
     func deviceReadOnly(using queue: DeviceQueue? = nil) throws
         -> UnsafeRawPointer
     {
@@ -449,7 +437,7 @@ public extension TensorView {
     /// deviceReadWrite(using queue:
     /// Returns a read write device raw memory pointer synced with the specified
     /// queue.
-    @inlinable @inline(__always)
+    @inlinable
     mutating func deviceReadWrite(using queue: DeviceQueue? = nil) throws
         -> UnsafeMutableRawPointer
     {
@@ -459,12 +447,12 @@ public extension TensorView {
     //--------------------------------------------------------------------------
     /// view
     /// Create a sub view of the tensorArray relative to this view
-    @inlinable @inline(__always)
+    @inlinable
     func view(at offset: Shape.Tuple, extents: Shape.Tuple) -> Self {
         view(at: Shape.Array(offset), extents: Shape.Array(extents))
     }
 
-    @inlinable @inline(__always)
+    @inlinable
     func view(at offset: Shape.Array, extents: Shape.Array) -> Self {
         // the view created will have the same isShared state as the parent
         createView(at: offset, extents: extents,
@@ -474,7 +462,7 @@ public extension TensorView {
     //--------------------------------------------------------------------------
     /// view
     /// Create a sub view of the tensorArray relative to this view
-    @inlinable @inline(__always)
+    @inlinable
     func view(at offset: Shape.Tuple, extents: Shape.Tuple,
               strides: Shape.Tuple) -> Self
     {
@@ -482,7 +470,7 @@ public extension TensorView {
              strides: Shape.Array(strides))
     }
     
-    @inlinable @inline(__always)
+    @inlinable
     func view(at offset: Shape.Array, extents: Shape.Array,
               strides: Shape.Array) -> Self
     {
@@ -513,7 +501,7 @@ public extension TensorView {
     
     //--------------------------------------------------------------------------
     /// view(item:
-    @inlinable @inline(__always)
+    @inlinable
     func view(item: Int) -> Self {
         viewItems(at: item, count: 1)
     }
@@ -653,7 +641,7 @@ public extension TensorView {
 // == operator to simplify unit test syntax
 public extension TensorView {
     /// compares the flat elements of self with a Swift array of elements
-    @inlinable @inline(__always)
+    @inlinable
     static func == (lhs: Self, rhs: [Element]) -> Bool {
         for (i, element) in lhs.elements().enumerated() {
             if element != rhs[i] { return false }
@@ -664,7 +652,7 @@ public extension TensorView {
 
 public extension TensorView where Element: AnyConvertable {
     /// compares the flat elements of self with a Swift collection of elements
-    @inlinable @inline(__always)
+    @inlinable
     static func == <R>(lhs: Self, rhs: R) -> Bool
         where R: Collection, R.Element: AnyConvertable
     {
@@ -672,5 +660,19 @@ public extension TensorView where Element: AnyConvertable {
             if lhsElement != Element(any: rhsElement) { return false }
         }
         return true
+    }
+
+    /// compares the flat elements of self with a Swift collection of elements
+    @inlinable
+    static func == <T>(lhs: Self, rhs: T) -> Bool where T: AnyConvertable
+    {
+        lhs.element == Element(any: rhs)
+    }
+
+    /// compares the flat elements of self with a Swift collection of elements
+    @inlinable
+    static func == <T>(lhs: T, rhs: Self) -> Bool where T: AnyConvertable
+    {
+        Element(any: lhs) == rhs.element
     }
 }

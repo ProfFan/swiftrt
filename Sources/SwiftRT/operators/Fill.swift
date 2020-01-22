@@ -45,9 +45,8 @@ public extension TensorView {
 /// with placement
 /// - Parameter from view: tensor to be copied
 /// - Parameter to result: the tensor where the result will be written
-@inlinable @inline(__always)
-public func copy<T>(from view: T, to result: inout T) where T: TensorView
-{
+@inlinable
+public func copy<T>(from view: T, to result: inout T) where T: TensorView {
     DeviceContext.currentQueue.copy(from: view, to: &result)
 }
 

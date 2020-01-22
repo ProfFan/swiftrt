@@ -67,10 +67,10 @@ public struct RGB<Scalar>: RGBProtocol
 {
     public var r, g, b: Scalar
 
-    @inlinable @inline(__always)
+    @inlinable
     public init() { r = Scalar.zero; g = Scalar.zero; b = Scalar.zero }
 
-    @inlinable @inline(__always)
+    @inlinable
     public init(_ r: Scalar, _ g: Scalar, _ b: Scalar) {
         self.r = r; self.g = g; self.b = b
     }
@@ -111,12 +111,12 @@ public struct RGBA<Scalar> : RGBAProtocol
 {
     public var r, g, b, a: Scalar
 
-    @inlinable @inline(__always)
+    @inlinable
     public init() {
         r = Scalar.zero; g = Scalar.zero; b = Scalar.zero; a = Scalar.zero
     }
     
-    @inlinable @inline(__always)
+    @inlinable
     public init(_ r: Scalar, _ g: Scalar, _ b: Scalar, _ a: Scalar) {
         self.r = r; self.g = g; self.b = b; self.a = a
     }
@@ -131,10 +131,10 @@ public struct Stereo<Scalar>: StereoProtocol
 {
     public var left, right: Scalar
 
-    @inlinable @inline(__always)
+    @inlinable
     public init() { left = Scalar.zero; right = Scalar.zero }
 
-    @inlinable @inline(__always)
+    @inlinable
     public init(_ left: Scalar, _ right: Scalar) {
         self.left = left; self.right = right
     }

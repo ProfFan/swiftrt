@@ -21,6 +21,8 @@ class test_Initialize: XCTestCase {
     //==========================================================================
     // support terminal test run
     static var allTests = [
+        ("test_perfCreateTensorArray", test_perfCreateTensorArray),
+        ("test_perfCreateMatrix", test_perfCreateMatrix),
         ("test_flattening", test_flattening),
         ("test_squeezing", test_squeezing),
         ("test_cast", test_cast),
@@ -31,6 +33,38 @@ class test_Initialize: XCTestCase {
         ("test_repeatColVector", test_repeatColVector),
     ]
 
+    //--------------------------------------------------------------------------
+    // test_perfCreateTensorArray
+    func test_perfCreateTensorArray() {
+        #if !DEBUG
+        let iterations = 10000
+        var count = 0
+        measure {
+            for i in 1...iterations {
+                let array = TensorArray<Float>(count: i, name: "")
+                count = array.count
+            }
+        }
+        XCTAssert(count == iterations)
+        #endif
+    }
+    
+    //--------------------------------------------------------------------------
+    // test_perfCreateMatrix
+    func test_perfCreateMatrix() {
+        #if !DEBUG
+        let iterations = 10000
+        var count = 0
+        measure {
+            for i in 1...iterations {
+                let matrix = Matrix(1, i)
+                count = matrix.count
+            }
+        }
+        XCTAssert(count == iterations)
+        #endif
+    }
+    
     //--------------------------------------------------------------------------
     // test_flattening
     func test_flattening() {

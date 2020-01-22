@@ -162,15 +162,13 @@ public protocol DeviceFunctions {
     /// reduce
     /// Reduces `x` along the specified axes
     /// - Parameter x: value tensor
-    /// - Parameter into result: the scalar tensor where the result will
-    ///  be written. Dimensions with extent of 1 will be reduced
-    /// - Parameter initialResult: the initial value of the result
+    /// - Parameter result: contains the initial value of the result on entry
+    ///  and then final reduction result on return
     /// - Parameter opNext: the operation to perform on pairs of elements
     /// - Parameter opFinal: the operation to perform on the final result
     /// - Precondition: Each value in `axes` must be in the range `-rank..<rank`.
     func reduce<T>(x: T,
                    into result: inout T,
-                   initialResult: T.Element,
                    opId: ReductionOp,
                    opNext: @escaping (T.Element, T.Element) -> T.Element,
                    opFinal: ReduceOpFinal<T>?)
@@ -191,7 +189,7 @@ public protocol DeviceFunctions {
 public extension DeviceFunctions where Self: DeviceQueue {
     // mapOp 1
     /// generically maps a tensor
-    @inlinable @inline(__always)
+    @inlinable
     func mapOp<T, R>(_ x: T, _ result: inout R,
                      _ op: @escaping (T.Element) -> R.Element) where
         T: TensorView, R: TensorView
@@ -200,7 +198,7 @@ public extension DeviceFunctions where Self: DeviceQueue {
     }
     // mapOp 2
     /// generically combines two tensors
-    @inlinable @inline(__always)
+    @inlinable
     func mapOp<LHS, RHS, R>(
         _ lhs: LHS, _ rhs: RHS, _ result: inout R,
         _ op: @escaping (LHS.Element, RHS.Element) -> R.Element) where
@@ -210,7 +208,7 @@ public extension DeviceFunctions where Self: DeviceQueue {
     }
     // mapOp 3
     /// generically combines three tensors
-    @inlinable @inline(__always)
+    @inlinable
     func mapOp<T1, T2, T3, R>(
         _ a: T1, _ b: T2, _ c: T3, _ result: inout R,
         _ op: @escaping (T1.Element, T2.Element, T3.Element) -> R.Element) where
@@ -220,7 +218,7 @@ public extension DeviceFunctions where Self: DeviceQueue {
     }
     // mapOp 3R2
     /// generically combines three tensors
-    @inlinable @inline(__always)
+    @inlinable
     func mapOp<T1, T2, T3, R>(
         _ a: T1, _ b: T2, _ c: T3, _ result1: inout R,  _ result2: inout R,
         _ op: @escaping (T1.Element, T2.Element, T3.Element) -> (R.Element, R.Element))
@@ -238,7 +236,7 @@ public extension DeviceFunctions where Self: DeviceQueue {
         }
     }
     // inPlaceOp
-    @inlinable @inline(__always)
+    @inlinable
     func inPlaceOp<T>(_ result: inout T,
                       _ op: @escaping (T.Element) -> T.Element) where
         T: MutableCollection
@@ -246,7 +244,7 @@ public extension DeviceFunctions where Self: DeviceQueue {
         result.indices.forEach { result[$0] = op(result[$0]) }
     }
     // reductionOp
-    @inlinable @inline(__always)
+    @inlinable
     func reductionOp<T, R>(
         _ x: T, _ result: inout R,
         _ op: @escaping (R.Element, T.Element) -> R.Element) where
@@ -257,14 +255,14 @@ public extension DeviceFunctions where Self: DeviceQueue {
     
     //==========================================================================
     /// abs
-    @inlinable @inline(__always)
+    @inlinable
     func abs<T>(x: T, result: inout T) where
         T: TensorView, T.Element: Real
     {
         mapOp(x, &result) { Swift.abs($0) }
     }
     // add
-    @inlinable @inline(__always)
+    @inlinable
     func add<T>(lhs: T, rhs: T, result: inout T) where
         T: TensorView, T.Element: AdditiveArithmetic
     {
@@ -459,38 +457,36 @@ public extension DeviceFunctions where Self: DeviceQueue {
     /// reduce
     /// Reduces `x` along the specified axes
     /// - Parameter x: value tensor
-    /// - Parameter into result: the scalar tensor where the result will
-    ///  be written. Dimensions with extent of 1 will be reduced
-    /// - Parameter initialResult: the initial value of the result
+    /// - Parameter result: contains the initial value of the result on entry
+    ///  and then final reduction result on return
     /// - Parameter opNext: the operation to perform on pairs of elements
     /// - Parameter opFinal: the operation to perform on the final result
     /// - Precondition: Each value in `axes` must be in the range `-rank..<rank`.
     @inlinable
     func reduce<T>(x: T,
                    into result: inout T,
-                   initialResult: T.Element,
                    opId: ReductionOp,
                    opNext: @escaping (T.Element, T.Element) -> T.Element,
                    opFinal: ReduceOpFinal<T>?)
         where T: TensorView
     {
-        // fill with the initial result
-        fill(result: &result, with: initialResult)
+        assert(result.isContiguous, "Result storage must be contiguous")
         
         do {
-            // create a temporary view that is repeated to match the input
-            var v = try result.sharedView(
+            // created a repeated view of the initial results to match `x`
+            var repeated = try result.sharedView(
                 using: self, reshaped: result.shape.repeated(to: x.extents))
-            var resultElements = v.mutableElements()
+            var repeatedElements = repeated.mutableElements(using: self)
+
             // do the reduction
-            reductionOp(x.elements, &resultElements, opNext)
-            
-            if let op = opFinal {
-                var elements = result.mutableElements(using: self)
-                inPlaceOp(&elements, op)
-            }
+            reductionOp(x.elements, &repeatedElements, opNext)
         } catch {
             device.report(error)
+        }
+
+        if let op = opFinal {
+            var elements = result.mutableElements(using: self)
+            inPlaceOp(&elements, op)
         }
     }
 }

@@ -46,25 +46,19 @@ class test_DataMigration: XCTestCase {
     // test_stressCopyOnWriteDevice
     // stresses view mutation and async copies on device
     func test_stressCopyOnWriteDevice() {
-        do {
 //            Platform.log.level = .diagnostic
 //            Platform.log.categories = [.dataAlloc, .dataCopy, .dataMutation]
             
-            let matrix = Matrix(3, 2, with: 0..<6, name: "matrix")
-            let index = (1, 1)
-            
-            for i in 0..<500 {
-                var matrix2 = matrix
-                try matrix2.set(value: 7, at: index)
-                
-                let value = try matrix2.value(at: index)
-                if value != 7.0 {
-                    XCTFail("i: \(i)  value is: \(value)")
-                    break
-                }
+        let matrix = Matrix(3, 2, with: 0..<6, name: "matrix")
+        
+        for i in 0..<500 {
+            var matrix2 = matrix
+            matrix2[1, 1] = 7
+            let value = matrix2[1, 1]
+            if value != 7.0 {
+                XCTFail("i: \(i)  value is: \(value)")
+                break
             }
-        } catch {
-            XCTFail(String(describing: error))
         }
     }
     
@@ -224,8 +218,7 @@ class test_DataMigration: XCTestCase {
             // retreive value on app thread
             // memory is allocated in the host app space and the data is copied
             // from device 1 to the host using queue 0.
-            let value1 = try matrix.value(at: (1, 1))
-            XCTAssert(value1 == 3.0)
+            XCTAssert(matrix[1, 1] == 3)
             
             // simulate a readonly kernel access on device 1.
             // matrix was not previously modified, so it is up to date
@@ -241,7 +234,7 @@ class test_DataMigration: XCTestCase {
             var sum = using(device1) {
                 matrix.sum().element
             }
-            XCTAssert(sum == 15.0)
+            XCTAssert(sum == 15)
             
             // copy the matrix and simulate a readOnly operation on device2
             // a device array is allocated on device 2 then the master copy
@@ -291,46 +284,37 @@ class test_DataMigration: XCTestCase {
             XCTFail(String(describing: error))
         }
     }
-
+    
     //--------------------------------------------------------------------------
     // test_copyOnWriteDevice
     func test_copyOnWriteDevice() {
-        do {
-//            Platform.log.level = .diagnostic
-//            Platform.log.categories = [.dataAlloc, .dataCopy, .dataMutation]
-            
-            // create a named queue on two different discreet devices
-            // cpu devices 1 and 2 are discreet memory versions for testing
-            let device1 = Platform.testCpu1
-            
-            // fill with index on device 1
-            let index = (1, 1)
-            var matrix1 = Matrix(3, 2)
-            using(device1) {
-                fillWithIndex(&matrix1)
-            }
-            // testing a value causes the data to be copied to the host
-            var value = try matrix1.value(at: index)
-            XCTAssert(value == 3.0)
-            
-            // copy and mutate data
-            // the data will be duplicated wherever the source is
-            var matrix2 = matrix1
-            value = try matrix2.value(at: index)
-            XCTAssert(value == 3.0)
-            
-            // writing to matrix2 causes view mutation and copy on write
-            try matrix2.set(value: 7, at: index)
-            value = try matrix1.value(at: index)
-            XCTAssert(value == 3.0)
-            
-            value = try matrix2.value(at: index)
-            XCTAssert(value == 7.0)
-        } catch {
-            XCTFail(String(describing: error))
+        Platform.log.level = .diagnostic
+        Platform.log.categories = [.dataAlloc, .dataCopy, .dataMutation]
+        
+        // create a named queue on two different discreet devices
+        // cpu devices 1 and 2 are discreet memory versions for testing
+        let device1 = Platform.testCpu1
+        
+        // fill with index on device 1
+        var matrix1 = Matrix(3, 2)
+        using(device1) {
+            fillWithIndex(&matrix1)
         }
+        // testing a value causes the data to be copied to the host
+        XCTAssert(matrix1[1, 1] == 3.0)
+        
+        // copy and mutate data
+        // the data will be duplicated wherever the source is
+        var matrix2 = matrix1
+        XCTAssert(matrix2[1, 1] == 3.0)
+        
+        // writing to matrix2 causes view mutation and copy on write
+        matrix2[1, 1] = 7
+        XCTAssert(matrix1[1, 1] == 3.0)
+        
+        XCTAssert(matrix2[1, 1] == 7.0)
     }
-
+    
     //--------------------------------------------------------------------------
     // test_copyOnWriteCrossDevice
     func test_copyOnWriteCrossDevice() {
@@ -345,7 +329,6 @@ class test_DataMigration: XCTestCase {
             let device2 = Platform.testCpu2
             let queue2 = device2.queues[0]
             
-            let index = (1, 1)
             var matrix1 = Matrix(3, 2)
             
             // allocate array on device 1 and fill with indexes
@@ -356,8 +339,8 @@ class test_DataMigration: XCTestCase {
             // getting a value causes the data to be copied to an
             // array associated with the app thread
             // The master version is stil on device 1
-            let value = try matrix1.value(at: index)
-            XCTAssert(value == 3.0)
+            let value = matrix1[1, 1]
+            XCTAssert(value == 3)
             
             // simulate read only access on device 1 and 2
             // data will be copied to device 2 for the first time
@@ -368,7 +351,7 @@ class test_DataMigration: XCTestCase {
             let sum1 = using(device1) {
                 matrix1.sum().element
             }
-            XCTAssert(sum1 == 15.0)
+            XCTAssert(sum1 == 15)
             
             // clear the device 0 master copy
             using(device1) {
@@ -391,29 +374,20 @@ class test_DataMigration: XCTestCase {
     // test_copyOnWrite
     // NOTE: uses the default queue
     func test_copyOnWrite() {
-        do {
-//            Platform.log.level = .diagnostic
-//            Platform.log.categories = [.dataAlloc, .dataCopy, .dataMutation]
-            
-            let index = (1, 1)
-            var matrix1 = Matrix(3, 2)
-            fillWithIndex(&matrix1)
-            var value = try matrix1.value(at: index)
-            XCTAssert(value == 3.0)
-            
-            var matrix2 = matrix1
-            value = try matrix2.value(at: index)
-            XCTAssert(value == 3.0)
-            
-            try matrix2.set(value: 7, at: index)
-            value = try matrix1.value(at: index)
-            XCTAssert(value == 3.0)
-            
-            value = try matrix2.value(at: index)
-            XCTAssert(value == 7.0)
-        } catch {
-            XCTFail(String(describing: error))
-        }
+        //            Platform.log.level = .diagnostic
+        //            Platform.log.categories = [.dataAlloc, .dataCopy, .dataMutation]
+        
+        var matrix1 = Matrix(3, 2)
+        fillWithIndex(&matrix1)
+        XCTAssert(matrix1[1, 1] == 3)
+        
+        var matrix2 = matrix1
+        XCTAssert(matrix2[1, 1] == 3)
+        
+        matrix2[1, 1] = 7
+        XCTAssert(matrix1[1, 1] == 3)
+        
+        XCTAssert(matrix2[1, 1] == 7)
     }
 
     //--------------------------------------------------------------------------

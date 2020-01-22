@@ -32,12 +32,12 @@ public protocol RangeBound: Comparable, Numeric {
 }
 
 public extension RangeBound where Self: FixedWidthInteger {
-    @inlinable @inline(__always)
+    @inlinable
     func steps(dividedBy step: Self) -> Int { Int(self / step) }
 }
 
 public extension RangeBound where Self: BinaryFloatingPoint {
-    @inlinable @inline(__always)
+    @inlinable
     func steps(dividedBy step: Self) -> Int { Int(self / step) }
 }
 
@@ -57,7 +57,7 @@ public protocol PartialRangeExpression {
 }
 
 extension PartialRangeExpression {
-    @inlinable @inline(__always)
+    @inlinable
     public var step: Bound { 1 }
 }
 
@@ -70,13 +70,13 @@ public struct PartialStridedRange<Partial>: PartialRangeExpression
     public var partialRange: Partial
     public var step: Bound
     
-    @inlinable @inline(__always)
+    @inlinable
     public init(partial range: Partial, by step: Bound) {
         self.partialRange = range
         self.step = step
     }
     
-    @inlinable @inline(__always)
+    @inlinable
     public func relativeTo<C>(_ collection: C) -> StridedRange<Bound>
         where C : Collection, Self.Bound == C.Index
     {
@@ -87,7 +87,7 @@ public struct PartialStridedRange<Partial>: PartialRangeExpression
 
 //==============================================================================
 /// range operators
-@inlinable @inline(__always)
+@inlinable
 public func .. (range: UnboundedRange, step: Int)
     -> PartialStridedRange<PartialRangeFrom<Int>>
 {
@@ -97,7 +97,7 @@ public func .. (range: UnboundedRange, step: Int)
 // Range with negative bounds
 infix operator ..<-: RangeFormationPrecedence
 
-@inlinable @inline(__always)
+@inlinable
 public func ..<- (lower: Int, upper: Int) -> Range<Int> {
     Range(uncheckedBounds: (lower, -upper))
 }
@@ -105,7 +105,7 @@ public func ..<- (lower: Int, upper: Int) -> Range<Int> {
 // Range through with negative bounds
 infix operator ...-: RangeFormationPrecedence
 
-@inlinable @inline(__always)
+@inlinable
 public func ...- (lower: Int, upper: Int) -> ClosedRange<Int> {
     ClosedRange(uncheckedBounds: (lower, -upper))
 }
@@ -115,12 +115,12 @@ prefix operator ..<-
 prefix operator ...-
 
 public extension Int {
-    @inlinable @inline(__always)
+    @inlinable
     prefix static func ..<- (upper: Int) -> PartialRangeUpTo<Int> {
         ..<(-upper)
     }
     
-    @inlinable @inline(__always)
+    @inlinable
     prefix static func ...- (upper: Int) -> PartialRangeThrough<Int> {
         ...(-upper)
     }
@@ -130,7 +130,7 @@ public extension Int {
 prefix operator .....
 
 public extension Int {
-    @inlinable @inline(__always)
+    @inlinable
     prefix static func ..... (step: Int) ->
         PartialStridedRange<PartialRangeFrom<Int>>
     {
@@ -144,7 +144,7 @@ public extension Int {
 infix operator ..|: RangeFormationPrecedence
 
 public extension Int {
-    @inlinable @inline(__always)
+    @inlinable
     static func ..| (from: Int, extent: Int) -> Range<Int> {
         Range(uncheckedBounds: (from, from + extent))
     }
@@ -166,7 +166,7 @@ public struct StridedRange<Bound>: StridedRangeExpression, Collection
     public let step: Bound
     
     // open range init
-    @inlinable @inline(__always)
+    @inlinable
     public init(from lower: Bound, to upper: Bound, by step: Bound) {
         assert(lower < upper, "Empty range: `to` must be greater than `from`")
         self.count = (upper - lower).steps(dividedBy: step)
@@ -176,7 +176,7 @@ public struct StridedRange<Bound>: StridedRangeExpression, Collection
     }
     
     // closed range init
-    @inlinable @inline(__always)
+    @inlinable
     public init(from lower: Bound, through upper: Bound, by step: Bound) {
         assert(lower <= upper,
                "Empty range: `to` must be greater than or equal to `from`")
@@ -187,23 +187,23 @@ public struct StridedRange<Bound>: StridedRangeExpression, Collection
         self.step = step
     }
     
-    @inlinable @inline(__always)
+    @inlinable
     public func relativeTo<C>(_ collection: C) -> Self
         where C : Collection, Bound == C.Index { self }
     
     // Collection
-    @inlinable @inline(__always)
+    @inlinable
     public var startIndex: Int { 0 }
 
-    @inlinable @inline(__always)
+    @inlinable
     public var endIndex: Int { count }
 
-    @inlinable @inline(__always)
+    @inlinable
     public subscript(position: Int) -> Bound {
         Bound(exactly: position)! * step
     }
 
-    @inlinable @inline(__always)
+    @inlinable
     public func index(after i: Int) -> Int { i + 1 }
 }
 
@@ -212,7 +212,7 @@ public struct StridedRange<Bound>: StridedRangeExpression, Collection
 extension Range: StridedRangeExpression, PartialRangeExpression
     where Bound: RangeBound
 {
-    @inlinable @inline(__always)
+    @inlinable
     public func relativeTo<C>(_ collection: C) -> StridedRange<Bound>
         where C : Collection, Self.Bound == C.Index
     {
@@ -222,7 +222,7 @@ extension Range: StridedRangeExpression, PartialRangeExpression
         return StridedRange(from: start, to: end, by: step)
     }
     
-    @inlinable @inline(__always)
+    @inlinable
     public static func .. (r: Self, step: Bound) -> StridedRange<Bound> {
         StridedRange(from: r.lowerBound, to: r.upperBound, by: step)
     }
@@ -231,7 +231,7 @@ extension Range: StridedRangeExpression, PartialRangeExpression
 extension ClosedRange: StridedRangeExpression, PartialRangeExpression
     where Bound: RangeBound
 {
-    @inlinable @inline(__always)
+    @inlinable
     public func relativeTo<C>(_ collection: C) -> StridedRange<Bound>
         where C : Collection, Self.Bound == C.Index
     {
@@ -241,14 +241,14 @@ extension ClosedRange: StridedRangeExpression, PartialRangeExpression
         return StridedRange(from: start, to: end, by: step)
     }
 
-    @inlinable @inline(__always)
+    @inlinable
     public static func .. (r: Self, step: Bound) -> StridedRange<Bound> {
         StridedRange(from: r.lowerBound, through: r.upperBound, by: step)
     }
 }
 
 extension PartialRangeFrom: PartialRangeExpression where Bound: RangeBound {
-    @inlinable @inline(__always)
+    @inlinable
     public func relativeTo<C>(_ collection: C) -> StridedRange<Bound>
         where C : Collection, Self.Bound == C.Index
     {
@@ -257,7 +257,7 @@ extension PartialRangeFrom: PartialRangeExpression where Bound: RangeBound {
         return StridedRange(from: start, to: count, by: step)
     }
 
-    @inlinable @inline(__always)
+    @inlinable
     public static func .. (range: Self, step: Bound) ->
         PartialStridedRange<Self>
     {
@@ -266,7 +266,7 @@ extension PartialRangeFrom: PartialRangeExpression where Bound: RangeBound {
 }
 
 extension PartialRangeUpTo: PartialRangeExpression where Bound: RangeBound {
-    @inlinable @inline(__always)
+    @inlinable
     public func relativeTo<C>(_ collection: C) -> StridedRange<Bound>
         where C : Collection, Self.Bound == C.Index
     {
@@ -275,7 +275,7 @@ extension PartialRangeUpTo: PartialRangeExpression where Bound: RangeBound {
         return StridedRange(from: 0, to: end, by: step)
     }
 
-    @inlinable @inline(__always)
+    @inlinable
     public static func .. (range: Self, step: Bound) ->
         PartialStridedRange<Self>
     {
@@ -286,7 +286,7 @@ extension PartialRangeUpTo: PartialRangeExpression where Bound: RangeBound {
 extension PartialRangeThrough: PartialRangeExpression
     where Bound: RangeBound
 {
-    @inlinable @inline(__always)
+    @inlinable
     public func relativeTo<C>(_ collection: C) -> StridedRange<Bound>
         where C : Collection, Self.Bound == C.Index
     {
@@ -295,7 +295,7 @@ extension PartialRangeThrough: PartialRangeExpression
         return StridedRange(from: 0, to: end, by: step)
     }
 
-    @inlinable @inline(__always)
+    @inlinable
     public static func .. (range: Self, step: Bound) ->
         PartialStridedRange<Self>
     {
@@ -306,7 +306,7 @@ extension PartialRangeThrough: PartialRangeExpression
 extension Int: PartialRangeExpression {
     public typealias Bound = Int
     
-    @inlinable @inline(__always)
+    @inlinable
     public func relativeTo<C>(_ collection: C) -> StridedRange<Bound>
         where C : Collection, Self.Bound == C.Index
     {

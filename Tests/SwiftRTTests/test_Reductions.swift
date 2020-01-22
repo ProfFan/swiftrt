@@ -21,6 +21,9 @@ class test_Reductions: XCTestCase {
     //==========================================================================
     // support terminal test run
     static var allTests = [
+        ("test_sumVolumeAlongAxes", test_sumVolumeAlongAxes),
+        ("test_minVolumeAlongAxes", test_minVolumeAlongAxes),
+        ("test_maxVolumeAlongAxes", test_maxVolumeAlongAxes),
         ("test_sumVector", test_sumVector),
         ("test_sumMatrix", test_sumMatrix),
         ("test_abssumMatrix", test_abssumMatrix),
@@ -33,12 +36,157 @@ class test_Reductions: XCTestCase {
         ("test_sqrtSumSquaresMatrix", test_sqrtSumSquaresMatrix),
         ("test_sqrtSumSquaresVolume", test_sqrtSumSquaresVolume),
     ]
+
+    //--------------------------------------------------------------------------
+    // test_sumVolumeAlongAxes
+    func test_sumVolumeAlongAxes() {
+        let v = IndexVolume(with: [
+            [
+                [10,   2],
+                [ 3,   4],
+                [ 5,   6]
+            ],
+            [
+                [ 1,   2],
+                [ 3,   4],
+                [ 5,   6]
+            ]
+        ])
+
+        // sum depths
+        XCTAssert(v.sum(alongAxes: 0).array == [
+            [
+                [11,  4],
+                [ 6,  8],
+                [10, 12]
+            ]
+        ])
+        
+        // sum rows
+        XCTAssert(v.sum(alongAxes: 1).array == [
+            [
+                [18, 12]
+            ],
+            [
+                [ 9, 12]
+            ]
+        ])
+
+        // sum columns
+        XCTAssert(v.sum(alongAxes: 2).array == [
+            [
+                [12],
+                [ 7],
+                [11]],
+            [
+                [ 3],
+                [ 7],
+                [11]]
+        ])
+    }
+    
+    //--------------------------------------------------------------------------
+    // test_maxVolumeAlongAxes
+    func test_maxVolumeAlongAxes() {
+        let v = IndexVolume(with: [
+            [
+                [10,   2],
+                [ 3,   4],
+                [ 5,  -6]
+            ],
+            [
+                [ 1,   2],
+                [ 3,   4],
+                [ 5,   6]
+            ]
+        ])
+        
+        // max depths
+        let vm = v.max(alongAxes: 0)
+        XCTAssert(vm.array == [
+            [
+                [10,   2],
+                [ 3,   4],
+                [ 5,   6]
+            ]
+        ])
+
+        // max rows
+        XCTAssert(v.max(alongAxes: 1).array == [
+            [
+                [10, 4]
+            ],
+            [
+                [ 5, 6]
+            ]
+        ])
+
+        // max columns
+        XCTAssert(v.max(alongAxes: 2).array == [
+            [
+                [10],
+                [ 4],
+                [ 5]],
+            [
+                [ 2],
+                [ 4],
+                [ 6]
+            ]
+        ])
+    }
+
+    //--------------------------------------------------------------------------
+    // test_minVolumeAlongAxes
+    func test_minVolumeAlongAxes() {
+        let v = IndexVolume(with: [
+            [
+                [10,   2],
+                [ 3,   4],
+                [ 5,  -6]
+            ],
+            [
+                [ 1,   2],
+                [ 3,   4],
+                [ 5,   6]
+            ]
+        ])
+        
+        // depths
+        XCTAssert(v.min(alongAxes: 0).array == [
+            [
+                [1,  2],
+                [3,  4],
+                [5, -6]
+            ]
+        ])
+        
+        // rows
+        XCTAssert(v.min(alongAxes: 1).array == [
+            [
+                [3, -6]
+            ],
+            [
+                [1, 2]
+            ]
+        ])
+        
+        // columns
+        XCTAssert(v.min(alongAxes: 2).array == [
+            [
+                [ 2],
+                [ 3],
+                [-6]],
+            [
+                [1],
+                [3],
+                [5]
+            ]
+        ])
+    }
     
     //--------------------------------------------------------------------------
     // test_sumVector
     func test_sumVector() {
-//        Platform.local.servicePriority = [cpuSynchronousServiceName]
-        
         let m = Vector(with: [0, 1, 2, 3])
         let result = m.sum()
         XCTAssert(result.extents == [1])
@@ -48,8 +196,6 @@ class test_Reductions: XCTestCase {
     //--------------------------------------------------------------------------
     // test_sumMatrix
     func test_sumMatrix() {
-//        Platform.local.servicePriority = [cpuSynchronousServiceName]
-
         let m = Matrix(3, 2, with: [
             0, 1,
             2, 3,
@@ -93,8 +239,6 @@ class test_Reductions: XCTestCase {
     //--------------------------------------------------------------------------
     // test_abssumMatrix
     func test_abssumMatrix() {
-//        Platform.local.servicePriority = [cpuSynchronousServiceName]
-
         let m = Matrix(3, 2, with: [
              0, -1,
             -2,  3,
@@ -138,45 +282,29 @@ class test_Reductions: XCTestCase {
     //--------------------------------------------------------------------------
     // test_allVector
     func test_allVector() {
-//        Platform.local.servicePriority = [cpuSynchronousServiceName]
+        let m0 = BoolVector(elements: [true, true, true])
+        XCTAssert(m0.all().element == true)
         
-        do {
-            let m = BoolVector(elements: [true, true, true])
-            XCTAssert(m.all().element == true)
-        }
+        let m1 = BoolVector(elements: [true, false, true])
+        XCTAssert(m1.all().element == false)
         
-        do {
-            let m = BoolVector(elements: [true, false, true])
-            XCTAssert(m.all().element == false)
-        }
-
-        do {
-            let m = BoolVector(elements: [false, false, false])
-            XCTAssert(m.all().element == false)
-        }
+        let m2 = BoolVector(elements: [false, false, false])
+        XCTAssert(m2.all().element == false)
     }
     
     //--------------------------------------------------------------------------
     // test_anyVector
     func test_anyVector() {
-        Platform.local.servicePriority = [cpuSynchronousServiceName]
+        let m0 = BoolVector(elements: [true, true, true])
+        XCTAssert(m0.any().element == true)
         
-        do {
-            let m = BoolVector(elements: [true, true, true])
-            XCTAssert(m.any().element == true)
-        }
+        let m1 = BoolVector(elements: [false, false, true])
+        XCTAssert(m1.any().element == true)
         
-        do {
-            let m = BoolVector(elements: [false, false, true])
-            XCTAssert(m.any().element == true)
-        }
-        
-        do {
-            let m = BoolVector(elements: [false, false, false])
-            XCTAssert(m.any().element == false)
-        }
+        let m2 = BoolVector(elements: [false, false, false])
+        XCTAssert(m2.any().element == false)
     }
-
+    
     //--------------------------------------------------------------------------
     // test_maxMatrix
     func test_maxMatrix() {
@@ -186,24 +314,9 @@ class test_Reductions: XCTestCase {
                 [1, -3,  6],
             ]
         )
-        
-        // cols
-        do {
-            let result = m.max(alongAxes: 1)
-            XCTAssert(result == [3, 6])
-        }
-
-        // rows
-        do {
-            let result = m.max(alongAxes: 0)
-            XCTAssert(result == [1, 3, 6])
-        }
-
-        // all
-        do {
-            let result = m.max()
-            XCTAssert(result.element == 6)
-        }
+        XCTAssert(m.max(alongAxes: 0) == [1, 3, 6])
+        XCTAssert(m.max(alongAxes: 1) == [3, 6])
+        XCTAssert(m.max().element == 6)
     }
 
     //--------------------------------------------------------------------------
@@ -215,24 +328,9 @@ class test_Reductions: XCTestCase {
                 [ 1, -3,  6],
             ]
         )
-        
-        // cols
-        do {
-            let result = m.min(alongAxes: 1)
-            XCTAssert(result == [-6, -3])
-        }
-
-        // rows
-        do {
-            let result = m.min(alongAxes: 0)
-            XCTAssert(result == [-1, -3, -6])
-        }
-
-        // all
-        do {
-            let result = m.min()
-            XCTAssert(result.element == -6)
-        }
+        XCTAssert(m.min(alongAxes: 0) == [-1, -3, -6])
+        XCTAssert(m.min(alongAxes: 1) == [-6, -3])
+        XCTAssert(m.min().element == -6)
     }
     
     //--------------------------------------------------------------------------
@@ -244,71 +342,48 @@ class test_Reductions: XCTestCase {
                 [ 1, -3,  6],
             ]
         )
-        
-        // cols
-        do {
-            let result = m.absmax(alongAxes: 1)
-            XCTAssert(result == [6, 6])
-        }
-
-        // rows
-        do {
-            let result = m.absmax(alongAxes: 0)
-            XCTAssert(result == [1, 3, 6])
-        }
-
-        // all
-        do {
-            let result = m.absmax()
-            XCTAssert(result.element == 6)
-        }
+        XCTAssert(m.absmax(alongAxes: 0) == [1, 3, 6])
+        XCTAssert(m.absmax(alongAxes: 1) == [6, 6])
+        XCTAssert(m.absmax().element == 6)
     }
         
-        //----------------------------------------------------------------------
-        // test_meanMatrix
-        func test_meanMatrix() {
-//            Platform.local.servicePriority = [cpuSynchronousServiceName]
-
-            let m = Matrix(3, 2, with: [
-                0, 1,
-                2, 3,
-                4, 5
-            ])
-
-            // mean all
-            do {
-                let result = m.mean()
-                XCTAssert(result.extents == [1, 1])
-                XCTAssert(result.element == 15 / 6)
-            }
-
-            do {
-                let result = m.mean(alongAxes: 0, 1)
-                XCTAssert(result.extents == [1, 1])
-                XCTAssert(result.element == 15 / 6)
-            }
-
-            // mean cols
-            do {
-                let result = m.mean(alongAxes: 1)
-                XCTAssert(result.extents == [3, 1])
-                XCTAssert(result == [
-                    0.5,
-                    2.5,
-                    4.5
-                ])
-            }
-
-            // mean rows
-            do {
-                let result = m.mean(alongAxes: 0)
-                XCTAssert(result.extents == [1, 2])
-                XCTAssert(result == [
-                    2, 3
-                ])
-            }
+    //----------------------------------------------------------------------
+    // test_meanMatrix
+    func test_meanMatrix() {
+        let m = Matrix(3, 2, with: [
+            0, 1,
+            2, 3,
+            4, 5
+        ])
+        
+        // mean all
+        do {
+            let result = m.mean()
+            XCTAssert(result.extents == [1, 1])
+            XCTAssert(result.element == 15 / 6)
         }
-
+        
+        do {
+            let result = m.mean(alongAxes: 0, 1)
+            XCTAssert(result.extents == [1, 1])
+            XCTAssert(result.element == 15 / 6)
+        }
+        
+        // mean cols
+        do {
+            let result = m.mean(alongAxes: 1)
+            XCTAssert(result.extents == [3, 1])
+            XCTAssert(result == [0.5, 2.5, 4.5])
+        }
+        
+        // mean rows
+        do {
+            let result = m.mean(alongAxes: 0)
+            XCTAssert(result.extents == [1, 2])
+            XCTAssert(result == [2, 3])
+        }
+    }
+    
     //--------------------------------------------------------------------------
     // test_sqrtSumSquaresMatrix
     func test_sqrtSumSquaresMatrix() {

@@ -56,10 +56,12 @@ public typealias ReduceOpFinal<T: TensorView> = (T.Element) -> T.Element
 public func all<T>(_ x: T, alongAxes axes: Set<Int>? = nil) -> T
     where T: TensorView, T.Element == Bool
 {
-    var result = x.createReductionResult(alongAxes: axes)
+    let extents = x.reductionExtents(alongAxes: axes)
+    var result = x.createDense(with: extents)
+    copy(from: x.view(at: T.Shape.zeros, extents: extents), to: &result)
+
     DeviceContext.currentQueue.reduce(x: x,
                                       into: &result,
-                                      initialResult: x.first,
                                       opId: .compare,
                                       opNext: { $0 && $1 },
                                       opFinal: nil)
@@ -69,12 +71,12 @@ public func all<T>(_ x: T, alongAxes axes: Set<Int>? = nil) -> T
 /// - Parameter alongAxes: the axes to operate on
 /// - Returns: a new tensor containing the result
 public extension TensorView where Element == Bool {
-    @inlinable @inline(__always)
+    @inlinable
     func all(alongAxes axes: Set<Int>? = nil) -> Self {
         SwiftRT.all(self, alongAxes: axes)
     }
     
-    @inlinable @inline(__always)
+    @inlinable
     func all(alongAxes axes: Int...) -> Self { all(alongAxes: Set(axes)) }
 }
 
@@ -91,10 +93,12 @@ public extension TensorView where Element == Bool {
 public func any<T>(_ x: T, alongAxes axes: Set<Int>? = nil) -> T
     where T: TensorView, T.Element == Bool
 {
-    var result = x.createReductionResult(alongAxes: axes)
+    let extents = x.reductionExtents(alongAxes: axes)
+    var result = x.createDense(with: extents)
+    copy(from: x.view(at: T.Shape.zeros, extents: extents), to: &result)
+
     DeviceContext.currentQueue.reduce(x: x,
                                       into: &result,
-                                      initialResult: x.first,
                                       opId: .compare,
                                       opNext: { $0 || $1 },
                                       opFinal: nil)
@@ -104,12 +108,12 @@ public func any<T>(_ x: T, alongAxes axes: Set<Int>? = nil) -> T
 /// - Parameter alongAxes: the axes to operate on
 /// - Returns: a new tensor containing the result
 public extension TensorView where Element == Bool {
-    @inlinable @inline(__always)
+    @inlinable
     func any(alongAxes axes: Set<Int>? = nil) -> Self {
         SwiftRT.any(self, alongAxes: axes)
     }
 
-    @inlinable @inline(__always)
+    @inlinable
     func any(alongAxes axes: Int...) -> Self { any(alongAxes: Set(axes)) }
 }
 
@@ -123,10 +127,11 @@ public extension TensorView where Element == Bool {
 public func sum<T>(_ x: T, alongAxes axes: Set<Int>? = nil) -> T
     where T: TensorView, T.Element: Numeric
 {
-    var result = x.createReductionResult(alongAxes: axes)
+    let extents = x.reductionExtents(alongAxes: axes)
+    var result = x.createDense(with: extents).filled(with: T.Element.zero)
+    
     DeviceContext.currentQueue.reduce(x: x,
                                       into: &result,
-                                      initialResult: T.Element.zero,
                                       opId: .add,
                                       opNext: +,
                                       opFinal: nil)
@@ -135,20 +140,20 @@ public func sum<T>(_ x: T, alongAxes axes: Set<Int>? = nil) -> T
 
 public extension TensorView where Element: Numeric {
     @differentiable(where Self: DifferentiableTensorView)
-    @inlinable @inline(__always)
+    @inlinable
     func sum(alongAxes axes: Set<Int>? = nil) -> Self {
         SwiftRT.sum(self, alongAxes: axes)
     }
     
     @differentiable(where Self: DifferentiableTensorView)
-    @inlinable @inline(__always)
+    @inlinable
     func sum(alongAxes axes: Int...) -> Self { sum(alongAxes: Set(axes)) }
 }
 
 //--------------------------------------
 // derivative functions
 @derivative(of: sum)
-@inlinable @inline(__always)
+@inlinable
 internal func _vjpSum<T>(_ x: T, alongAxes axes: Set<Int>? = nil)
     -> (value: T, pullback: (T) -> T) where T: DifferentiableTensorView
 {
@@ -171,10 +176,11 @@ public func mean<T>(_ x: T, alongAxes axes: Set<Int>? = nil) -> T
         $0 * T.Element(exactly: x.extents[$1])!
     }) ?? T.Element(exactly: x.count)!
     
-    var result = x.createReductionResult(alongAxes: axes)
+    let extents = x.reductionExtents(alongAxes: axes)
+    var result = x.createDense(with: extents).filled(with: T.Element.zero)
+
     DeviceContext.currentQueue.reduce(x: x,
                                       into: &result,
-                                      initialResult: T.Element.zero,
                                       opId: .add,
                                       opNext: +,
                                       opFinal: { $0 / divisor })
@@ -183,20 +189,20 @@ public func mean<T>(_ x: T, alongAxes axes: Set<Int>? = nil) -> T
 
 public extension TensorView where Element: AlgebraicField {
     @differentiable(where Self: DifferentiableTensorView)
-    @inlinable @inline(__always)
+    @inlinable
     func mean(alongAxes axes: Set<Int>? = nil) -> Self {
         SwiftRT.mean(self, alongAxes: axes)
     }
     
     @differentiable(where Self: DifferentiableTensorView)
-    @inlinable @inline(__always)
+    @inlinable
     func mean(alongAxes axes: Int...) -> Self { mean(alongAxes: Set(axes)) }
 }
 
 //--------------------------------------
 // derivative functions
 @derivative(of: mean)
-@inlinable @inline(__always)
+@inlinable
 internal func _vjpMean<T>(_ x: T, alongAxes axes: Set<Int>? = nil)
     -> (value: T, pullback: (T) -> T)
     where T: DifferentiableTensorView, T.Element: AlgebraicField
@@ -216,10 +222,11 @@ internal func _vjpMean<T>(_ x: T, alongAxes axes: Set<Int>? = nil)
 public func prod<T>(_ x: T, alongAxes axes: Set<Int>? = nil) -> T
     where T: TensorView, T.Element: Numeric
 {
-    var result = x.createReductionResult(alongAxes: axes)
+    let extents = x.reductionExtents(alongAxes: axes)
+    var result = x.createDense(with: extents).filled(with: T.Element.one)
+    
     DeviceContext.currentQueue.reduce(x: x,
                                       into: &result,
-                                      initialResult: T.Element.one,
                                       opId: .mul,
                                       opNext: { $0 * $1 },
                                       opFinal: nil)
@@ -228,20 +235,20 @@ public func prod<T>(_ x: T, alongAxes axes: Set<Int>? = nil) -> T
 
 public extension TensorView where Element: Numeric {
     @differentiable(where Self: DifferentiableTensorView)
-    @inlinable @inline(__always)
+    @inlinable
     func prod(alongAxes axes: Set<Int>? = nil) -> Self {
         SwiftRT.prod(self, alongAxes: axes)
     }
 
     @differentiable(where Self: DifferentiableTensorView)
-    @inlinable @inline(__always)
+    @inlinable
     func prod(alongAxes axes: Int...) -> Self { prod(alongAxes: Set(axes)) }
 }
 
 //--------------------------------------
 // derivative functions
 @derivative(of: prod)
-@inlinable @inline(__always)
+@inlinable
 internal func _vjpProd<T>(_ x: T, alongAxes axes: Set<Int>? = nil)
     -> (value: T, pullback: (T) -> T) where T: DifferentiableTensorView
 {
@@ -259,10 +266,11 @@ internal func _vjpProd<T>(_ x: T, alongAxes axes: Set<Int>? = nil)
 public func prodNonZeros<T>(_ x: T, alongAxes axes: Set<Int>? = nil) -> T
     where T: TensorView, T.Element: Numeric
 {
-    var result = x.createReductionResult(alongAxes: axes)
+    let extents = x.reductionExtents(alongAxes: axes)
+    var result = x.createDense(with: extents).filled(with: T.Element.one)
+
     DeviceContext.currentQueue.reduce(x: x,
                                       into: &result,
-                                      initialResult: T.Element.one,
                                       opId: .mulNonZeros,
                                       opNext: { $1 == 0 ? $0 : $0 * $1 },
                                       opFinal: nil)
@@ -271,13 +279,13 @@ public func prodNonZeros<T>(_ x: T, alongAxes axes: Set<Int>? = nil) -> T
 
 public extension TensorView where Element: Numeric {
     @differentiable(where Self: DifferentiableTensorView)
-    @inlinable @inline(__always)
+    @inlinable
     func prodNonZeros(alongAxes axes: Set<Int>? = nil) -> Self {
         SwiftRT.prodNonZeros(self, alongAxes: axes)
     }
     
     @differentiable(where Self: DifferentiableTensorView)
-    @inlinable @inline(__always)
+    @inlinable
     func prodNonZeros(alongAxes axes: Int...) -> Self {
         prodNonZeros(alongAxes: Set(axes))
     }
@@ -286,7 +294,7 @@ public extension TensorView where Element: Numeric {
 //--------------------------------------
 // derivative functions
 @derivative(of: prodNonZeros)
-@inlinable @inline(__always)
+@inlinable
 internal func _vjpProdNonZeros<T>(_ x: T, alongAxes axes: Set<Int>? = nil)
     -> (value: T, pullback: (T) -> T)
     where T: DifferentiableTensorView
@@ -308,10 +316,12 @@ internal func _vjpProdNonZeros<T>(_ x: T, alongAxes axes: Set<Int>? = nil)
 public func min<T>(_ x: T, alongAxes axes: Set<Int>? = nil) -> T
     where T: TensorView, T.Element: Comparable
 {
-    var result = x.createReductionResult(alongAxes: axes)
+    let extents = x.reductionExtents(alongAxes: axes)
+    var result = x.createDense(with: extents)
+    copy(from: x.view(at: T.Shape.zeros, extents: extents), to: &result)
+
     DeviceContext.currentQueue.reduce(x: x,
                                       into: &result,
-                                      initialResult: x.first,
                                       opId: .min,
                                       opNext: { $0 <= $1 ? $0 : $1 },
                                       opFinal: nil)
@@ -322,20 +332,20 @@ public extension TensorView where
     Element: Numeric & Comparable & AnyElement
 {
     @differentiable(where Self: DifferentiableTensorView)
-    @inlinable @inline(__always)
+    @inlinable
     func min(alongAxes axes: Set<Int>? = nil) -> Self {
         SwiftRT.min(self, alongAxes: axes)
     }
     
     @differentiable(where Self: DifferentiableTensorView)
-    @inlinable @inline(__always)
+    @inlinable
     func min(alongAxes axes: Int...) -> Self { min(alongAxes: Set(axes)) }
 }
 
 //--------------------------------------
 // derivative functions
 @derivative(of: min)
-@inlinable @inline(__always)
+@inlinable
 internal func _vjpMin<T>(_ x: T, alongAxes axes: Set<Int>? = nil)
     -> (value: T, pullback: (T) -> T)
     where T: DifferentiableTensorView, T.Element: Comparable
@@ -354,10 +364,12 @@ internal func _vjpMin<T>(_ x: T, alongAxes axes: Set<Int>? = nil)
 public func max<T>(_ x: T, alongAxes axes: Set<Int>? = nil) -> T
     where T: TensorView, T.Element: Comparable
 {
-    var result = x.createReductionResult(alongAxes: axes)
+    let extents = x.reductionExtents(alongAxes: axes)
+    var result = x.createDense(with: extents)
+    copy(from: x.view(at: T.Shape.zeros, extents: extents), to: &result)
+
     DeviceContext.currentQueue.reduce(x: x,
                                       into: &result,
-                                      initialResult: x.first,
                                       opId: .max,
                                       opNext: { $0 > $1 ? $0 : $1 },
                                       opFinal: nil)
@@ -368,20 +380,20 @@ public extension TensorView where
     Element: Numeric & Comparable & AnyElement
 {
     @differentiable(where Self: DifferentiableTensorView)
-    @inlinable @inline(__always)
+    @inlinable
     func max(alongAxes axes: Set<Int>? = nil) -> Self {
         SwiftRT.max(self, alongAxes: axes)
     }
     
     @differentiable(where Self: DifferentiableTensorView)
-    @inlinable @inline(__always)
+    @inlinable
     func max(alongAxes axes: Int...) -> Self { max(alongAxes: Set(axes)) }
 }
 
 //--------------------------------------
 // derivative functions
 @derivative(of: max)
-@inlinable @inline(__always)
+@inlinable
 internal func _vjpMax<T>(_ x: T, alongAxes axes: Set<Int>? = nil)
     -> (value: T, pullback: (T) -> T) where
     T: DifferentiableTensorView, T.Element: Comparable
@@ -399,10 +411,12 @@ internal func _vjpMax<T>(_ x: T, alongAxes axes: Set<Int>? = nil)
 public func absmax<T>(_ x: T, alongAxes axes: Set<Int>? = nil) -> T
     where T: TensorView, T.Element: SignedNumeric & Comparable
 {
-    var result = x.createReductionResult(alongAxes: axes)
+    let extents = x.reductionExtents(alongAxes: axes)
+    var result = x.createDense(with: extents)
+    copy(from: x.view(at: T.Shape.zeros, extents: extents), to: &result)
+    
     DeviceContext.currentQueue.reduce(x: x,
                                       into: &result,
-                                      initialResult: x.first,
                                       opId: .amax,
                                       opNext: { max(abs($0), abs($1)) },
                                       opFinal: nil)
@@ -413,13 +427,13 @@ public extension TensorView where
     Element: SignedNumeric & Comparable & AnyElement
 {
     @differentiable(where Self: DifferentiableTensorView)
-    @inlinable @inline(__always)
+    @inlinable
     func absmax(alongAxes axes: Set<Int>? = nil) -> Self {
         SwiftRT.absmax(self, alongAxes: axes)
     }
     
     @differentiable(where Self: DifferentiableTensorView)
-    @inlinable @inline(__always)
+    @inlinable
     func absmax(alongAxes axes: Int...) -> Self {
         absmax(alongAxes: Set(axes))
     }
@@ -428,7 +442,7 @@ public extension TensorView where
 //--------------------------------------
 // derivative functions
 @derivative(of: absmax)
-@inlinable @inline(__always)
+@inlinable
 internal func _vjpAbsmax<T>(_ x: T, alongAxes axes: Set<Int>? = nil)
     -> (value: T, pullback: (T) -> T)
     where T: DifferentiableTensorView, T.Element: SignedNumeric & Comparable
@@ -447,10 +461,11 @@ internal func _vjpAbsmax<T>(_ x: T, alongAxes axes: Set<Int>? = nil)
 public func abssum<T>(_ x: T, alongAxes axes: Set<Int>? = nil) -> T
     where T: TensorView, T.Element: SignedNumeric & Comparable
 {
-    var result = x.createReductionResult(alongAxes: axes)
+    let extents = x.reductionExtents(alongAxes: axes)
+    var result = x.createDense(with: extents).filled(with: T.Element.zero)
+
     DeviceContext.currentQueue.reduce(x: x,
                                       into: &result,
-                                      initialResult: T.Element.zero,
                                       opId: .asum,
                                       opNext: { $0 + abs($1) },
                                       opFinal: nil)
@@ -459,20 +474,20 @@ public func abssum<T>(_ x: T, alongAxes axes: Set<Int>? = nil) -> T
 
 public extension TensorView where Element: SignedNumeric & Comparable {
     @differentiable(where Self: DifferentiableTensorView)
-    @inlinable @inline(__always)
+    @inlinable
     func abssum(alongAxes axes: Set<Int>? = nil) -> Self {
         SwiftRT.abssum(self, alongAxes: axes)
     }
     
     @differentiable(where Self: DifferentiableTensorView)
-    @inlinable @inline(__always)
+    @inlinable
     func abssum(alongAxes axes: Int...) -> Self { abssum(alongAxes: Set(axes)) }
 }
 
 //--------------------------------------
 // derivative functions
 @derivative(of: abssum)
-@inlinable @inline(__always)
+@inlinable
 internal func _vjpAbsSum<T>(_ x: T, alongAxes axes: Set<Int>? = nil)
     -> (value: T, pullback: (T) -> T)
     where T: DifferentiableTensorView, T.Element: SignedNumeric & Comparable
@@ -490,10 +505,11 @@ internal func _vjpAbsSum<T>(_ x: T, alongAxes axes: Set<Int>? = nil)
 public func sqrtSumSquares<T>(_ x: T, alongAxes axes: Set<Int>? = nil) -> T
     where T: TensorView, T.Element: Real
 {
-    var result = x.createReductionResult(alongAxes: axes)
+    let extents = x.reductionExtents(alongAxes: axes)
+    var result = x.createDense(with: extents).filled(with: T.Element.zero)
+
     DeviceContext.currentQueue.reduce(x: x,
                                       into: &result,
-                                      initialResult: T.Element.zero,
                                       opId: .sqrtSumSquares,
                                       opNext: { $0 + $1 * $1 },
                                       opFinal: { .sqrt($0) })
@@ -502,13 +518,13 @@ public func sqrtSumSquares<T>(_ x: T, alongAxes axes: Set<Int>? = nil) -> T
 
 public extension TensorView where Element: Real {
     @differentiable(where Self: DifferentiableTensorView)
-    @inlinable @inline(__always)
+    @inlinable
     func sqrtSumSquares(alongAxes axes: Set<Int>? = nil) -> Self {
         SwiftRT.sqrtSumSquares(self, alongAxes: axes)
     }
     
     @differentiable(where Self: DifferentiableTensorView)
-    @inlinable @inline(__always)
+    @inlinable
     func sqrtSumSquares(alongAxes axes: Int...) -> Self {
         sqrtSumSquares(alongAxes: Set(axes))
     }
@@ -517,7 +533,7 @@ public extension TensorView where Element: Real {
 //--------------------------------------
 // derivative functions
 @derivative(of: sqrtSumSquares)
-@inlinable @inline(__always)
+@inlinable
 internal func _vjpSqrtSumSquares<T>(_ x: T, alongAxes axes: Set<Int>? = nil)
     -> (value: T, pullback: (T) -> T)
     where T: DifferentiableTensorView, T.Element: Real

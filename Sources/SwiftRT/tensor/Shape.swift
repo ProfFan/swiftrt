@@ -41,23 +41,23 @@ public protocol ShapeArrayProtocol:
 //
 public struct ShapeArray<Storage> : ShapeArrayProtocol {
     /// the collection as a Swift Array
-    @inlinable @inline(__always)
+    @inlinable
     public var array: [Int] { [Int](self) }
     /// some value object used for storage space
     public var storage: Storage
     /// alias
-    @inlinable @inline(__always)
+    @inlinable
     public var tuple: Storage { storage }
     /// the number of elements in the array
-    @inlinable @inline(__always)
+    @inlinable
     public var count: Int {
         MemoryLayout<Storage>.size / MemoryLayout<Element>.size
     }
     /// starting index
-    @inlinable @inline(__always)
+    @inlinable
     public var startIndex: Int { 0 }
     /// ending index
-    @inlinable @inline(__always)
+    @inlinable
     public var endIndex: Int { count }
 
     /// description
@@ -65,20 +65,20 @@ public struct ShapeArray<Storage> : ShapeArrayProtocol {
     
     //--------------------------------------------------------------------------
     // initializers
-    @inlinable @inline(__always)
+    @inlinable
     public init(_ data: Storage) {
         assert(MemoryLayout<Storage>.size % MemoryLayout<Int>.size == 0,
                "Storage size must be multiple of Int size")
         storage = data
     }
 
-    @inlinable @inline(__always)
+    @inlinable
     public init?(_ data: Storage?) {
         guard let data = data else { return nil }
         self.init(data)
     }
 
-//    @inlinable @inline(__always)
+//    @inlinable
 //    public init() {
 //        assert(MemoryLayout<Storage>.size % MemoryLayout<Int>.size == 0,
 //               "Storage size must be multiple of Int size")
@@ -87,7 +87,7 @@ public struct ShapeArray<Storage> : ShapeArrayProtocol {
 
     //--------------------------------------------------------------------------
     // Equatable
-    @inlinable @inline(__always)
+    @inlinable
     public static func == (lhs: Self, rhs: Self) -> Bool {
         withUnsafeBytes(of: lhs.storage) { lhsPtr in
             withUnsafeBytes(of: rhs.storage) { rhsPtr in
@@ -98,7 +98,7 @@ public struct ShapeArray<Storage> : ShapeArrayProtocol {
         }
     }
 
-    @inlinable @inline(__always)
+    @inlinable
     public static func == (lhs: Self, rhs: [Int]) -> Bool {
         guard lhs.count == rhs.count else { return false }
         for i in 0..<lhs.count {
@@ -107,7 +107,7 @@ public struct ShapeArray<Storage> : ShapeArrayProtocol {
         return true
     }
 
-    @inlinable @inline(__always)
+    @inlinable
     public static func == (lhs: [Int], rhs: Self) -> Bool {
         guard lhs.count == rhs.count else { return false }
         for i in 0..<lhs.count {
@@ -118,7 +118,7 @@ public struct ShapeArray<Storage> : ShapeArrayProtocol {
 
     //--------------------------------------------------------------------------
     // indexing
-    @inlinable @inline(__always)
+    @inlinable
     public subscript(index: Int) -> Int {
         get {
             withUnsafeBytes(of: storage) {
@@ -162,14 +162,14 @@ public struct ShapeArray<Storage> : ShapeArrayProtocol {
 //==============================================================================
 //
 public extension ShapeArrayProtocol {
-    @inlinable @inline(__always)
+    @inlinable
     func map(_ transform: (Element) -> Element) -> Self {
         var result = self
         zip(result.indices, self).forEach { result[$0] = transform($1) }
         return result
     }
     
-    @inlinable @inline(__always)
+    @inlinable
     func reduce<Result>(
         _ initialResult: Result,
         _ nextPartialResult: (Result, Element) -> Result) -> Result
@@ -220,7 +220,7 @@ public extension ShapeProtocol {
     // tuple support
     typealias Tuple = Self.Array.Storage
 
-    @inlinable @inline(__always)
+    @inlinable
     init(extents: Tuple, strides: Tuple? = nil) {
         self.init(extents: Array(extents), strides: Array(strides))
     }
@@ -228,25 +228,25 @@ public extension ShapeProtocol {
     //--------------------------------------------------------------------------
     // computed properties
     /// `true` if the underlying data for the whole shape has a stride of 1.
-    @inlinable @inline(__always)
+    @inlinable
     var isContiguous: Bool { count == spanCount }
     /// `true` if the shape has zero elements
-    @inlinable @inline(__always)
+    @inlinable
     var isEmpty: Bool { count == 0 }
     /// `true` if the shape has one element
-    @inlinable @inline(__always)
+    @inlinable
     var isScalar: Bool { count == 1 }
     /// the index of the last dimension
-    @inlinable @inline(__always)
+    @inlinable
     var lastDimension: Int { extents.count - 1 }
     /// the number of sahpe extents
-    @inlinable @inline(__always)
+    @inlinable
     var rank: Int { extents.count }
     /// the number of items in extent 0
-    @inlinable @inline(__always)
+    @inlinable
     var items: Int { extents[0] }
     /// returns a dense version of self
-    @inlinable @inline(__always)
+    @inlinable
     var dense: Self { isContiguous ? self : Self(extents: extents) }
 
     //--------------------------------------------------------------------------
@@ -255,19 +255,19 @@ public extension ShapeProtocol {
     // than the number of dense elements defined by the extents of the view
     // due to striding.
     // The span of the extent is the linear index of the last index + 1
-    @inlinable @inline(__always)
+    @inlinable
     static func computeSpanCount(_ extents: Array, _ strides: Array) -> Int {
         (zip(extents, strides).reduce(0) { $0 + ($1.0 - 1) * $1.1 }) + 1
     }
     
     //--------------------------------------------------------------------------
     // init(extents:
-    @inlinable @inline(__always)
+    @inlinable
     init(extents: Array) { self.init(extents: extents, strides: nil) }
 
     //--------------------------------------------------------------------------
     // init(squeezing:
-    @inlinable @inline(__always)
+    @inlinable
     init<S>(squeezing other: S, alongAxes axes: Set<Int>? = nil)
         where S: ShapeProtocol
     {
@@ -294,7 +294,7 @@ public extension ShapeProtocol {
     
     //--------------------------------------------------------------------------
     // equal
-    @inlinable @inline(__always)
+    @inlinable
     static func == (lhs: Self, rhs: Self) -> Bool {
         lhs.extents == rhs.extents
     }
@@ -302,7 +302,7 @@ public extension ShapeProtocol {
     //--------------------------------------------------------------------------
     // denseStrides
     // computes the strides for a dense shape
-    @inlinable @inline(__always)
+    @inlinable
     static func denseStrides(_ extents: Array) -> Array {
         var strides = ones
         for i in stride(from: extents.count - 1, through: 1, by: -1) {
@@ -316,7 +316,7 @@ public extension ShapeProtocol {
     /// - Parameter others: array of data shapes to join
     /// - Parameter axis: the joining axis
     /// - Returns: returns a new shape that is the join with the others
-    @inlinable @inline(__always)
+    @inlinable
     func joined(with others: [Self], alongAxis axis: Int) -> Self {
         var newExtents = extents
         newExtents[axis] += others.reduce(0) { $0 + $1.extents[axis] }
@@ -328,7 +328,7 @@ public extension ShapeProtocol {
     /// The user can specify indices from `-rank..<rank`.
     /// Negative numbers reference dimensions from the end of `extents`
     /// This ensures they are resolved to positive values.
-    @inlinable @inline(__always)
+    @inlinable
     static func makePositive(dims: Array) -> Array {
         var positive = dims
         for i in 0..<dims.count where positive[i] < 0 {
@@ -340,7 +340,7 @@ public extension ShapeProtocol {
     //--------------------------------------------------------------------------
     /// linearIndex
     ///    returns the linear element index
-    @inlinable @inline(__always)
+    @inlinable
     func linearIndex(of index: Array) -> Int {
         let i = zip(index, strides).reduce(0) { $0 + $1.0 * $1.1 }
         assert(i < spanCount)
@@ -349,17 +349,17 @@ public extension ShapeProtocol {
 
     //--------------------------------------------------------------------------
     /// contains
-    @inlinable @inline(__always)
+    @inlinable
     func contains(offset: Array) -> Bool {
         linearIndex(of: offset) <= spanCount
     }
     
-    @inlinable @inline(__always)
+    @inlinable
     func contains(other: Self) -> Bool {
         other.spanCount <= spanCount
     }
     
-    @inlinable @inline(__always)
+    @inlinable
     func contains(offset: Array, extents: Array) -> Bool {
         linearIndex(of: offset) +
             Self(extents: extents, strides: strides).spanCount <= spanCount
@@ -367,7 +367,7 @@ public extension ShapeProtocol {
 
     //--------------------------------------------------------------------------
     /// columnMajor
-    @inlinable @inline(__always)
+    @inlinable
     var columnMajor: Self {
         // return self if already column major
         guard strides[rank-1] < strides[rank-2] else { return self }
@@ -381,7 +381,7 @@ public extension ShapeProtocol {
     
     //--------------------------------------------------------------------------
     /// repeated(to repeatedExtents:
-    @inlinable @inline(__always)
+    @inlinable
     func repeated(to repeatedExtents: Array) -> Self {
         // make sure the extents are compatible
         assert({
@@ -410,7 +410,7 @@ public extension ShapeProtocol {
     /// - Returns: transposed/permuted shape
     /// - Precondition: Each value in `permutations` must be in the range
     ///   `-rank..<rank`
-    @inlinable @inline(__always)
+    @inlinable
     func transposed(with permutations: Array? = nil) -> Self {
         guard rank > 1 else { return self }
         var newExtents = extents
@@ -448,7 +448,7 @@ public struct Shape1: ShapeProtocol {
     public let extents: Array
     public let strides: Array
 
-    @inlinable @inline(__always)
+    @inlinable
     public init(extents: Array, strides: Array? = nil) {
         self.extents = extents
         self.strides = strides ?? Self.denseStrides(extents)
@@ -458,7 +458,7 @@ public struct Shape1: ShapeProtocol {
 
     //--------------------------------------------------------------------------
     // init(flattening:
-    @inlinable @inline(__always)
+    @inlinable
     public init<S>(flattening other: S) where S: ShapeProtocol {
         self.init(extents: Array((other.count)))
     }
@@ -478,7 +478,7 @@ public struct Shape2: ShapeProtocol {
     public let extents: Array
     public let strides: Array
 
-    @inlinable @inline(__always)
+    @inlinable
     public init(extents: Array, strides: Array? = nil) {
         self.extents = extents
         self.strides = strides ?? Self.denseStrides(extents)
@@ -488,7 +488,7 @@ public struct Shape2: ShapeProtocol {
 
     //--------------------------------------------------------------------------
     // init(flattening:
-    @inlinable @inline(__always)
+    @inlinable
     public init<S>(flattening other: S) where S: ShapeProtocol {
         assert(other.isContiguous, "Cannot flatten strided data")
         assert(other.rank >= 2, "you can't flatten from a lower rank")
@@ -511,7 +511,7 @@ public struct Shape3: ShapeProtocol {
     public let extents: Array
     public let strides: Array
 
-    @inlinable @inline(__always)
+    @inlinable
     public init(extents: Array, strides: Array? = nil) {
         self.extents = extents
         self.strides = strides ?? Self.denseStrides(extents)
@@ -521,7 +521,7 @@ public struct Shape3: ShapeProtocol {
     
     //--------------------------------------------------------------------------
     // init(flattening:
-    @inlinable @inline(__always)
+    @inlinable
     public init<S>(flattening other: S) where S: ShapeProtocol {
         assert(other.isContiguous, "Cannot flatten strided data")
         assert(other.rank >= 3, "you can't flatten from a lower rank")
@@ -547,7 +547,7 @@ public struct Shape4: ShapeProtocol {
     public let extents: Array
     public let strides: Array
     
-    @inlinable @inline(__always)
+    @inlinable
     public init(extents: Array, strides: Array? = nil) {
         self.extents = extents
         self.strides = strides ?? Self.denseStrides(extents)
@@ -557,7 +557,7 @@ public struct Shape4: ShapeProtocol {
     
     //--------------------------------------------------------------------------
     // init(flattening:
-    @inlinable @inline(__always)
+    @inlinable
     public init<S>(flattening other: S) where S: ShapeProtocol {
         assert(other.isContiguous, "Cannot flatten strided data")
         assert(other.rank >= 4, "you can't flatten from a lower rank")
@@ -584,7 +584,7 @@ public struct Shape5: ShapeProtocol {
     public let extents: Array
     public let strides: Array
     
-    @inlinable @inline(__always)
+    @inlinable
     public init(extents: Array, strides: Array? = nil) {
         self.extents = extents
         self.strides = strides ?? Self.denseStrides(extents)
@@ -594,7 +594,7 @@ public struct Shape5: ShapeProtocol {
     
     //--------------------------------------------------------------------------
     // init(flattening:
-    @inlinable @inline(__always)
+    @inlinable
     public init<S>(flattening other: S) where S: ShapeProtocol {
         assert(other.isContiguous, "Cannot flatten strided data")
         assert(other.rank >= 5, "you can't flatten from a lower rank")

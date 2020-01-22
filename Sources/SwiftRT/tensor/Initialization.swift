@@ -61,7 +61,7 @@ public extension TensorView {
     /// equal to `IndexType`
     @inlinable
     func createIndexTensor() -> IndexView { createIndexTensor(with: extents) }
-    
+
     //--------------------------------------------------------------------------
     /// concatenated tensors
     @inlinable
@@ -108,7 +108,7 @@ public extension TensorView {
                   isShared: other.isShared)
     }
     
-    @inlinable @inline(__always)
+    @inlinable
     init<T>(squeezing other: T, alongAxes axes: Int...)
         where T: TensorView, T.Element == Element {
         self.init(squeezing: other, alongAxes: Set(axes))
@@ -157,15 +157,15 @@ public extension TensorView {
     func createDense() -> Self { return createDense(with: shape) }
     
     //--------------------------------------------------------------------------
-    /// createReductionResult
-    /// creates a tensor of suitable form to recieve a reduction result.
+    /// reductionExtents
+    /// determines the extents of a reduction result along the specified axes
     @inlinable
-    func createReductionResult(alongAxes axes: Set<Int>?) -> Self {
-        guard let axes = axes else { return createSingleElement() }
+    func reductionExtents(alongAxes axes: Set<Int>?) -> Shape.Array {
+        guard let axes = axes else { return Shape.ones }
         assert(axes.isSubset(of: 0..<rank), "axis is out of bounds")
         var resultExtents = extents
         axes.forEach { resultExtents[$0] = 1 }
-        return Self.create(Shape(extents: resultExtents), nil)
+        return resultExtents
     }
 
     //--------------------------------------------------------------------------

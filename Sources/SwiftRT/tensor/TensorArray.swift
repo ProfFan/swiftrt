@@ -60,7 +60,7 @@ public final class TensorArray<Element>: ObjectTracking, Codable, Logging
 
     //--------------------------------------------------------------------------
     // common
-    @inlinable @inline(__always)
+    @inlinable
     public init(count: Int, isReadOnly: Bool, name: String) {
         self.accessQueue = DispatchQueue(label: "TensorArray.accessQueue")
         self.count = count
@@ -84,14 +84,14 @@ public final class TensorArray<Element>: ObjectTracking, Codable, Logging
     
     //--------------------------------------------------------------------------
     // empty
-    @inlinable @inline(__always)
+    @inlinable
     public convenience init() {
         self.init(count: 0, isReadOnly: false, name: "")
     }
 
     //--------------------------------------------------------------------------
     // casting used for safe conversion between FixedSizeVector and Scalar
-    @inlinable @inline(__always)
+    @inlinable
     public convenience init<T>(_ other: TensorArray<T>) where
         T: FixedSizeVector, T.Scalar == Element
     {
@@ -101,14 +101,14 @@ public final class TensorArray<Element>: ObjectTracking, Codable, Logging
 
     //--------------------------------------------------------------------------
     // create a new element array
-    @inlinable @inline(__always)
+    @inlinable
     public convenience init(count: Int, name: String) {
         self.init(count: count, isReadOnly: false, name: name)
     }
 
     //--------------------------------------------------------------------------
     // create a new element array initialized with values
-    @inlinable @inline(__always)
+    @inlinable
     public convenience init<C>(elements: C, name: String) where
         C: Collection, C.Element == Element
     {
@@ -126,7 +126,7 @@ public final class TensorArray<Element>: ObjectTracking, Codable, Logging
     //--------------------------------------------------------------------------
     // All initializers copy the data except this one which creates a
     // read only reference to avoid unnecessary copying from the source
-    @inlinable @inline(__always)
+    @inlinable
     public convenience init(referenceTo buffer: UnsafeBufferPointer<Element>,
                             name: String)
     {
@@ -145,7 +145,7 @@ public final class TensorArray<Element>: ObjectTracking, Codable, Logging
     //--------------------------------------------------------------------------
     /// uses the specified UnsafeMutableBufferPointer as the host
     /// backing stored
-    @inlinable @inline(__always)
+    @inlinable
     public convenience init(
         referenceTo buffer: UnsafeMutableBufferPointer<Element>,
         name: String)
@@ -164,7 +164,7 @@ public final class TensorArray<Element>: ObjectTracking, Codable, Logging
     
     //--------------------------------------------------------------------------
     // init from other TensorArray
-    @inlinable @inline(__always)
+    @inlinable
     public convenience init(copying other: TensorArray,
                             using queue: DeviceQueue) throws
     {
@@ -191,7 +191,7 @@ public final class TensorArray<Element>: ObjectTracking, Codable, Logging
     }
 
     //--------------------------------------------------------------------------
-    @inlinable @inline(__always)
+    @inlinable
     deinit {
         #if DEBUG
         ObjectTracker.global.remove(trackingId: trackingId)
