@@ -180,7 +180,7 @@ public extension TensorView {
     // utility functions for creating shaped types
     @inlinable
     static func create(_ shape: Shape, _ name: String?) -> Self {
-        let name = name ?? String(describing: Self.self)
+        let name = name ?? Self.typeName
         let array = TensorArray<Element>(count: shape.count, name: name)
         return Self(shape: shape, tensorArray: array,
                     viewOffset: 0, isShared: false)
@@ -192,7 +192,7 @@ public extension TensorView {
         assert(shape.count == buffer.count,
                "shape count does not match buffer count")
         // create tensor data reference to buffer
-        let name = name ?? String(describing: Self.self)
+        let name = name ?? Self.typeName
         let array = TensorArray<Element>(referenceTo: buffer, name: name)
         return Self(shape: shape, tensorArray: array,
                     viewOffset: 0, isShared: false)
@@ -204,7 +204,7 @@ public extension TensorView {
         assert(shape.count == buffer.count,
                "shape count does not match buffer count")
         // create tensor data reference to buffer
-        let name = name ?? String(describing: Self.self)
+        let name = name ?? Self.typeName
         let array = TensorArray<Element>(referenceTo: buffer, name: name)
         return Self(shape: shape, tensorArray: array,
                     viewOffset: 0, isShared: false)
@@ -217,7 +217,7 @@ public extension TensorView {
     {
         // it can be less if the elements are being repeated
         assert(elements.count <= shape.count, _messageElementCountMismatch)
-        let name = name ?? String(describing: Self.self)
+        let name = name ?? Self.typeName
         let array = TensorArray<Element>(elements: elements, name: name)
         return Self(shape: shape, tensorArray: array,
                     viewOffset: 0, isShared: false)

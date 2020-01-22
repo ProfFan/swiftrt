@@ -77,6 +77,8 @@ public protocol TensorView: Codable, Logging {
     var startIndex: Index { get }
     /// class reference to the underlying byte buffer
     var tensorArray: TensorArray<Element> { get set }
+    /// a label for the type used as a default name in diagnostics
+    static var typeName: String { get }
     /// the linear element offset where the view begins
     var viewOffset: Int { get }
     
@@ -234,6 +236,17 @@ public extension TensorView {
     @inlinable
     var flatArray: [Element] { [Element](elements()) }
 
+    //--------------------------------------------------------------------------
+    /// diagnostic support
+    @inlinable
+    static var typeName: String {
+        #if DEBUG
+        return String(describing: Self.self)
+        #else
+        return "Tensor"
+        #endif
+    }
+    
     //--------------------------------------------------------------------------
     /// createView
     /// Returns a view of the tensorArray relative to this view

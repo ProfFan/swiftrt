@@ -124,8 +124,8 @@ class test_DataMigration: XCTestCase {
     //
     func test_tensorDataMigration() {
         do {
-//            Platform.log.level = .diagnostic
-//            Platform.log.categories = [.dataAlloc, .dataCopy, .dataMutation]
+            Platform.log.level = .diagnostic
+            Platform.log.categories = [.dataAlloc, .dataCopy, .dataMutation]
 
             // create a named queue on two different discreet devices
             // cpu devices 1 and 2 are discreet memory versions for testing
