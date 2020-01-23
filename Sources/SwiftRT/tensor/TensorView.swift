@@ -68,11 +68,10 @@ public protocol TensorView: Codable, Logging {
     static var diagnosticName: String { get }
     /// returns an index one past the end of the tensor used for collections
     var endIndex: Index { get }
-    /// used internally when obtaining write access to manage
-    /// multi-threaded writes without causing `tensorArray` copy on write.
-    var isShared: Bool { get }
     /// format describes how to interpret the meaning of each dimension
     var format: TensorFormat { get }
+    /// if `true` then readWrite buffer access will not cause copy-on-write
+    var isMutable: Bool { get }
     /// the shape of the view used for indexing
     var shape: Shape { get }
     /// returns the first tensor index used for collections
@@ -87,7 +86,7 @@ public protocol TensorView: Codable, Logging {
     init(shape: Shape,
          tensorArray: TensorArray<Element>,
          viewOffset: Int,
-         isShared: Bool)
+         isMutable: Bool)
 
     //--------------------------------------------------------------------------
     /// creates a new dense tensor of the same type with the specified extents
@@ -204,6 +203,15 @@ public extension TensorView where Element: AnyElement {
                 "the tensor to have a single Element. Use `first` for sets")
             return first
         }
+        set {
+            assert(shape.isScalar, "the `element` property expects " +
+                "the tensor to have a single Element")
+            do {
+                try readWrite()[0] = newValue
+            } catch {
+                DeviceContext.report(error)
+            }
+        }
     }
 }
 
@@ -241,7 +249,7 @@ public extension TensorView {
         return Self(shape: shape.repeated(to: extents),
                     tensorArray: tensorArray,
                     viewOffset: viewOffset,
-                    isShared: isShared)
+                    isMutable: isMutable)
     }
     
     @inlinable
@@ -254,11 +262,66 @@ public extension TensorView {
 // TensorView view creation functions
 public extension TensorView {
     //--------------------------------------------------------------------------
+    /// view
+    /// Creates an immutable subview
+    @inlinable
+    func view(at offset: Shape.Tuple, extents: Shape.Tuple,
+              strides: Shape.Tuple? = nil) -> Self
+    {
+        view(at: Shape.Array(offset),
+             extents: Shape.Array(extents),
+             strides: Shape.Array(strides))
+    }
+    
+    @inlinable
+    func view(at offset: Shape.Array, extents: Shape.Array,
+              strides: Shape.Array? = nil) -> Self
+    {
+        createView(at: offset, extents: extents,
+                   strides: strides ?? self.strides, isMutable: false)
+    }
+    
+    //--------------------------------------------------------------------------
+    /// mutableView
+    /// A mutableView does not perform a copy-on-write check for
+    /// a readWrite buffer access. However, the data is copied the first time
+    /// if the tensor is not uniquely held. Mutable views derived from a
+    /// mutable view will not copy the data irrespective to reference count.
+    /// This allows for multi-threaded tensor write operations.
+    @inlinable
+    mutating func mutableView(at offset: Shape.Tuple, extents: Shape.Tuple,
+                              strides: Shape.Tuple? = nil) -> Self
+    {
+        mutableView(at: Shape.Array(offset),
+                    extents: Shape.Array(extents),
+                    strides: Shape.Array(strides))
+    }
+    
+    @inlinable
+    mutating func mutableView(at offset: Shape.Array, extents: Shape.Array,
+                              strides: Shape.Array? = nil) -> Self
+    {
+        do {
+            try copyIfMutates(using: DeviceContext.currentQueue)
+            return createView(at: offset, extents: extents,
+                              strides: strides ?? self.strides, isMutable: true)
+        } catch {
+            DeviceContext.report(error)
+            return Self()
+        }
+    }
+
+    @inlinable
+    mutating func mutableView() -> Self {
+        mutableView(at: Shape.zeros, extents: self.extents)
+    }
+
+    //--------------------------------------------------------------------------
     /// createView
     /// Returns a view of the tensorArray relative to this view
     @usableFromInline
     internal func createView(at offset: Shape.Array, extents: Shape.Array,
-                             strides: Shape.Array, isReference: Bool) -> Self
+                             strides: Shape.Array, isMutable: Bool) -> Self
     {
         // validate
         assert(offset.count == shape.rank && extents.count == shape.rank)
@@ -269,75 +332,42 @@ public extension TensorView {
         return Self(shape: Shape(extents: extents, strides: strides),
                     tensorArray: tensorArray,
                     viewOffset: subViewOffset,
-                    isShared: isReference)
+                    isMutable: isMutable)
     }
-    
+
     //--------------------------------------------------------------------------
-    /// sharedView
-    /// creation of a sharedView is for the purpose of reshaped writes
-    /// and host multi-threaded writes to prevent mutation.
-    /// The data will be copied before view creation if
-    /// not uniquely held. Shared views will not perform
-    /// copy-on-write when a write pointer is taken
+    /// subscript(items:
     @inlinable
-    mutating func sharedView(using queue: DeviceQueue,
-                             reshaped: Shape? = nil) throws -> Self {
-        try copyIfMutates(using: queue)
-        return Self(shape: reshaped ?? shape,
-                    tensorArray: tensorArray,
-                    viewOffset: viewOffset,
-                    isShared: true)
+//    @differentiable(where Self: DifferentiableTensorView)
+    subscript(range: UnboundedRange) -> Self { self }
+
+    @inlinable
+//    @differentiable(where Self: DifferentiableTensorView)
+    subscript<R>(range: R) -> Self
+        where R: PartialRangeExpression, R.Bound == Int {
+        get {
+            let (start, end, steps) = withoutDerivative(at:
+                getItemRange(range.relativeTo(0..<extents[0])))
+            return self[start, end, steps]
+        }
+        set {
+            let (start, end, steps) = withoutDerivative(at:
+                getItemRange(range.relativeTo(0..<extents[0])))
+            self[start, end, steps] = newValue
+        }
     }
-    
-    
-    //--------------------------------------------------------------------------
-    /// view
-    /// Create a sub view of the tensorArray relative to this view
-    @inlinable
-    func view(at offset: Shape.Tuple, extents: Shape.Tuple,
-              strides: Shape.Tuple? = nil) -> Self
+
+    @usableFromInline
+    internal func getItemRange(_ range: StridedRange<Int>) ->
+        (Shape.Array, Shape.Array, Shape.Array)
     {
-        view(at: Shape.Array(offset),
-             extents: Shape.Array(extents),
-             strides: Shape.Array(strides))
-    }
-    
-    // the view created will have the same isShared state as the parent
-    @inlinable
-    func view(at offset: Shape.Array, extents: Shape.Array,
-              strides: Shape.Array? = nil) -> Self
-    {
-        createView(at: offset,
-                   extents: extents,
-                   strides: strides ?? shape.strides,
-                   isReference: isShared)
-    }
-    
-    //--------------------------------------------------------------------------
-    /// viewItems
-    /// Returns a view along the first dimension spanning all the others.
-    /// It is used to simplify accessing a set of training samples.
-    /// The view created will have the same isShared state as the parent
-    @inlinable
-    func viewItems(at offset: Int, count: Int) -> Self {
-        // set starting offset
-        var index = Shape.zeros
-        index[0] = offset
-        
-        // set extent
-        var viewExtents = Shape.zeros
-        viewExtents[0] = count
-        for i in 1..<viewExtents.count { viewExtents[i] = extents[i] }
-        
-        return createView(at: index, extents: viewExtents,
-                          strides: shape.strides, isReference: isShared)
-    }
-    
-    //--------------------------------------------------------------------------
-    /// view(item:
-    @inlinable
-    func view(item: Int) -> Self {
-        viewItems(at: item, count: 1)
+        var start = Shape.zeros
+        var end = self.extents
+        var steps = Shape.ones
+        start[0] = range.start
+        end[0] = range.end
+        steps[0] = range.step
+        return (start, end, steps)
     }
 }
 
@@ -358,7 +388,7 @@ public extension TensorView {
     ///  to be copied
     @inlinable
     mutating func writeWillMutateView() -> Bool {
-        !isUniqueReference() && !isShared
+        !isUniqueReference() && !isMutable
     }
     
     //--------------------------------------------------------------------------
@@ -507,7 +537,7 @@ public extension TensorView {
         assert(batchSize == nil || batchSize! <= extents[0])
         let queue = DeviceContext.hostQueue
         let errorDevice = queue.device
-        var shared = try sharedView(using: queue)
+        var view = self.mutableView()
         let group = DispatchGroup()
         let batchQueue = DispatchQueue(label: "hostMultiWrite",
                                        attributes: .concurrent)
@@ -520,14 +550,14 @@ public extension TensorView {
         
         // do the work
         func queueBatch(item: Int, count: Int) throws {
-            let view = shared.viewItems(at: item, count: count)
+            let batchView = view[item..|count]
             if synchronous {
-                try body(view)
+                try body(batchView)
             } else {
                 guard queue.lastError == nil else { throw queue.lastError! }
                 batchQueue.async(group: group) {
                     do {
-                        try body(view)
+                        try body(batchView)
                     } catch {
                         errorDevice.report(error)
                     }
@@ -536,7 +566,7 @@ public extension TensorView {
         }
         
         // ensure the data is local
-        _ = try shared.readWrite(using: queue)
+        _ = try view.readWrite(using: queue)
         
         // launch the batches
         let lastBatchIndex = Int(extents[0]) - remainder
@@ -592,7 +622,7 @@ public extension TensorView {
         let array = try container.decode(TensorArray<Element>.self,
                                          forKey: .data)
         self = Self(shape: Shape(extents: extents), tensorArray: array,
-                    viewOffset: 0, isShared: false)
+                    viewOffset: 0, isMutable: false)
     }
 }
 

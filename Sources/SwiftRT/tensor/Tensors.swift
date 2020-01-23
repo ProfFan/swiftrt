@@ -142,22 +142,18 @@ public extension VectorView {
     // TODO: fix this
     //    @differentiable(where Self: DifferentiableTensorView)
     subscript(index: Int) -> Element {
-        get { self[(index), (index + 1), Shape.ones.tuple].element }
+        get { self[(index), (index + 1), (1)].element }
         set {
-            fatalError()
-//            var view = self[(index), (index + 1), Shape.ones.tuple]
+            assert(self.isMutable, "cannot modify an immutable view")
+            self[(index), (index + 1), Shape.ones.tuple].element = newValue
         }
     }
-    
-    @inlinable
-    @differentiable(where Self: DifferentiableTensorView)
-    subscript(r: UnboundedRange) -> Self { self }
 
     @inlinable
     @differentiable(where Self: DifferentiableTensorView)
     subscript<R>(range: R) -> Self
         where R: PartialRangeExpression, R.Bound == Int
-    {
+        {
         get {
             let r = withoutDerivative(at: range.relativeTo(0..<extents[0]))
             return self[(r.start), (r.end), (r.step)]
@@ -176,7 +172,7 @@ public struct Vector<Element>: VectorView
 {
     // properties
     public static var diagnosticName: String { "Vector" }
-    public let isShared: Bool
+    public let isMutable: Bool
     public let format: TensorFormat
     public let shape: Shape1
     public var tensorArray: TensorArray<Element>
@@ -186,12 +182,12 @@ public struct Vector<Element>: VectorView
     public init(shape: Shape1,
                 tensorArray: TensorArray<Element>,
                 viewOffset: Int,
-                isShared: Bool)
+                isMutable: Bool)
     {
         self.shape = shape
         self.tensorArray = tensorArray
         self.viewOffset = viewOffset
-        self.isShared = isShared
+        self.isMutable = isMutable
         self.format = .vector
     }
 }
@@ -361,7 +357,7 @@ public extension MatrixView {
         Self.init(shape: shape.transposed(),
                   tensorArray: tensorArray,
                   viewOffset: viewOffset,
-                  isShared: isShared)
+                  isMutable: isMutable)
     }
     
     //--------------------------------------------------------------------------
@@ -405,14 +401,15 @@ public extension MatrixView {
     subscript(r: Int, c: Int) -> Element {
         get { self[(r, c), (r + 1, c + 1), Shape.ones.tuple].element }
         set {
-            do {
-                var view = self[(r, c), (r + 1, c + 1), Shape.ones.tuple]
-                var shared = try view.sharedView(using: DeviceContext.currentQueue)
-                let buffer = try shared.readWrite()
-                buffer[0] = newValue
-            } catch {
-                DeviceContext.report(error)
-            }
+//            do {
+//                var view = self[(r, c), (r + 1, c + 1), Shape.ones.tuple]
+//                var shared = try view.sharedView(using: DeviceContext.currentQueue)
+//                let buffer = try shared.readWrite()
+//                buffer[0] = newValue
+//            } catch {
+//                DeviceContext.report(error)
+//            }
+            fatalError()
         }
     }
 
@@ -459,7 +456,7 @@ public struct Matrix<Element>: MatrixView
 {
     // properties
     public static var diagnosticName: String { "Matrix" }
-    public let isShared: Bool
+    public let isMutable: Bool
     public let format: TensorFormat
     public let shape: Shape2
     public var tensorArray: TensorArray<Element>
@@ -469,12 +466,12 @@ public struct Matrix<Element>: MatrixView
     public init(shape: Shape2,
                 tensorArray: TensorArray<Element>,
                 viewOffset: Int,
-                isShared: Bool)
+                isMutable: Bool)
     {
         self.shape = shape
         self.tensorArray = tensorArray
         self.viewOffset = viewOffset
-        self.isShared = isShared
+        self.isMutable = isMutable
         self.format = .matrix
     }
 }
@@ -749,7 +746,7 @@ public struct Volume<Element>: VolumeView
 {
     // properties
     public static var diagnosticName: String { "Volume" }
-    public let isShared: Bool
+    public let isMutable: Bool
     public let format: TensorFormat
     public let shape: Shape3
     public var tensorArray: TensorArray<Element>
@@ -759,12 +756,12 @@ public struct Volume<Element>: VolumeView
     public init(shape: Shape3,
                 tensorArray: TensorArray<Element>,
                 viewOffset: Int,
-                isShared: Bool)
+                isMutable: Bool)
     {
         self.shape = shape
         self.tensorArray = tensorArray
         self.viewOffset = viewOffset
-        self.isShared = isShared
+        self.isMutable = isMutable
         self.format = .volume
     }
 }

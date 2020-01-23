@@ -15,6 +15,20 @@
 //
 import Foundation
 
+//==============================================================================
+public protocol TensorItemIndexing where Self: TensorView {
+    subscript(item: Int) -> Self { get set }
+}
+
+public extension TensorItemIndexing where Self: VectorView {
+
+}
+
+public extension TensorItemIndexing {
+    
+}
+
+//==============================================================================
 public extension TensorView {
     //--------------------------------------------------------------------------
     /// getExtents(from:to:
@@ -95,12 +109,12 @@ public extension TensorView {
         get {
             let (extents, strides) = getExtents(lower, upper, steps)
             return createView(at: lower, extents: extents, strides: strides,
-                              isReference: isShared)
+                              isMutable: false)
         }
         set {
             let (extents, strides) = getExtents(lower, upper, steps)
-            var view = createView(at: lower, extents: extents, strides: strides,
-                                  isReference: true)
+            var view = createView(at: lower, extents: extents,
+                                  strides: strides, isMutable: true)
             copy(from: newValue, to: &view)
         }
     }

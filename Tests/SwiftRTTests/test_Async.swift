@@ -46,7 +46,7 @@ class test_Async: XCTestCase {
             try trainingSet.hostMultiWrite { batch in
                 for i in 0..<batch.items {
                     // get a view of the item at `i`
-                    var itemView = batch.view(item: i)
+                    var itemView = batch[i]
                     
                     // get a writable buffer for the view
                     let buffer = itemView.getHostMultiWriteBuffer()
@@ -60,8 +60,8 @@ class test_Async: XCTestCase {
             }
 
             // check the last item to see if it contains the expected value
-            let item = trainingSet.view(item: trainingSet.items - 1)
-            XCTAssert(item.first == expected)
+            let lastItem = trainingSet[-1]
+            XCTAssert(lastItem.first == expected)
         } catch {
             XCTFail(String(describing: error))
         }

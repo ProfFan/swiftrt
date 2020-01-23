@@ -277,22 +277,18 @@ public extension DeviceFunctions where Self: DeviceQueue {
         mapOp(view, &result) { U.Element(any: $0) }
     }
     // concat
+    // TODO: if the tensors are large they could
+    // be copied in parallel. Maybe leave for the compiler in the future
     @inlinable
     func concat<T>(tensors: [T], alongAxis axis: Int, result: inout T) where
         T: TensorView
     {
-        do {
-            // Note: if the tensors are large then they could be copied in parallel
-            let shared = try result.sharedView(using: self)
-            var index = T.Shape.zeros
-            
-            for tensor in tensors {
-                var outView = shared.view(at: index, extents: tensor.extents)
-                tensor.map(into: &outView) { $0 }
-                index[axis] += tensor.extents[axis]
-            }
-        } catch {
-            DeviceContext.report(error)
+        var index = T.Shape.zeros
+        
+        for tensor in tensors {
+            var view = result.mutableView(at: index, extents: tensor.extents)
+            tensor.map(into: &view) { $0 }
+            index[axis] += tensor.extents[axis]
         }
     }
     /// div
@@ -472,17 +468,15 @@ public extension DeviceFunctions where Self: DeviceQueue {
     {
         assert(result.isContiguous, "Result storage must be contiguous")
         
-        do {
-            // created a repeated view of the initial results to match `x`
-            var repeated = try result.sharedView(
-                using: self, reshaped: result.shape.repeated(to: x.extents))
-            var repeatedElements = repeated.mutableElements(using: self)
-
-            // do the reduction
-            reductionOp(x.elements, &repeatedElements, opNext)
-        } catch {
-            device.report(error)
-        }
+        // created a repeated view of the initial results to match `x`
+        var repeated = T(shape: result.shape.repeated(to: x.extents),
+                         tensorArray: result.tensorArray,
+                         viewOffset: result.viewOffset,
+                         isMutable: true)
+        
+        // get the elements collection and do the reduction
+        var repeatedElements = repeated.mutableElements(using: self)
+        reductionOp(x.elements, &repeatedElements, opNext)
 
         if let op = opFinal {
             var elements = result.mutableElements(using: self)

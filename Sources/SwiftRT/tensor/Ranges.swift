@@ -146,7 +146,9 @@ infix operator ..|: RangeFormationPrecedence
 public extension Int {
     @inlinable
     static func ..| (from: Int, extent: Int) -> Range<Int> {
-        Range(uncheckedBounds: (from, from + extent))
+        assert(from >= 0, "`from` must be a positive index value`")
+        assert(extent > 0, "cannot specify and empty range window")
+        return Range(uncheckedBounds: (from, from + extent))
     }
 }
 

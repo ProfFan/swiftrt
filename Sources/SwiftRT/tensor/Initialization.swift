@@ -49,7 +49,7 @@ public extension TensorView {
         self.init(shape: Shape(extents: Shape.zeros),
                   tensorArray: TensorArray(),
                   viewOffset: 0,
-                  isShared: false)
+                  isMutable: false)
     }
 
     //--------------------------------------------------------------------------
@@ -85,7 +85,7 @@ public extension TensorView {
         self.init(shape: Shape(flattening: other.shape),
                   tensorArray: other.tensorArray,
                   viewOffset: other.viewOffset,
-                  isShared: other.isShared)
+                  isMutable: other.isMutable)
     }
 
     // noop flattening case
@@ -105,7 +105,7 @@ public extension TensorView {
         self.init(shape: Shape(squeezing: other.shape, alongAxes: axes),
                   tensorArray: other.tensorArray,
                   viewOffset: other.viewOffset,
-                  isShared: other.isShared)
+                  isMutable: other.isMutable)
     }
     
     @inlinable
@@ -183,7 +183,7 @@ public extension TensorView {
         let name = name ?? Self.diagnosticName
         let array = TensorArray<Element>(count: shape.count, name: name)
         return Self(shape: shape, tensorArray: array,
-                    viewOffset: 0, isShared: false)
+                    viewOffset: 0, isMutable: false)
     }
     
     @inlinable
@@ -195,7 +195,7 @@ public extension TensorView {
         let name = name ?? Self.diagnosticName
         let array = TensorArray<Element>(referenceTo: buffer, name: name)
         return Self(shape: shape, tensorArray: array,
-                    viewOffset: 0, isShared: false)
+                    viewOffset: 0, isMutable: false)
     }
     
     @inlinable
@@ -207,7 +207,7 @@ public extension TensorView {
         let name = name ?? Self.diagnosticName
         let array = TensorArray<Element>(referenceTo: buffer, name: name)
         return Self(shape: shape, tensorArray: array,
-                    viewOffset: 0, isShared: false)
+                    viewOffset: 0, isMutable: false)
     }
     
     @inlinable
@@ -220,7 +220,7 @@ public extension TensorView {
         let name = name ?? Self.diagnosticName
         let array = TensorArray<Element>(elements: elements, name: name)
         return Self(shape: shape, tensorArray: array,
-                    viewOffset: 0, isShared: false)
+                    viewOffset: 0, isMutable: false)
     }
 }
 

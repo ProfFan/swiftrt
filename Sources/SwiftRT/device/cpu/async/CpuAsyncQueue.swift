@@ -453,11 +453,10 @@ public extension CpuAsynchronousQueue {
         
         let outputs: () throws -> ([TensorMutableValueCollection<T>]) = {
             var index = T.Shape.zeros
-            let shared = try result.sharedView(using: self)
             var outCollections = [TensorMutableValueCollection<T>]()
             
             for tensor in tensors {
-                var view = shared.view(at: index, extents: tensor.extents)
+                var view = result.mutableView(at: index, extents: tensor.extents)
                 outCollections.append(view.mutableElements(using: self))
                 index[axis] += tensor.extents[axis]
             }
