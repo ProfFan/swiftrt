@@ -64,6 +64,8 @@ public protocol TensorView: Codable, Logging {
 
     //--------------------------------------------------------------------------
     // properties
+    /// a label for the type used as a default name in diagnostics
+    static var diagnosticName: String { get }
     /// returns an index one past the end of the tensor used for collections
     var endIndex: Index { get }
     /// used internally when obtaining write access to manage
@@ -77,8 +79,6 @@ public protocol TensorView: Codable, Logging {
     var startIndex: Index { get }
     /// class reference to the underlying byte buffer
     var tensorArray: TensorArray<Element> { get set }
-    /// a label for the type used as a default name in diagnostics
-    static var typeName: String { get }
     /// the linear element offset where the view begins
     var viewOffset: Int { get }
     
@@ -235,29 +235,35 @@ public extension TensorView {
     /// an array of viewed elements
     @inlinable
     var flatArray: [Element] { [Element](elements()) }
-
-    //--------------------------------------------------------------------------
-    /// diagnostic support
+    /// repeated(to extents:
     @inlinable
-    static var typeName: String {
-        #if DEBUG
-        return String(describing: Self.self)
-        #else
-        return "Tensor"
-        #endif
+    func repeated(to extents: Shape.Array) -> Self {
+        return Self(shape: shape.repeated(to: extents),
+                    tensorArray: tensorArray,
+                    viewOffset: viewOffset,
+                    isShared: isShared)
     }
     
+    @inlinable
+    func repeated(to extents: Shape.Tuple) -> Self {
+        repeated(to: Shape.Array(extents))
+    }
+}
+
+//==============================================================================
+// TensorView view creation functions
+public extension TensorView {
     //--------------------------------------------------------------------------
     /// createView
     /// Returns a view of the tensorArray relative to this view
-    @inlinable
-    func createView(at offset: Shape.Array, extents: Shape.Array,
-                    strides: Shape.Array, isReference: Bool) -> Self
+    @usableFromInline
+    internal func createView(at offset: Shape.Array, extents: Shape.Array,
+                             strides: Shape.Array, isReference: Bool) -> Self
     {
         // validate
         assert(offset.count == shape.rank && extents.count == shape.rank)
         assert(shape.contains(offset: offset, extents: extents))
-
+        
         // the subview offset is the current plus the offset of index
         let subViewOffset = viewOffset + shape.linearIndex(of: offset)
         return Self(shape: Shape(extents: extents, strides: strides),
@@ -282,22 +288,62 @@ public extension TensorView {
                     viewOffset: viewOffset,
                     isShared: true)
     }
-
+    
+    
     //--------------------------------------------------------------------------
-    /// repeated(to extents:
+    /// view
+    /// Create a sub view of the tensorArray relative to this view
     @inlinable
-    func repeated(to extents: Shape.Array) -> Self {
-        return Self(shape: shape.repeated(to: extents),
-                    tensorArray: tensorArray,
-                    viewOffset: viewOffset,
-                    isShared: isShared)
+    func view(at offset: Shape.Tuple, extents: Shape.Tuple,
+              strides: Shape.Tuple? = nil) -> Self
+    {
+        view(at: Shape.Array(offset),
+             extents: Shape.Array(extents),
+             strides: Shape.Array(strides))
     }
     
+    // the view created will have the same isShared state as the parent
     @inlinable
-    func repeated(to extents: Shape.Tuple) -> Self {
-        repeated(to: Shape.Array(extents))
+    func view(at offset: Shape.Array, extents: Shape.Array,
+              strides: Shape.Array? = nil) -> Self
+    {
+        createView(at: offset,
+                   extents: extents,
+                   strides: strides ?? shape.strides,
+                   isReference: isShared)
     }
     
+    //--------------------------------------------------------------------------
+    /// viewItems
+    /// Returns a view along the first dimension spanning all the others.
+    /// It is used to simplify accessing a set of training samples.
+    /// The view created will have the same isShared state as the parent
+    @inlinable
+    func viewItems(at offset: Int, count: Int) -> Self {
+        // set starting offset
+        var index = Shape.zeros
+        index[0] = offset
+        
+        // set extent
+        var viewExtents = Shape.zeros
+        viewExtents[0] = count
+        for i in 1..<viewExtents.count { viewExtents[i] = extents[i] }
+        
+        return createView(at: index, extents: viewExtents,
+                          strides: shape.strides, isReference: isShared)
+    }
+    
+    //--------------------------------------------------------------------------
+    /// view(item:
+    @inlinable
+    func view(item: Int) -> Self {
+        viewItems(at: item, count: 1)
+    }
+}
+
+//==============================================================================
+// TensorView buffer access functions
+public extension TensorView {
     //--------------------------------------------------------------------------
     /// isUniqueReference
     /// `true` if this view is the only view holding a reference to tensorArray
@@ -333,7 +379,7 @@ public extension TensorView {
         tensorArray = try TensorArray<Element>(copying: tensorArray,
                                                using: queue)
     }
-
+    
     //--------------------------------------------------------------------------
     /// synchronizeQueues
     /// If the queue is changing, then this creates an event and
@@ -348,7 +394,7 @@ public extension TensorView {
             let event = try lastQueue.createEvent()
             diagnostic(
                 "\(nextQueue.device.name)_\(nextQueue.name) will wait for " +
-                "\(lastQueue.device.name)_\(lastQueue.name) " +
+                    "\(lastQueue.device.name)_\(lastQueue.name) " +
                 "using QueueEvent(\(event.trackingId))",
                 categories: .queueSync)
             try nextQueue.wait(for: lastQueue.record(event: event))
@@ -407,7 +453,7 @@ public extension TensorView {
         precondition(!tensorArray.isReadOnly, "the tensor is read only")
         let deviceQueue = queue ?? DeviceContext.hostQueue
         if let lastError = deviceQueue.lastError { throw lastError }
-
+        
         // sync queues
         try synchronize(queue: tensorArray.lastMutatingQueue,
                         with: deviceQueue)
@@ -438,68 +484,6 @@ public extension TensorView {
         -> UnsafeMutableRawPointer
     {
         try UnsafeMutableRawPointer(readWrite(using: queue).baseAddress!)
-    }
-    
-    //--------------------------------------------------------------------------
-    /// view
-    /// Create a sub view of the tensorArray relative to this view
-    @inlinable
-    func view(at offset: Shape.Tuple, extents: Shape.Tuple) -> Self {
-        view(at: Shape.Array(offset), extents: Shape.Array(extents))
-    }
-
-    @inlinable
-    func view(at offset: Shape.Array, extents: Shape.Array) -> Self {
-        // the view created will have the same isShared state as the parent
-        createView(at: offset, extents: extents,
-                   strides: shape.strides, isReference: isShared)
-    }
-
-    //--------------------------------------------------------------------------
-    /// view
-    /// Create a sub view of the tensorArray relative to this view
-    @inlinable
-    func view(at offset: Shape.Tuple, extents: Shape.Tuple,
-              strides: Shape.Tuple) -> Self
-    {
-        view(at: Shape.Array(offset), extents: Shape.Array(extents),
-             strides: Shape.Array(strides))
-    }
-    
-    @inlinable
-    func view(at offset: Shape.Array, extents: Shape.Array,
-              strides: Shape.Array) -> Self
-    {
-        // the view created will have the same isShared state as the parent
-        createView(at: offset, extents: extents,
-                   strides: strides, isReference: isShared)
-    }
-    
-    //--------------------------------------------------------------------------
-    /// viewItems
-    /// Returns a view along the first dimension spanning all the others.
-    /// It is used to simplify accessing a set of training samples.
-    /// The view created will have the same isShared state as the parent
-    @inlinable
-    func viewItems(at offset: Int, count: Int) -> Self {
-        // set starting offset
-        var index = Shape.zeros
-        index[0] = offset
-        
-        // set extent
-        var viewExtents = Shape.zeros
-        viewExtents[0] = count
-        for i in 1..<viewExtents.count { viewExtents[i] = extents[i] }
-        
-        return createView(at: index, extents: viewExtents,
-                          strides: shape.strides, isReference: isShared)
-    }
-    
-    //--------------------------------------------------------------------------
-    /// view(item:
-    @inlinable
-    func view(item: Int) -> Self {
-        viewItems(at: item, count: 1)
     }
 }
 
@@ -585,22 +569,6 @@ public extension TensorView {
         return UnsafeMutableBufferPointer(
             start: buffer.baseAddress!.advanced(by: viewOffset),
             count: shape.spanCount)
-    }
-}
-
-//==============================================================================
-//
-public extension TensorView where Element: FloatingPoint {
-    /// isFinite
-    /// `true` if all elements are finite values. Primarily used for debugging
-    func isFinite() throws -> Bool {
-        let values = try readOnly()
-        for value in values {
-            if !value.isFinite {
-                return false
-            }
-        }
-        return true
     }
 }
 

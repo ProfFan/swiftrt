@@ -175,6 +175,7 @@ public struct Vector<Element>: VectorView
     where Element: TensorElementConformance
 {
     // properties
+    public static var diagnosticName: String { "Vector" }
     public let isShared: Bool
     public let format: TensorFormat
     public let shape: Shape1
@@ -457,6 +458,7 @@ public struct Matrix<Element>: MatrixView
     where Element: TensorElementConformance
 {
     // properties
+    public static var diagnosticName: String { "Matrix" }
     public let isShared: Bool
     public let format: TensorFormat
     public let shape: Shape2
@@ -746,6 +748,7 @@ public struct Volume<Element>: VolumeView
     where Element: TensorElementConformance
 {
     // properties
+    public static var diagnosticName: String { "Volume" }
     public let isShared: Bool
     public let format: TensorFormat
     public let shape: Shape3
