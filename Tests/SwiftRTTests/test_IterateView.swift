@@ -117,13 +117,15 @@ class test_IterateView: XCTestCase {
     // test_perfVector
     func test_perfVector() {
         #if !DEBUG
-        let count = 1024 * 1024
-        let vector = IndexVector(with: 0..<count)
-        //            print(matrix.formatted((2,0)))
-        let values = vector.elements
-        
-        self.measure {
-            for _ in values {}
+        using(Platform.synchronousCpu) {
+            let count = 1024 * 1024
+            let vector = IndexVector(with: 0..<count)
+            //            print(matrix.formatted((2,0)))
+            let values = vector.elements
+            
+            self.measure {
+                for _ in values {}
+            }
         }
         #endif
     }
@@ -132,14 +134,16 @@ class test_IterateView: XCTestCase {
     // test_perfMatrix
     func test_perfMatrix() {
         #if !DEBUG
-        let rows = 1024
-        let cols = 1024
-        
-        let matrix = Matrix(rows, cols, with: 0..<(rows * cols))
-        let values = matrix.elements
-        
-        self.measure {
-            for _ in values {}
+        using(Platform.synchronousCpu) {
+            let rows = 1024
+            let cols = 1024
+            
+            let matrix = Matrix(rows, cols, with: 0..<(rows * cols))
+            let values = matrix.elements
+            
+            self.measure {
+                for _ in values {}
+            }
         }
         #endif
     }
@@ -148,16 +152,18 @@ class test_IterateView: XCTestCase {
     // test_perfVolume
     func test_perfVolume() {
         #if !DEBUG
-        let depths = 4
-        let rows = 512
-        let cols = 512
-        
-        let matrix = IndexVolume(depths, rows, cols,
-                                 with: 0..<(depths * rows * cols))
-        let values = matrix.elements
-        
-        self.measure {
-            for _ in values {}
+        using(Platform.synchronousCpu) {
+            let depths = 4
+            let rows = 512
+            let cols = 512
+            
+            let matrix = IndexVolume(depths, rows, cols,
+                                     with: 0..<(depths * rows * cols))
+            let values = matrix.elements
+            
+            self.measure {
+                for _ in values {}
+            }
         }
         #endif
     }
@@ -166,12 +172,14 @@ class test_IterateView: XCTestCase {
     // test_perfIndexCopy
     func test_perfIndexCopy() {
         #if !DEBUG
-        var m = Matrix(1024, 1024).startIndex
-        
-        self.measure {
-            for _ in 0..<1000000 {
-                m = m.increment()
-//                m = m.advanced(by: 1)
+        using(Platform.synchronousCpu) {
+            var m = Matrix(1024, 1024).startIndex
+            
+            self.measure {
+                for _ in 0..<1000000 {
+                    m = m.increment()
+                    //                m = m.advanced(by: 1)
+                }
             }
         }
         #endif

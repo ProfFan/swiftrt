@@ -56,6 +56,10 @@ public final class Platform: LocalPlatform {
         fatalError("Missing CPU device. Must be enabled during build")
     }()
 
+    public static var synchronousCpu: [ComputeDevice] = {
+        Platform.local.services[cpuSynchronousServiceName]!.devices
+    }()
+
     //--------------------------------------------------------------------------
     // these are to aid unit tests
     public static var testCpu1: ComputeDevice = {

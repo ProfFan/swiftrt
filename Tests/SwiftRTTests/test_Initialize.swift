@@ -34,20 +34,22 @@ class test_Initialize: XCTestCase {
         ("test_repeatRowVector", test_repeatRowVector),
         ("test_repeatColVector", test_repeatColVector),
     ]
-
+    
     //--------------------------------------------------------------------------
     // test_perfCreateTensorArray
     func test_perfCreateTensorArray() {
         #if !DEBUG
-        let iterations = 10000
-        var count = 0
-        measure {
-            for i in 1...iterations {
-                let array = TensorArray<Float>(count: i, name: "")
-                count = array.count
+        using(Platform.synchronousCpu) {
+            let iterations = 10000
+            var count = 0
+            measure {
+                for i in 1...iterations {
+                    let array = TensorArray<Float>(count: i, name: "")
+                    count = array.count
+                }
             }
+            XCTAssert(count == iterations)
         }
-        XCTAssert(count == iterations)
         #endif
     }
     
@@ -55,57 +57,61 @@ class test_Initialize: XCTestCase {
     // test_perfCreateMatrix
     func test_perfCreateMatrix() {
         #if !DEBUG
-        let iterations = 10000
-        var count = 0
-        measure {
-            for i in 1...iterations {
-                let matrix = Matrix(1, i)
-                count = matrix.count
+        using(Platform.synchronousCpu) {
+            let iterations = 10000
+            var count = 0
+            measure {
+                for i in 1...iterations {
+                    let matrix = Matrix(1, i)
+                    count = matrix.count
+                }
             }
+            XCTAssert(count == iterations)
         }
-        XCTAssert(count == iterations)
         #endif
     }
     
     //--------------------------------------------------------------------------
     // test_perfReadOnlyAccess
     func test_perfReadOnlyAccess() {
-        Platform.local.servicePriority = [cpuSynchronousServiceName]
-//        #if !DEBUG
-        let iterations = 100000
-        var value: Float = 0
-        let matrix = Matrix(2, 2, with: 1...4)
-        
-        measure {
-            do {
-                for _ in 1...iterations {
-                    value = try matrix.readOnly()[0]
+        #if !DEBUG
+        using(Platform.synchronousCpu) {
+            let iterations = 100000
+            var value: Float = 0
+            let matrix = Matrix(2, 2, with: 1...4)
+            
+            measure {
+                do {
+                    for _ in 1...iterations {
+                        value = try matrix.readOnly()[0]
+                    }
+                } catch {
+                    XCTFail()
                 }
-            } catch {
-                XCTFail()
             }
+            XCTAssert(value == 1)
         }
-        XCTAssert(value == 1)
-//        #endif
+        #endif
     }
     
     //--------------------------------------------------------------------------
     // test_perfReadWriteAccess
     func test_perfReadWriteAccess() {
-        Platform.local.servicePriority = [cpuSynchronousServiceName]
         #if !DEBUG
-        let iterations = 100000
-        let value: Float = 1
-        var matrix = Matrix(2, 2, with: 1...4)
-        
-        measure {
-            do {
-                for _ in 1...iterations {
-                    try matrix.readWrite()[0] = value
+        using(Platform.synchronousCpu) {
+            let iterations = 100000
+            let value: Float = 1
+            var matrix = Matrix(2, 2, with: 1...4)
+            
+            measure {
+                do {
+                    for _ in 1...iterations {
+                        try matrix.readWrite()[0] = value
+                    }
+                    XCTAssert(try matrix.readWrite()[0] == value)
+                } catch {
+                    XCTFail()
                 }
-                XCTAssert(try matrix.readWrite()[0] == value)
-            } catch {
-                XCTFail()
             }
         }
         #endif

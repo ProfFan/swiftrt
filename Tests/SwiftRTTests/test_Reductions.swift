@@ -387,8 +387,6 @@ class test_Reductions: XCTestCase {
     //--------------------------------------------------------------------------
     // test_sqrtSumSquaresMatrix
     func test_sqrtSumSquaresMatrix() {
-        Platform.local.servicePriority = [cpuSynchronousServiceName]
-
         let m = Matrix(with: [
             [0, 1],
             [2, 3],
@@ -430,8 +428,6 @@ class test_Reductions: XCTestCase {
     //--------------------------------------------------------------------------
     // test_sqrtSumSquaresVolume
     func test_sqrtSumSquaresVolume() {
-        Platform.local.servicePriority = [cpuSynchronousServiceName]
-        
         let m = Volume(with: [
             [
                 [ 0,  1],

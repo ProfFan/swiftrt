@@ -80,7 +80,6 @@ class test_Math: XCTestCase {
     //--------------------------------------------------------------------------
     // test_log
     func test_log() {
-        Platform.local.servicePriority = [cpuSynchronousServiceName]
         let range = 0..<6
         let matrix = Matrix(3, 2, with: range)
         let values = log(matrix)
