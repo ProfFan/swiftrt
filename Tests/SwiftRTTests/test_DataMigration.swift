@@ -124,8 +124,8 @@ class test_DataMigration: XCTestCase {
     //
     func test_tensorDataMigration() {
         do {
-            Platform.log.level = .diagnostic
-            Platform.log.categories = [.dataAlloc, .dataCopy, .dataMutation]
+//            Platform.log.level = .diagnostic
+//            Platform.log.categories = [.dataAlloc, .dataCopy, .dataMutation]
 
             // create a named queue on two different discreet devices
             // cpu devices 1 and 2 are discreet memory versions for testing
@@ -291,8 +291,8 @@ class test_DataMigration: XCTestCase {
     //--------------------------------------------------------------------------
     // test_copyOnWriteDevice
     func test_copyOnWriteDevice() {
-        Platform.log.level = .diagnostic
-        Platform.log.categories = [.dataAlloc, .dataCopy, .dataMutation]
+//        Platform.log.level = .diagnostic
+//        Platform.log.categories = [.dataAlloc, .dataCopy, .dataMutation]
         
         // create a named queue on two different discreet devices
         // cpu devices 1 and 2 are discreet memory versions for testing
@@ -377,20 +377,21 @@ class test_DataMigration: XCTestCase {
     // test_copyOnWrite
     // NOTE: uses the default queue
     func test_copyOnWrite() {
-        //            Platform.log.level = .diagnostic
-        //            Platform.log.categories = [.dataAlloc, .dataCopy, .dataMutation]
+//        Platform.log.level = .diagnostic
+//        Platform.log.categories = [.dataAlloc, .dataCopy, .dataMutation]
         
-        var matrix1 = Matrix(3, 2)
-        fillWithIndex(&matrix1)
-        XCTAssert(matrix1[1, 1] == 3)
+        let m1 = Matrix(3, 2).filledWithIndex()
+        XCTAssert(m1[1, 1] == 3)
+
+        // copy view sharing the same tensor array
+        var m2 = m1
+        XCTAssert(m2[1, 1] == 3)
         
-        var matrix2 = matrix1
-        XCTAssert(matrix2[1, 1] == 3)
-        
-        matrix2[1, 1] = 7
-        XCTAssert(matrix1[1, 1] == 3)
-        
-        XCTAssert(matrix2[1, 1] == 7)
+        // mutate m2
+        m2[1, 1] = 7
+        // m1's data should be unchanged
+        XCTAssert(m1[1, 1] == 3)
+        XCTAssert(m2[1, 1] == 7)
     }
 
     //--------------------------------------------------------------------------
@@ -401,7 +402,7 @@ class test_DataMigration: XCTestCase {
     //   4, 5
     func test_columnMajorDataView() {
         let cmMatrix = IndexMatrix(3, 2, with: [0, 2, 4, 1, 3, 5],
-                                     layout: .columnMajor)
+                                   layout: .columnMajor)
         let expected = [Int32](0..<6)
         let values = cmMatrix.flatArray
         XCTAssert(values == expected, "values don't match")

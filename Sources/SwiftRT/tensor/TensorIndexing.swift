@@ -15,17 +15,72 @@
 //
 import Foundation
 
-//==============================================================================
-public protocol TensorItemIndexing where Self: TensorView {
-    subscript(item: Int) -> Self { get set }
-}
-
-public extension TensorItemIndexing where Self: VectorView {
-
-}
-
-public extension TensorItemIndexing {
+public extension TensorView where Self: VectorView {
+    //--------------------------------------------------------------------------
+    @inlinable
+    // TODO: fix this
+    //    @differentiable(where Self: DifferentiableTensorView)
+    subscript(index: Int) -> Element {
+        get {
+            view(at: makePositive(index: (index)),
+                 extents: Shape.ones, strides: Shape.ones).element
+        }
+        set {
+            var view = mutableView(at: makePositive(index: (index)),
+                                   extents: Shape.ones, strides: Shape.ones)
+            view.element = newValue
+        }
+    }
     
+    @inlinable
+    @differentiable(where Self: DifferentiableTensorView)
+    subscript<R>(range: R) -> Self
+        where R: PartialRangeExpression, R.Bound == Int
+        {
+        get {
+            let r = withoutDerivative(at: range.relativeTo(0..<extents[0]))
+            return self[(r.start), (r.end), (r.step)]
+        }
+        set {
+            let r = withoutDerivative(at: range.relativeTo(0..<extents[0]))
+            self[(r.start), (r.end), (r.step)] = newValue
+        }
+    }
+}
+
+public extension TensorView {
+    @inlinable
+    //    @differentiable(where Self: DifferentiableTensorView)
+    subscript(range: UnboundedRange) -> Self { self }
+    
+    @inlinable
+    //    @differentiable(where Self: DifferentiableTensorView)
+    subscript<R>(range: R) -> Self
+        where R: PartialRangeExpression, R.Bound == Int {
+        get {
+            let (start, end, steps) = withoutDerivative(at:
+                getItemRange(range.relativeTo(0..<extents[0])))
+            return self[start, end, steps]
+        }
+        set {
+            let (start, end, steps) = withoutDerivative(at:
+                getItemRange(range.relativeTo(0..<extents[0])))
+            self[start, end, steps] = newValue
+        }
+    }
+    
+    @usableFromInline
+    internal func getItemRange(_ range: StridedRange<Int>) ->
+        (Shape.Array, Shape.Array, Shape.Array)
+    {
+        var start = Shape.zeros
+        var end = self.extents
+        var steps = Shape.ones
+        start[0] = range.start
+        end[0] = range.end
+        steps[0] = range.step
+        return (start, end, steps)
+    }
 }
 
 //==============================================================================
@@ -109,7 +164,7 @@ public extension TensorView {
         get {
             let (extents, strides) = getExtents(lower, upper, steps)
             return createView(at: lower, extents: extents, strides: strides,
-                              isMutable: false)
+                              isMutable: isMutable)
         }
         set {
             let (extents, strides) = getExtents(lower, upper, steps)

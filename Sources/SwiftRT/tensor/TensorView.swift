@@ -262,22 +262,33 @@ public extension TensorView {
 // TensorView view creation functions
 public extension TensorView {
     //--------------------------------------------------------------------------
+    /// makePositive(index:
+    @inlinable
+    func makePositive(index: Shape.Tuple) -> Shape.Array {
+        var result = Shape.Array(index)
+        for i in 0..<result.count {
+            if result[i] < 0 { result[i] += extents[i] }
+        }
+        return result
+    }
+    
+    //--------------------------------------------------------------------------
     /// view
     /// Creates an immutable subview
     @inlinable
-    func view(at offset: Shape.Tuple, extents: Shape.Tuple,
+    func view(at index: Shape.Tuple, extents: Shape.Tuple,
               strides: Shape.Tuple? = nil) -> Self
     {
-        view(at: Shape.Array(offset),
+        view(at: Shape.Array(index),
              extents: Shape.Array(extents),
              strides: Shape.Array(strides))
     }
     
     @inlinable
-    func view(at offset: Shape.Array, extents: Shape.Array,
+    func view(at index: Shape.Array, extents: Shape.Array,
               strides: Shape.Array? = nil) -> Self
     {
-        createView(at: offset, extents: extents,
+        createView(at: index, extents: extents,
                    strides: strides ?? self.strides, isMutable: false)
     }
     
@@ -289,21 +300,21 @@ public extension TensorView {
     /// mutable view will not copy the data irrespective to reference count.
     /// This allows for multi-threaded tensor write operations.
     @inlinable
-    mutating func mutableView(at offset: Shape.Tuple, extents: Shape.Tuple,
+    mutating func mutableView(at index: Shape.Tuple, extents: Shape.Tuple,
                               strides: Shape.Tuple? = nil) -> Self
     {
-        mutableView(at: Shape.Array(offset),
+        mutableView(at: Shape.Array(index),
                     extents: Shape.Array(extents),
                     strides: Shape.Array(strides))
     }
     
     @inlinable
-    mutating func mutableView(at offset: Shape.Array, extents: Shape.Array,
+    mutating func mutableView(at index: Shape.Array, extents: Shape.Array,
                               strides: Shape.Array? = nil) -> Self
     {
         do {
             try copyIfMutates(using: DeviceContext.currentQueue)
-            return createView(at: offset, extents: extents,
+            return createView(at: index, extents: extents,
                               strides: strides ?? self.strides, isMutable: true)
         } catch {
             DeviceContext.report(error)
@@ -320,54 +331,19 @@ public extension TensorView {
     /// createView
     /// Returns a view of the tensorArray relative to this view
     @usableFromInline
-    internal func createView(at offset: Shape.Array, extents: Shape.Array,
+    internal func createView(at index: Shape.Array, extents: Shape.Array,
                              strides: Shape.Array, isMutable: Bool) -> Self
     {
         // validate
-        assert(offset.count == shape.rank && extents.count == shape.rank)
-        assert(shape.contains(offset: offset, extents: extents))
+        assert(index.count == shape.rank && extents.count == shape.rank)
+        assert(shape.contains(index: index, extents: extents))
         
         // the subview offset is the current plus the offset of index
-        let subViewOffset = viewOffset + shape.linearIndex(of: offset)
+        let subViewOffset = viewOffset + shape.linearIndex(of: index)
         return Self(shape: Shape(extents: extents, strides: strides),
                     tensorArray: tensorArray,
                     viewOffset: subViewOffset,
                     isMutable: isMutable)
-    }
-
-    //--------------------------------------------------------------------------
-    /// subscript(items:
-    @inlinable
-//    @differentiable(where Self: DifferentiableTensorView)
-    subscript(range: UnboundedRange) -> Self { self }
-
-    @inlinable
-//    @differentiable(where Self: DifferentiableTensorView)
-    subscript<R>(range: R) -> Self
-        where R: PartialRangeExpression, R.Bound == Int {
-        get {
-            let (start, end, steps) = withoutDerivative(at:
-                getItemRange(range.relativeTo(0..<extents[0])))
-            return self[start, end, steps]
-        }
-        set {
-            let (start, end, steps) = withoutDerivative(at:
-                getItemRange(range.relativeTo(0..<extents[0])))
-            self[start, end, steps] = newValue
-        }
-    }
-
-    @usableFromInline
-    internal func getItemRange(_ range: StridedRange<Int>) ->
-        (Shape.Array, Shape.Array, Shape.Array)
-    {
-        var start = Shape.zeros
-        var end = self.extents
-        var steps = Shape.ones
-        start[0] = range.start
-        end[0] = range.end
-        steps[0] = range.step
-        return (start, end, steps)
     }
 }
 
@@ -531,13 +507,13 @@ public extension TensorView {
     mutating func hostMultiWrite(
         batchSize: Int? = nil,
         synchronous: Bool = false,
-        _ body: @escaping (_ view: Self) throws
+        _ body: @escaping (_ view: inout Self) throws
         -> Void) throws
     {
         assert(batchSize == nil || batchSize! <= extents[0])
         let queue = DeviceContext.hostQueue
         let errorDevice = queue.device
-        var view = self.mutableView()
+        var fullView = self.mutableView()
         let group = DispatchGroup()
         let batchQueue = DispatchQueue(label: "hostMultiWrite",
                                        attributes: .concurrent)
@@ -550,14 +526,14 @@ public extension TensorView {
         
         // do the work
         func queueBatch(item: Int, count: Int) throws {
-            let batchView = view[item..|count]
+            var batchView = fullView[item..|count]
             if synchronous {
-                try body(batchView)
+                try body(&batchView)
             } else {
                 guard queue.lastError == nil else { throw queue.lastError! }
                 batchQueue.async(group: group) {
                     do {
-                        try body(batchView)
+                        try body(&batchView)
                     } catch {
                         errorDevice.report(error)
                     }
@@ -566,7 +542,7 @@ public extension TensorView {
         }
         
         // ensure the data is local
-        _ = try view.readWrite(using: queue)
+        _ = try fullView.readWrite(using: queue)
         
         // launch the batches
         let lastBatchIndex = Int(extents[0]) - remainder
@@ -579,26 +555,6 @@ public extension TensorView {
             try queueBatch(item: lastBatchIndex, count: remainder)
         }
         group.wait()
-    }
-    
-    //--------------------------------------------------------------------------
-    /// getHostMultiWriteBuffer
-    /// Returns a read write host memory buffer synced with the host app
-    /// queue.
-    mutating func getHostMultiWriteBuffer() ->
-        UnsafeMutableBufferPointer<Element>
-    {
-        assert(tensorArray.lastMutatingQueue != nil,
-               "readWrite(using: DeviceContext.hostQueue) must be called first")
-        let lastQueue = tensorArray.lastMutatingQueue!
-        assert(lastQueue.device.memory.addressing == .unified)
-
-        // the buffer is already in host memory so it can't fail
-        let buffer = try! tensorArray.readWrite(using: lastQueue)
-        
-        return UnsafeMutableBufferPointer(
-            start: buffer.baseAddress!.advanced(by: viewOffset),
-            count: shape.spanCount)
     }
 }
 

@@ -312,7 +312,8 @@ extension Int: PartialRangeExpression {
     public func relativeTo<C>(_ collection: C) -> StridedRange<Bound>
         where C : Collection, Self.Bound == C.Index
     {
-        StridedRange(from: self, to: self + 1, by: 1)
+        let i = self < 0 ? self + collection.count : self
+        return StridedRange(from: i, to: i + 1, by: 1)
     }
 }
 

@@ -39,23 +39,18 @@ class test_Async: XCTestCase {
         do {
 //            Platform.log.level = .diagnostic
             typealias Pixel = RGB<UInt8>
-            typealias ImageSet = SwiftRT.Volume<Pixel>
+            typealias ImageSet = VolumeType<Pixel>
             let expected = Pixel(0, 127, 255)
-            var trainingSet = ImageSet(extents: (100, 256, 256))
+            var trainingSet = ImageSet(extents: (20, 256, 256))
 
-            try trainingSet.hostMultiWrite { batch in
+            try trainingSet.hostMultiWrite(synchronous: true) { batch in
                 for i in 0..<batch.items {
-                    // get a view of the item at `i`
-                    var itemView = batch[i]
-                    
-                    // get a writable buffer for the view
-                    let buffer = itemView.getHostMultiWriteBuffer()
-                    
                     // at this point load image data from a file or database,
                     // decompress, type convert, whatever is needed
                     // In this example we'll just fill the buffer with
                     // the `expected` value
-                    buffer.initialize(repeating: expected)
+                    // the buffer is already in host memory so it can't fail
+                    try! batch[i].readWrite().initialize(repeating: expected)
                 }
             }
 

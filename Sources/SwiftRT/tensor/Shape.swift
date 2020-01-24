@@ -350,8 +350,8 @@ public extension ShapeProtocol {
     //--------------------------------------------------------------------------
     /// contains
     @inlinable
-    func contains(offset: Array) -> Bool {
-        linearIndex(of: offset) <= spanCount
+    func contains(index: Array) -> Bool {
+        linearIndex(of: index) <= spanCount
     }
     
     @inlinable
@@ -360,8 +360,8 @@ public extension ShapeProtocol {
     }
     
     @inlinable
-    func contains(offset: Array, extents: Array) -> Bool {
-        linearIndex(of: offset) +
+    func contains(index: Array, extents: Array) -> Bool {
+        linearIndex(of: index) +
             Self(extents: extents, strides: strides).spanCount <= spanCount
     }
 

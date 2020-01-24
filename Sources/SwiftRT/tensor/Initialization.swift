@@ -180,8 +180,8 @@ public extension TensorView {
     // utility functions for creating shaped types
     @inlinable
     static func create(_ shape: Shape, _ name: String?) -> Self {
-        let name = name ?? Self.diagnosticName
-        let array = TensorArray<Element>(count: shape.count, name: name)
+        let label = name ?? Self.diagnosticName
+        let array = TensorArray<Element>(count: shape.count, name: label)
         return Self(shape: shape, tensorArray: array,
                     viewOffset: 0, isMutable: false)
     }
@@ -192,8 +192,8 @@ public extension TensorView {
         assert(shape.count == buffer.count,
                "shape count does not match buffer count")
         // create tensor data reference to buffer
-        let name = name ?? Self.diagnosticName
-        let array = TensorArray<Element>(referenceTo: buffer, name: name)
+        let label = name ?? Self.diagnosticName
+        let array = TensorArray<Element>(referenceTo: buffer, name: label)
         return Self(shape: shape, tensorArray: array,
                     viewOffset: 0, isMutable: false)
     }
@@ -204,8 +204,8 @@ public extension TensorView {
         assert(shape.count == buffer.count,
                "shape count does not match buffer count")
         // create tensor data reference to buffer
-        let name = name ?? Self.diagnosticName
-        let array = TensorArray<Element>(referenceTo: buffer, name: name)
+        let label = name ?? Self.diagnosticName
+        let array = TensorArray<Element>(referenceTo: buffer, name: label)
         return Self(shape: shape, tensorArray: array,
                     viewOffset: 0, isMutable: false)
     }
@@ -217,8 +217,8 @@ public extension TensorView {
     {
         // it can be less if the elements are being repeated
         assert(elements.count <= shape.count, _messageElementCountMismatch)
-        let name = name ?? Self.diagnosticName
-        let array = TensorArray<Element>(elements: elements, name: name)
+        let label = name ?? Self.diagnosticName
+        let array = TensorArray<Element>(elements: elements, name: label)
         return Self(shape: shape, tensorArray: array,
                     viewOffset: 0, isMutable: false)
     }

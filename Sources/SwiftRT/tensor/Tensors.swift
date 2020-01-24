@@ -19,16 +19,16 @@ import Foundation
 // VectorView protocol
 public protocol VectorView: TensorView where Shape == Shape1 { }
 
-extension Vector: CustomStringConvertible where Element: AnyConvertable {
+extension VectorType: CustomStringConvertible where Element: AnyConvertable {
     public var description: String { return formatted() }
 }
 
-extension Vector: Equatable where Element: Equatable { }
+extension VectorType: Equatable where Element: Equatable { }
 
-extension Vector: AdditiveArithmetic where Element: Numeric {
+extension VectorType: AdditiveArithmetic where Element: Numeric {
     @inlinable
-    public static var zero: Vector<Element> {
-        Vector<Element>(element: Element.zero)
+    public static var zero: VectorType<Element> {
+        VectorType<Element>(element: Element.zero)
     }
 }
 
@@ -111,13 +111,13 @@ public extension VectorView {
     //--------------------------------------------------------------------------
     // typed views
     @inlinable
-    func createBoolTensor(with extents: Shape.Array) -> Vector<Bool> {
-        Vector<Bool>(extents: extents)
+    func createBoolTensor(with extents: Shape.Array) -> VectorType<Bool> {
+        VectorType<Bool>(extents: extents)
     }
     
     @inlinable
-    func createIndexTensor(with extents: Shape.Array) -> Vector<IndexType> {
-        Vector<IndexType>(extents: extents)
+    func createIndexTensor(with extents: Shape.Array) -> VectorType<IndexType> {
+        VectorType<IndexType>(extents: extents)
     }
 }
 
@@ -136,38 +136,11 @@ public extension VectorView {
     /// Swift array of elements
     @inlinable
     var array: [Element] { [Element](elements()) }
-
-    //--------------------------------------------------------------------------
-    @inlinable
-    // TODO: fix this
-    //    @differentiable(where Self: DifferentiableTensorView)
-    subscript(index: Int) -> Element {
-        get { self[(index), (index + 1), (1)].element }
-        set {
-            assert(self.isMutable, "cannot modify an immutable view")
-            self[(index), (index + 1), Shape.ones.tuple].element = newValue
-        }
-    }
-
-    @inlinable
-    @differentiable(where Self: DifferentiableTensorView)
-    subscript<R>(range: R) -> Self
-        where R: PartialRangeExpression, R.Bound == Int
-        {
-        get {
-            let r = withoutDerivative(at: range.relativeTo(0..<extents[0]))
-            return self[(r.start), (r.end), (r.step)]
-        }
-        set {
-            let r = withoutDerivative(at: range.relativeTo(0..<extents[0]))
-            self[(r.start), (r.end), (r.step)] = newValue
-        }
-    }
 }
 
 //==============================================================================
-// Vector
-public struct Vector<Element>: VectorView
+// VectorType
+public struct VectorType<Element>: VectorView
     where Element: TensorElementConformance
 {
     // properties
@@ -192,10 +165,10 @@ public struct Vector<Element>: VectorView
     }
 }
 
-extension Vector: Differentiable & DifferentiableTensorView where
+extension VectorType: Differentiable & DifferentiableTensorView where
     Element: DifferentiableElement
 {
-    public typealias TangentVector = Vector
+    public typealias TangentVector = VectorType
 }
 
 //******************************************************************************
@@ -208,16 +181,16 @@ public protocol MatrixView: TensorView  where Shape == Shape2 { }
 
 public enum MatrixLayout { case rowMajor, columnMajor }
 
-extension Matrix: CustomStringConvertible where Element: AnyConvertable {
+extension MatrixType: CustomStringConvertible where Element: AnyConvertable {
     public var description: String { return formatted() }
 }
 
-extension Matrix: Equatable where Element: Equatable { }
+extension MatrixType: Equatable where Element: Equatable { }
 
-extension Matrix: AdditiveArithmetic where Element: Numeric {
+extension MatrixType: AdditiveArithmetic where Element: Numeric {
     @inlinable
-    public static var zero: Matrix<Element> {
-        Matrix<Element>(element: Element.zero)
+    public static var zero: MatrixType<Element> {
+        MatrixType<Element>(element: Element.zero)
     }
 }
 
@@ -341,13 +314,13 @@ public extension MatrixView {
     //--------------------------------------------------------------------------
     // typed views
     @inlinable
-    func createBoolTensor(with extents: Shape.Array) -> Matrix<Bool> {
-        Matrix<Bool>(extents: extents)
+    func createBoolTensor(with extents: Shape.Array) -> MatrixType<Bool> {
+        MatrixType<Bool>(extents: extents)
     }
     
     @inlinable
-    func createIndexTensor(with extents: Shape.Array) -> Matrix<IndexType> {
-        Matrix<IndexType>(extents: extents)
+    func createIndexTensor(with extents: Shape.Array) -> MatrixType<IndexType> {
+        MatrixType<IndexType>(extents: extents)
     }
 
     //--------------------------------------------------------------------------
@@ -399,17 +372,14 @@ public extension MatrixView {
     // TODO: fix this
     //    @differentiable(where Self: DifferentiableTensorView)
     subscript(r: Int, c: Int) -> Element {
-        get { self[(r, c), (r + 1, c + 1), Shape.ones.tuple].element }
+        get {
+            view(at: makePositive(index: (r, c)),
+                 extents: Shape.ones, strides: Shape.ones).element
+        }
         set {
-//            do {
-//                var view = self[(r, c), (r + 1, c + 1), Shape.ones.tuple]
-//                var shared = try view.sharedView(using: DeviceContext.currentQueue)
-//                let buffer = try shared.readWrite()
-//                buffer[0] = newValue
-//            } catch {
-//                DeviceContext.report(error)
-//            }
-            fatalError()
+            var view = mutableView(at: makePositive(index: (r, c)),
+                                   extents: Shape.ones, strides: Shape.ones)
+            view.element = newValue
         }
     }
 
@@ -450,8 +420,8 @@ public extension MatrixView {
 }
 
 //==============================================================================
-// Matrix
-public struct Matrix<Element>: MatrixView
+// MatrixType
+public struct MatrixType<Element>: MatrixView
     where Element: TensorElementConformance
 {
     // properties
@@ -476,10 +446,10 @@ public struct Matrix<Element>: MatrixView
     }
 }
 
-extension Matrix: Differentiable & DifferentiableTensorView where
+extension MatrixType: Differentiable & DifferentiableTensorView where
     Element: DifferentiableElement
 {
-    public typealias TangentVector = Matrix
+    public typealias TangentVector = MatrixType
 }
 
 //******************************************************************************
@@ -490,16 +460,16 @@ extension Matrix: Differentiable & DifferentiableTensorView where
 // VolumeView protocol
 public protocol VolumeView: TensorView  where Shape == Shape3 {}
 
-extension Volume: CustomStringConvertible where Element: AnyConvertable {
+extension VolumeType: CustomStringConvertible where Element: AnyConvertable {
     public var description: String { return formatted() }
 }
 
-extension Volume: Equatable where Element: Equatable { }
+extension VolumeType: Equatable where Element: Equatable { }
 
-extension Volume: AdditiveArithmetic where Element: Numeric {
+extension VolumeType: AdditiveArithmetic where Element: Numeric {
     @inlinable
-    public static var zero: Volume<Element> {
-        Volume<Element>(element: Element.zero)
+    public static var zero: VolumeType<Element> {
+        VolumeType<Element>(element: Element.zero)
     }
 }
 
@@ -618,13 +588,13 @@ public extension VolumeView {
     //--------------------------------------------------------------------------
     // typed views
     @inlinable
-    func createBoolTensor(with extents: Shape.Array) -> Volume<Bool> {
-        Volume<Bool>(extents: extents)
+    func createBoolTensor(with extents: Shape.Array) -> VolumeType<Bool> {
+        VolumeType<Bool>(extents: extents)
     }
     
     @inlinable
-    func createIndexTensor(with extents: Shape.Array) -> Volume<IndexType> {
-        Volume<IndexType>(extents: extents)
+    func createIndexTensor(with extents: Shape.Array) -> VolumeType<IndexType> {
+        VolumeType<IndexType>(extents: extents)
     }
 }
 
@@ -740,8 +710,8 @@ public extension VolumeView {
 }
 
 //==============================================================================
-// Volume
-public struct Volume<Element>: VolumeView
+// VolumeType
+public struct VolumeType<Element>: VolumeView
     where Element: TensorElementConformance
 {
     // properties
@@ -766,8 +736,8 @@ public struct Volume<Element>: VolumeView
     }
 }
 
-extension Volume: Differentiable & DifferentiableTensorView where
+extension VolumeType: Differentiable & DifferentiableTensorView where
     Element: DifferentiableElement
 {
-    public typealias TangentVector = Volume
+    public typealias TangentVector = VolumeType
 }
