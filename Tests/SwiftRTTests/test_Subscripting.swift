@@ -17,10 +17,12 @@ import XCTest
 import Foundation
 import SwiftRT
 
-class test_Ranges: XCTestCase {
+class test_Subscripting: XCTestCase {
     //==========================================================================
     // support terminal test run
     static var allTests = [
+        ("test_AssignDataToVolumeItem", test_AssignDataToVolumeItem),
+        ("test_AssignDataToVolumeRange", test_AssignDataToVolumeRange),
         ("test_VectorRange", test_VectorRange),
         ("test_StridedRangeInForLoop", test_StridedRangeInForLoop),
         ("test_VectorRangeGradient", test_VectorRangeGradient),
@@ -28,6 +30,53 @@ class test_Ranges: XCTestCase {
         ("test_VectorWriteRange", test_VectorWriteRange),
         ("test_MatrixRange", test_MatrixRange),
     ]
+
+    //==========================================================================
+    // test_AssignDataToVolumeItem
+    func test_AssignDataToVolumeItem() {
+        var volume = Volume(2, 3, 4, with: 0..<24)
+        
+        // assign a volume depth to item 0
+        volume[0] = Volume(repeating: 3, to: (1, 3, 4))
+        XCTAssert(volume.array == [
+            [[3,3,3,3], [3,3,3,3], [3,3,3,3]],
+            [[12,13,14,15], [16,17,18,19], [20,21,22,23]],
+        ])
+
+        // assign via type expansion to item 1
+        volume[1] = Volume(expanding: Matrix(repeating: 7, to: (3, 4)))
+        XCTAssert(volume.array == [
+            [[3,3,3,3], [3,3,3,3], [3,3,3,3]],
+            [[7,7,7,7], [7,7,7,7], [7,7,7,7]],
+        ])
+    }
+    
+    //==========================================================================
+    // test_AssignDataToVolumeRange
+    func test_AssignDataToVolumeRange() {
+        var volume = Volume(2, 3, 4, with: 0..<24)
+        
+        // assign a volume depth to item 0
+        volume[0..<1] = Volume(repeating: 3, to: (1, 3, 4))
+        XCTAssert(volume.array == [
+            [[3,3,3,3], [3,3,3,3], [3,3,3,3]],
+            [[12,13,14,15], [16,17,18,19], [20,21,22,23]],
+        ])
+        
+        // assign via type expansion to item 1
+        volume[1...1] = Volume(expanding: Matrix(repeating: 7, to: (3, 4)))
+        XCTAssert(volume.array == [
+            [[3,3,3,3], [3,3,3,3], [3,3,3,3]],
+            [[7,7,7,7], [7,7,7,7], [7,7,7,7]],
+        ])
+        
+        // assign a row
+        volume[1, 1, ...] = Volume(expanding: Vector(with: 0..<4), alongAxes: 0, 1)
+        XCTAssert(volume.array == [
+            [[3,3,3,3], [3,3,3,3], [3,3,3,3]],
+            [[7,7,7,7], [0, 1, 2, 3], [7,7,7,7]],
+        ])
+    }
     
     //==========================================================================
     // test_VectorRange

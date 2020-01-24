@@ -97,6 +97,24 @@ public extension TensorView {
     }
     
     //--------------------------------------------------------------------------
+    // expanding
+    @inlinable
+    init<T>(expanding other: T, alongAxes axes: Set<Int>? = nil)
+        where T: TensorView, T.Element == Element
+    {
+        self.init(shape: Shape(expanding: other.shape, alongAxes: axes),
+                  tensorArray: other.tensorArray,
+                  viewOffset: other.viewOffset,
+                  isMutable: other.isMutable)
+    }
+    
+    @inlinable
+    init<T>(expanding other: T, alongAxes axes: Int...)
+        where T: TensorView, T.Element == Element {
+            self.init(expanding: other, alongAxes: Set(axes))
+    }
+    
+    //--------------------------------------------------------------------------
     // squeezing
     @inlinable
     init<T>(squeezing other: T, alongAxes axes: Set<Int>? = nil)
@@ -122,6 +140,13 @@ public extension TensorView {
     {
         let shape = Shape(extents: extents, strides: Shape.zeros)
         self = Self.create([value], shape, name)
+    }
+
+    @inlinable
+    @differentiable(where Self: DifferentiableTensorView)
+    init(repeating value: Element, to extents: Shape.Tuple, name: String? = nil)
+    {
+        self.init(repeating: value, to: Shape.Array(extents), name: name)
     }
     
     //--------------------------------------------------------------------------

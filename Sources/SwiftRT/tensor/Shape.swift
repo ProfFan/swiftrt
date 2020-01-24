@@ -205,11 +205,14 @@ public protocol ShapeProtocol: Codable {
     /// - Parameter extents: extent of the shape in each dimension
     /// - Parameter strides: the distance to the next element in each dimension
     init(extents: Array, strides: Array?)
+    /// Expanding initializer
+    /// - Parameter expanding: the lower order shape to expand
+    init<S>(expanding other: S, alongAxes axes: Set<Int>?) where S: ShapeProtocol
     /// Flattening initializer
     /// - Parameter flattening: the higher order shape to flatten
     init<S>(flattening other: S) where S: ShapeProtocol
     /// Squeezing initializer
-    /// - Parameter flattening: the higher order shape to squeeze
+    /// - Parameter squeezing: the higher order shape to squeeze
     init<S>(squeezing other: S, alongAxes axes: Set<Int>?) where S: ShapeProtocol
 }
 
@@ -265,6 +268,37 @@ public extension ShapeProtocol {
     @inlinable
     init(extents: Array) { self.init(extents: extents, strides: nil) }
 
+    //--------------------------------------------------------------------------
+    // init(expanding:
+    @inlinable
+    init<S>(expanding other: S, alongAxes axes: Set<Int>? = nil)
+        where S: ShapeProtocol
+    {
+        let rank = Self.zeros.count
+        assert(other.rank < rank, "can only expand lower ranked shapes")
+        var newExtents = Self.zeros
+        var newStrides = Self.zeros
+        let axesSet = axes == nil ?
+            Set(0..<rank - other.rank) :
+            Set(axes!.map { $0 < 0 ? $0 + rank : $0 })
+        assert(other.rank + axesSet.count == rank,
+               "`other.rank` plus number of specified axes " +
+            "must equal the `rank` of this shape")
+
+        var otherAxis = 0
+        for i in 0..<rank {
+            if axesSet.contains(i) {
+                newExtents[i] = 1
+                newStrides[i] = other.strides[otherAxis]
+            } else {
+                newExtents[i] = other.extents[otherAxis]
+                newStrides[i] = other.strides[otherAxis]
+                otherAxis += 1
+            }
+        }
+        self.init(extents: newExtents, strides: newStrides)
+    }
+    
     //--------------------------------------------------------------------------
     // init(squeezing:
     @inlinable
