@@ -133,6 +133,22 @@ public extension TensorView {
     }
 
     //--------------------------------------------------------------------------
+    // squeezing
+    @inlinable
+    init<T>(stacking others: [T], alongAxes axes: [Int])
+        where T: TensorView, T.Element == Element
+    {
+        fatalError()
+    }
+    
+    @inlinable
+    init<T>(stacking others: [T], alongAxes axes: Int...)
+        where T: TensorView, T.Element == Element
+    {
+        self.init(stacking: others, alongAxes: axes)
+    }
+    
+    //--------------------------------------------------------------------------
     /// repeating element
     @inlinable
     @differentiable(where Self: DifferentiableTensorView)
