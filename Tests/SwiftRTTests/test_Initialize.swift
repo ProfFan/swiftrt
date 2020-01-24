@@ -25,9 +25,6 @@ class test_Initialize: XCTestCase {
         ("test_perfCreateMatrix", test_perfCreateMatrix),
         ("test_perfReadOnlyAccess", test_perfReadOnlyAccess),
         ("test_perfReadWriteAccess", test_perfReadWriteAccess),
-        ("test_flattening", test_flattening),
-        ("test_squeezing", test_squeezing),
-        ("test_cast", test_cast),
         ("test_concatMatrixRows", test_concatMatrixRows),
         ("test_concatMatrixCols", test_concatMatrixCols),
         ("test_repeatElement", test_repeatElement),
@@ -115,56 +112,6 @@ class test_Initialize: XCTestCase {
             }
         }
         #endif
-    }
-    
-    //--------------------------------------------------------------------------
-    // test_flattening
-    func test_flattening() {
-        let volume = Volume(2, 3, 4, with: 0..<24)
-        
-        // volume to matrix
-        let matrix = Matrix(flattening: volume)
-        XCTAssert(matrix.extents == [2, 12])
-
-        // noop matrix to matrix
-        let m2 = Matrix(flattening: matrix)
-        XCTAssert(m2.extents == [2, 12])
-
-        // volume to vector
-        let v1 = Vector(flattening: volume)
-        XCTAssert(v1.extents == [24])
-
-        // matrix to vector
-        let v2 = Vector(flattening: matrix)
-        XCTAssert(v2.extents == [24])
-    }
-    
-    //--------------------------------------------------------------------------
-    // test_squeezing
-    func test_squeezing() {
-        let volume = Volume(2, 3, 4, with: 0..<24)
-
-        let sumVolumeCols = volume.sum(alongAxes: 2)
-        XCTAssert(sumVolumeCols.extents == [2, 3, 1])
-        let m0 = Matrix(squeezing: sumVolumeCols)
-        XCTAssert(m0.extents == [2, 3])
-        
-        let sumVolumeRows = volume.sum(alongAxes: 1)
-        XCTAssert(sumVolumeRows.extents == [2, 1, 4])
-        let m2 = Matrix(squeezing: sumVolumeRows, alongAxes: 1)
-        XCTAssert(m2.extents == [2, 4])
-        
-        // test negative axes
-        let m3 = Matrix(squeezing: sumVolumeRows, alongAxes: -2)
-        XCTAssert(m3.extents == [2, 4])
-    }
-    
-    //--------------------------------------------------------------------------
-    // test_cast
-    func test_cast() {
-        let fMatrix = Matrix(3, 2, with: 0..<6)
-        let iMatrix = IndexMatrix(fMatrix)
-        XCTAssert(iMatrix == 0..<6)
     }
 
     //--------------------------------------------------------------------------
