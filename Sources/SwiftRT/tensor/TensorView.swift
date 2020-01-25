@@ -289,7 +289,8 @@ public extension TensorView {
               strides: Shape.Array? = nil) -> Self
     {
         createView(at: index, extents: extents,
-                   strides: strides ?? self.strides, isMutable: false)
+                   strides: strides ?? self.strides,
+                   isMutable: isMutable)
     }
     
     //--------------------------------------------------------------------------
@@ -313,9 +314,14 @@ public extension TensorView {
                               strides: Shape.Array? = nil) -> Self
     {
         do {
+            // copy the tensor array if not uniquely held or
+            // if this is a broadcasted value
             try copyIfMutates(using: DeviceContext.currentQueue)
+            
+            // return a mutable view against a safe dense tensor array
             return createView(at: index, extents: extents,
-                              strides: strides ?? self.strides, isMutable: true)
+                              strides: strides ?? self.strides,
+                              isMutable: true)
         } catch {
             DeviceContext.report(error)
             return Self()
@@ -359,21 +365,12 @@ public extension TensorView {
     }
     
     //--------------------------------------------------------------------------
-    /// writeCopyOnWrite
-    /// `true` if write access will cause the underlying `tensorArray`
-    ///  to be copied
-    @inlinable
-    mutating func writeCopyOnWrite() -> Bool {
-        !isUniqueReference() && !isMutable
-    }
-    
-    //--------------------------------------------------------------------------
     /// writeWillMutateView
     /// `true` if write access will cause the underlying `tensorArray`
     ///  to be copied
     @inlinable
     mutating func writeWillMutateView() -> Bool {
-        !isContiguous || writeCopyOnWrite()
+        !isUniqueReference() && !isMutable
     }
     
     //--------------------------------------------------------------------------
@@ -390,17 +387,9 @@ public extension TensorView {
             "\(String(describing: Element.self))[\(shape.count)]",
             categories: [.dataCopy, .dataMutation])
 
-        // copy the array
-        if isContiguous {
-            // create the new array and do a simple copy of the elements
-            tensorArray = try TensorArray<Element>(copying: tensorArray,
-                                                   using: queue)
-        } else {
-            // perform indexed copy if self is non-contiguous
-            var temp = createDense()
-            queue.copy(from: self, to: &temp)
-            self = temp
-        }
+        // create the new array and do a simple copy of the elements
+        tensorArray = try TensorArray<Element>(copying: tensorArray,
+                                               using: queue)
     }
     
     //--------------------------------------------------------------------------

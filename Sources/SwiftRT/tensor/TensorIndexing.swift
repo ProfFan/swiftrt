@@ -163,15 +163,36 @@ public extension TensorView {
     {
         get {
             let (extents, strides) = getExtents(lower, upper, steps)
-            return createView(at: lower, extents: extents, strides: strides,
-                              isMutable: isMutable)
+            return view(at: lower, extents: extents, strides: strides)
         }
         set {
+            realizeRepeated(view: self)
             let (extents, strides) = getExtents(lower, upper, steps)
-            var view = createView(at: lower, extents: extents,
-                                  strides: strides, isMutable: true)
+            var view = mutableView(at: lower, extents: extents, strides: strides)
             copy(from: newValue, to: &view)
         }
+    }
+    
+    //--------------------------------------------------------------------------
+    /// realizeRepeated(view:
+    /// realizes the virtual elements of a repeated tensor to a dense tensor
+    @inlinable
+    mutating func realizeRepeated(view: Self) {
+        guard shape.spanCount < shape.count else { return }
+
+        // create storage for all elements
+        var dense = createDense()
+        
+        // report
+        diagnostic("\(realizeString) \(name)(\(tensorArray.trackingId)) " +
+            "expanding from: \(String(describing: Element.self))" +
+            "[\(shape.spanCount)] " +
+            "to: \(String(describing: Element.self))[\(dense.count)]",
+            categories: [.dataRealize, .dataCopy])
+        
+        // perform and indexed copy and assign to self
+        DeviceContext.currentQueue.copy(from: self, to: &dense)
+        self = dense
     }
 }
 

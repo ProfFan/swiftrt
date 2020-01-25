@@ -21,7 +21,7 @@ class test_Subscripting: XCTestCase {
     //==========================================================================
     // support terminal test run
     static var allTests = [
-        ("test_AssignToNonContiguous", test_AssignToNonContiguous),
+        ("test_WriteToRepeated", test_WriteToRepeated),
         ("test_AssignDataToVolumeItem", test_AssignDataToVolumeItem),
         ("test_AssignDataToVolumeRange", test_AssignDataToVolumeRange),
         ("test_VectorRange", test_VectorRange),
@@ -33,16 +33,18 @@ class test_Subscripting: XCTestCase {
     ]
 
     //==========================================================================
-    // test_AssignToNonContiguous
-    func test_AssignToNonContiguous() {
-        Platform.log.level = .diagnostic
-        Platform.log.categories = [.dataAlloc, .dataMutation, .dataCopy]
-
-        var matrix = Matrix(repeating: 1, to: (2, 3))
-        // write a column which forces the broadcast value to be realized
-        XCTAssert(matrix.writeWillMutateView())
-        matrix[..., 1] = Matrix(2, 1, with: [41, 42])
-        XCTAssert(matrix.array == [[1, 41, 1], [1, 42, 1]])
+    // test_WriteToRepeated
+    func test_WriteToRepeated() {
+//        Platform.log.level = .diagnostic
+//        Platform.log.categories = [.dataAlloc, .dataMutation, .dataCopy]
+        
+        // create a repeated value which only uses a single Element of storage
+        var repeated = Matrix(repeating: 1, to: (2, 3))
+        
+        // writing to the repeated tensor causes the repeated data
+        // to be fully realized now using 6 storage Elements
+        repeated[..., 1] = Matrix(2, 1, with: [41, 42])
+        XCTAssert(repeated.array == [[1, 41, 1], [1, 42, 1]])
     }
     
     //==========================================================================
