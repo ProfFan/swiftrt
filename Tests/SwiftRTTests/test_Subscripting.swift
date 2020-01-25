@@ -21,6 +21,7 @@ class test_Subscripting: XCTestCase {
     //==========================================================================
     // support terminal test run
     static var allTests = [
+        ("test_negativeIndexRelativeRange", test_negativeIndexRelativeRange),
         ("test_WriteToRepeated", test_WriteToRepeated),
         ("test_AssignDataToVolumeItem", test_AssignDataToVolumeItem),
         ("test_AssignDataToVolumeRange", test_AssignDataToVolumeRange),
@@ -33,11 +34,20 @@ class test_Subscripting: XCTestCase {
     ]
 
     //==========================================================================
+    // test_negativeIndexRelativeRange
+    func test_negativeIndexRelativeRange() {
+        let m = Matrix(3, 3, with: 0..<9)
+        let v = m[-2..|1, ...]
+        XCTAssert(v == [3, 4, 5])
+        
+        let m1 = Matrix(5, 3, with: 0..<15)
+        let v1 = m1[-4..|3..2, ...]
+        XCTAssert(v1.array == [[3, 4, 5], [9, 10, 11]])
+    }
+    
+    //==========================================================================
     // test_WriteToRepeated
     func test_WriteToRepeated() {
-//        Platform.log.level = .diagnostic
-//        Platform.log.categories = [.dataAlloc, .dataMutation, .dataCopy]
-        
         // create a repeated value which only uses a single Element of storage
         var repeated = Matrix(repeating: 1, to: (2, 3))
         

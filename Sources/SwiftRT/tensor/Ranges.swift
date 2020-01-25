@@ -145,10 +145,49 @@ infix operator ..|: RangeFormationPrecedence
 
 public extension Int {
     @inlinable
-    static func ..| (from: Int, extent: Int) -> Range<Int> {
-        assert(from >= 0, "`from` must be a positive index value`")
+    static func ..| (from: Int, extent: Int) -> RelativeRange {
+        return RelativeRange(from: from, extent: extent)
+    }
+}
+
+//==============================================================================
+/// RelativeRange
+public struct RelativeRange: RangeExpression, PartialRangeExpression {
+    public typealias Bound = Int
+    public var start: Int
+    public var extent: Int
+    
+    @inlinable
+    public init(from start: Int, extent: Int) {
         assert(extent > 0, "cannot specify and empty range window")
-        return Range(uncheckedBounds: (from, from + extent))
+        self.start = start
+        self.extent = extent
+    }
+    
+    @inlinable
+    public func relative<C>(to collection: C) -> Range<Int>
+        where C : Collection, C.Index == Int
+    {
+        let i = start < 0 ? start + collection.count : start
+        return Range(uncheckedBounds: (i, i + extent))
+    }
+    
+    @inlinable
+    public func contains(_ element: Int) -> Bool { true }
+    
+    @inlinable
+    public func relativeTo<C>(_ collection: C) -> StridedRange<Bound>
+        where C : Collection, Self.Bound == C.Index
+    {
+        let i = start < 0 ? start + collection.count : start
+        return StridedRange(from: i, to: i + extent, by: step)
+    }
+    
+    @inlinable
+    public static func .. (range: Self, step: Bound) ->
+        PartialStridedRange<Self>
+    {
+        PartialStridedRange(partial: range, by: step)
     }
 }
 
