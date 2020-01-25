@@ -50,12 +50,11 @@ class test_Casting: XCTestCase {
         let k1 = Matrix(4, 5, with: 0..<20)
         let i = 2
         let j = 2
-        let maxK: Float = 5
         let mask = Matrix(squeezing: Volume(stacking: [
             k1[0...j  , 1...i  ],
             k1[0...j  , 2...i+1],
             k1[1...j+1, 1...i  ],
-            k1[1...j+1, 2...i+1]]).max(alongAxes: 0)) .<= maxK
+            k1[1...j+1, 2...i+1]]).max(alongAxes: 0)) .<= 10
         XCTAssert(mask == 0..<12)
     }
     

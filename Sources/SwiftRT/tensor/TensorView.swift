@@ -359,12 +359,21 @@ public extension TensorView {
     }
     
     //--------------------------------------------------------------------------
+    /// writeCopyOnWrite
+    /// `true` if write access will cause the underlying `tensorArray`
+    ///  to be copied
+    @inlinable
+    mutating func writeCopyOnWrite() -> Bool {
+        !isUniqueReference() && !isMutable
+    }
+    
+    //--------------------------------------------------------------------------
     /// writeWillMutateView
     /// `true` if write access will cause the underlying `tensorArray`
     ///  to be copied
     @inlinable
     mutating func writeWillMutateView() -> Bool {
-        !isUniqueReference() && !isMutable
+        !isContiguous || writeCopyOnWrite()
     }
     
     //--------------------------------------------------------------------------
@@ -380,10 +389,18 @@ public extension TensorView {
         diagnostic("\(mutationString) \(name)(\(tensorArray.trackingId)) " +
             "\(String(describing: Element.self))[\(shape.count)]",
             categories: [.dataCopy, .dataMutation])
-        
-        // create the new array and copy the values
-        tensorArray = try TensorArray<Element>(copying: tensorArray,
-                                               using: queue)
+
+        // copy the array
+        if isContiguous {
+            // create the new array and do a simple copy of the elements
+            tensorArray = try TensorArray<Element>(copying: tensorArray,
+                                                   using: queue)
+        } else {
+            // perform indexed copy if self is non-contiguous
+            var temp = createDense()
+            queue.copy(from: self, to: &temp)
+            self = temp
+        }
     }
     
     //--------------------------------------------------------------------------

@@ -133,11 +133,21 @@ public extension TensorView {
     }
 
     //--------------------------------------------------------------------------
-    // squeezing
+    // stacking
     @inlinable
     init<T>(stacking others: [T], alongAxes axes: [Int])
         where T: TensorView, T.Element == Element
     {
+        // verify that tensors are the same shape
+        assert({
+            let extents = others[0].extents
+            for i in 1..<others.count {
+                if others[i].extents != extents { return false }
+            }
+            return true
+        }(), "stacked tensors must all be the same size")
+        
+        
         fatalError()
     }
     

@@ -21,6 +21,7 @@ class test_Subscripting: XCTestCase {
     //==========================================================================
     // support terminal test run
     static var allTests = [
+        ("test_AssignToNonContiguous", test_AssignToNonContiguous),
         ("test_AssignDataToVolumeItem", test_AssignDataToVolumeItem),
         ("test_AssignDataToVolumeRange", test_AssignDataToVolumeRange),
         ("test_VectorRange", test_VectorRange),
@@ -31,6 +32,19 @@ class test_Subscripting: XCTestCase {
         ("test_MatrixRange", test_MatrixRange),
     ]
 
+    //==========================================================================
+    // test_AssignToNonContiguous
+    func test_AssignToNonContiguous() {
+        Platform.log.level = .diagnostic
+        Platform.log.categories = [.dataAlloc, .dataMutation, .dataCopy]
+
+        var matrix = Matrix(repeating: 1, to: (2, 3))
+        // write a column which forces the broadcast value to be realized
+        XCTAssert(matrix.writeWillMutateView())
+        matrix[..., 1] = Matrix(2, 1, with: [41, 42])
+        XCTAssert(matrix.array == [[1, 41, 1], [1, 42, 1]])
+    }
+    
     //==========================================================================
     // test_AssignDataToVolumeItem
     func test_AssignDataToVolumeItem() {
