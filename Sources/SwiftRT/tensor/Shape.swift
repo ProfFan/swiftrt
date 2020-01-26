@@ -288,8 +288,11 @@ public extension ShapeProtocol {
         var otherAxis = 0
         for i in 0..<rank {
             if axesSet.contains(i) {
+                // expanded axes are set to 1
                 newExtents[i] = 1
-                newStrides[i] = other.strides[otherAxis]
+                // strides beyond the other's strides are just 1
+                newStrides[i] = otherAxis >= other.rank ? 1 :
+                    other.strides[otherAxis]
             } else {
                 newExtents[i] = other.extents[otherAxis]
                 newStrides[i] = other.strides[otherAxis]

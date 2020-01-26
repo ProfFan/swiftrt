@@ -135,10 +135,20 @@ public extension TensorView {
     //--------------------------------------------------------------------------
     // stacking
     @inlinable
-    init<T>(stacking others: [T], alongAxes axes: [Int])
+    init<T>(stacking others: T..., alongAxis axis: Int = 0)
         where T: TensorView, T.Element == Element
     {
-        // verify that tensors are the same shape
+        self.init(stacking: others, alongAxis: axis)
+    }
+    
+    @inlinable
+    init<T>(stacking others: [T], alongAxis axis: Int = 0)
+        where T: TensorView, T.Element == Element
+    {
+        // verify that tensors are the correct rank and same shape
+        let rank = Shape.zeros.count
+        assert(others.count > 0 && others[0].rank == rank - 1,
+               "stacked tensors must be of rank \(rank - 1)")
         assert({
             let extents = others[0].extents
             for i in 1..<others.count {
@@ -147,15 +157,20 @@ public extension TensorView {
             return true
         }(), "stacked tensors must all be the same size")
         
+        // form stacked extents and create dense stacked result
+        let expanded = others.map { Self(expanding: $0, alongAxes: axis) }
+        var stackedExtents = expanded[0].extents
+        stackedExtents[axis] = expanded.count
+        var stacked = Self.create(Shape(extents: stackedExtents), nil)
         
-        fatalError()
-    }
-    
-    @inlinable
-    init<T>(stacking others: [T], alongAxes axes: Int...)
-        where T: TensorView, T.Element == Element
-    {
-        self.init(stacking: others, alongAxes: axes)
+        // copy others into place
+        var index = Shape.zeros
+        for tensor in expanded {
+            var view = stacked.mutableView(at: index, extents: tensor.extents)
+            copy(from: tensor, to: &view)
+            index[axis] += 1
+        }
+        self = stacked
     }
     
     //--------------------------------------------------------------------------

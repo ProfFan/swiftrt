@@ -1,11 +1,11 @@
 //******************************************************************************
 // Copyright 2019 Google LLC
 //
-// Licensed under the Apache License, Version 2.0 (the "License");
+// Licensed under the Apache License, Version 2 (the "License");
 // you may not use this file except in compliance with the License.
 // You may obtain a copy of the License at
 //
-//    https://www.apache.org/licenses/LICENSE-2.0
+//    https://www.apache.org/licenses/LICENSE-2
 //
 // Unless required by applicable law or agreed to in writing, software
 // distributed under the License is distributed on an "AS IS" BASIS,
@@ -31,31 +31,47 @@ class test_Casting: XCTestCase {
     //--------------------------------------------------------------------------
     // test_stacking
     func test_stacking() {
-//        let m0 = Matrix(2, 3, with: 0..<6)
-//        let m1 = Matrix(2, 3, with: 6..<12)
-//        // stack depths
-//        let v0 = Volume(stacking: [m0, m1])
-//        XCTAssert(v0 == 0..<12)
-//
-//        let v1 = Volume(stacking: [m0, m1], alongAxes: 1)
-//        XCTAssert(v1 == 0..<12)
-//
-//        let v2 = Volume(stacking: [m0, m1], alongAxes: 2)
-//        XCTAssert(v2 == 0..<12)
+        let m0 = Matrix(2, 3, with: 0..<6)
+        let m1 = Matrix(2, 3, with: 6..<12)
+
+        let v0 = Volume(stacking: m0, m1)
+        XCTAssert(v0 == 0..<12)
+
+        let v1 = Volume(stacking: m0, m1, alongAxis: 1)
+        XCTAssert(v1.array == [
+            [[0, 1, 2], [6,  7,  8]],
+            [[3, 4, 5], [9, 10, 11]]])
+
+        let v2 = Volume(stacking: m0, m1, alongAxis: 2)
+        XCTAssert(v2.array ==
+            [[[0, 6],
+              [1, 7],
+              [2, 8]],
+             
+             [[3, 9],
+              [4, 10],
+              [5, 11]]])
     }
     
     //--------------------------------------------------------------------------
     // test_stackingExpression
     func test_stackingExpression() {
-//        let k1 = Matrix(4, 5, with: 0..<20)
-//        let i = 2
-//        let j = 2
-//        let mask = Matrix(squeezing: Volume(stacking: [
-//            k1[0...j  , 1...i  ],
-//            k1[0...j  , 2...i+1],
-//            k1[1...j+1, 1...i  ],
-//            k1[1...j+1, 2...i+1]]).max(alongAxes: 0)) .<= 10
-//        XCTAssert(mask == 0..<12)
+        let i = 3
+        let j = 3
+        let maxK: Float = 16
+        
+        let k1 = Matrix(5, 6, with: 0..<30)
+        let mask = Matrix(squeezing: Volume(stacking: [
+            k1[0...j  , 1...i  ],
+            k1[0...j  , 2...i+1],
+            k1[1...j+1, 1...i  ],
+            k1[1...j+1, 2...i+1]
+        ]).max(alongAxes: 0)) .<= maxK
+
+        XCTAssert(mask.array == [[true, true, true],
+                                 [true, true, true],
+                                 [false, false, false],
+                                 [false, false, false]])
     }
     
     //--------------------------------------------------------------------------
