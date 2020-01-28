@@ -55,6 +55,14 @@ class test_Subscripting: XCTestCase {
         // to be fully realized now using 6 storage Elements
         repeated[..., 1] = Matrix(2, 1, with: [41, 42])
         XCTAssert(repeated.array == [[1, 41, 1], [1, 42, 1]])
+
+        var m2 = Matrix(repeating: 2.0, to: (2,2))
+        m2[1, 0] = 30.0
+        XCTAssert(m2 == [2, 2, 30, 2])
+        m2[0] = Matrix(1,2, with: [3.0, 4.0])
+        XCTAssert(m2 == [3, 4, 30, 2])
+        m2[1,0] = 25.0
+        XCTAssert(m2 == [3, 4, 25, 2])
     }
     
     //==========================================================================

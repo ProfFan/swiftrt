@@ -377,6 +377,9 @@ public extension MatrixView {
                  extents: Shape.ones, strides: Shape.ones).element
         }
         set {
+            // make sure a possibly repeated view is dense before getting
+            // the extents and strides used for writing.
+            makeDense(view: self)
             var view = mutableView(at: makePositive(index: (r, c)),
                                    extents: Shape.ones, strides: Shape.ones)
             view.element = newValue
