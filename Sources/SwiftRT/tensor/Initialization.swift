@@ -96,9 +96,25 @@ public extension TensorView {
         self = other
     }
     
+    //--------------------
+    // derivative
+    @inlinable
+    @derivative(of: init(flattening:))
+    static func _vjpInit<T>(flattening other: T) ->
+        (value: Self, pullback: (Self) -> T.TangentVector) where
+        Self: DifferentiableTensorView,
+        T: DifferentiableTensorView, T.Element == Element
+    {
+        let value = Self(flattening: other)
+        let rank = Shape.zeros.count
+        let axes = Set([Int](rank..<other.rank))
+        return (value, { T(expanding: $0, alongAxes: axes) })
+    }
+    
     //--------------------------------------------------------------------------
     // expanding
     @inlinable
+    @differentiable(where Self: DifferentiableTensorView, T: DifferentiableTensorView)
     init<T>(expanding other: T, alongAxes axes: Set<Int>? = nil)
         where T: TensorView, T.Element == Element
     {
@@ -109,14 +125,29 @@ public extension TensorView {
     }
     
     @inlinable
+    @differentiable(where Self: DifferentiableTensorView, T: DifferentiableTensorView)
     init<T>(expanding other: T, alongAxes axes: Int...)
         where T: TensorView, T.Element == Element {
             self.init(expanding: other, alongAxes: Set(axes))
     }
-    
+
+    //--------------------
+    // derivative
+    @inlinable
+    @derivative(of: init(expanding:alongAxes:))
+    static func _vjpInit<T>(expanding other: T, alongAxes axes: Set<Int>?) ->
+        (value: Self, pullback: (Self) -> T.TangentVector) where
+        Self: DifferentiableTensorView,
+        T: DifferentiableTensorView, T.Element == Element
+    {
+        let value = Self(expanding: other, alongAxes: axes)
+        return (value, { T(squeezing: $0, alongAxes: axes) })
+    }
+
     //--------------------------------------------------------------------------
     // squeezing
     @inlinable
+    @differentiable(where Self: DifferentiableTensorView, T: DifferentiableTensorView)
     init<T>(squeezing other: T, alongAxes axes: Set<Int>? = nil)
         where T: TensorView, T.Element == Element
     {
@@ -127,11 +158,25 @@ public extension TensorView {
     }
     
     @inlinable
+    @differentiable(where Self: DifferentiableTensorView, T: DifferentiableTensorView)
     init<T>(squeezing other: T, alongAxes axes: Int...)
         where T: TensorView, T.Element == Element {
         self.init(squeezing: other, alongAxes: Set(axes))
     }
 
+    //--------------------
+    // derivative
+    @inlinable
+    @derivative(of: init(squeezing:alongAxes:))
+    static func _vjpInit<T>(squeezing other: T, alongAxes axes: Set<Int>?) ->
+        (value: Self, pullback: (Self) -> T.TangentVector)
+        where Self: DifferentiableTensorView,
+        T: DifferentiableTensorView, T.Element == Element
+    {
+        let value = Self(squeezing: other, alongAxes: axes)
+        return (value, { T(expanding: $0, alongAxes: axes) })
+    }
+    
     //--------------------------------------------------------------------------
     // stacking
     @inlinable

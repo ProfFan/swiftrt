@@ -83,6 +83,13 @@ class test_Subscripting: XCTestCase {
             [[3,3,3,3], [3,3,3,3], [3,3,3,3]],
             [[7,7,7,7], [7,7,7,7], [7,7,7,7]],
         ])
+        
+        do {
+            let ones = Volume(repeating: 1, to: (1, 3, 4))
+            let g = pullback(at: Matrix(repeating: 7, to: (3, 4)),
+                             in: { Volume(expanding: $0) })(ones)
+            XCTAssert(g == [Float](repeating: 1, count: 24))
+        }
     }
     
     //==========================================================================

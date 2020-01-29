@@ -386,6 +386,8 @@ public extension MatrixView {
         }
     }
 
+    //--------------------------------------------------------------------------
+    // subscripting a Matrix view
     @inlinable
     @differentiable(where Self: DifferentiableTensorView)
     subscript<R, C>(rows: R, cols: C) -> Self where

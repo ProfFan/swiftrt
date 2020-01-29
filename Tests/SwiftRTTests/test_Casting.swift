@@ -102,6 +102,12 @@ class test_Casting: XCTestCase {
         // matrix to vector
         let v2 = Vector(flattening: matrix)
         XCTAssert(v2.extents == [24])
+        
+        do {
+            let ones = Matrix(repeating: 1, to: (2, 12))
+            let g = pullback(at: volume, in: { Matrix(flattening: $0) })(ones)
+            XCTAssert(g == [Float](repeating: 1, count: 24))
+        }
     }
     
     //--------------------------------------------------------------------------
@@ -122,5 +128,12 @@ class test_Casting: XCTestCase {
         // test negative axes
         let m3 = Matrix(squeezing: sumVolumeRows, alongAxes: -2)
         XCTAssert(m3.extents == [2, 4])
+        
+        do {
+            let ones = Matrix(repeating: 1, to: (2, 12))
+            let g = pullback(at: sumVolumeRows,
+                             in: { Matrix(squeezing: $0, alongAxes: 1) })(ones)
+            XCTAssert(g == [Float](repeating: 1, count: 24))
+        }
     }
 }
