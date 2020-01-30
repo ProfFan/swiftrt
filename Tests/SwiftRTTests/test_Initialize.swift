@@ -21,6 +21,8 @@ class test_Initialize: XCTestCase {
     //==========================================================================
     // support terminal test run
     static var allTests = [
+        ("test_indenting", test_indenting),
+        ("test_padding", test_padding),
         ("test_perfCreateTensorArray", test_perfCreateTensorArray),
         ("test_perfCreateMatrix", test_perfCreateMatrix),
         ("test_perfReadOnlyAccess", test_perfReadOnlyAccess),
@@ -31,6 +33,22 @@ class test_Initialize: XCTestCase {
         ("test_repeatRowVector", test_repeatRowVector),
         ("test_repeatColVector", test_repeatColVector),
     ]
+    
+    //--------------------------------------------------------------------------
+    // test_indenting
+    func test_indenting() {
+        let v = Vector(with: 0..<4)
+        let m = Matrix(indenting: v)
+        XCTAssert(m.extents == [1, v.count])
+    }
+    
+    //--------------------------------------------------------------------------
+    // test_padding
+    func test_padding() {
+        let v = Vector(with: 0..<4)
+        let m = Matrix(padding: v)
+        XCTAssert(m.extents == [v.count, 1])
+    }
     
     //--------------------------------------------------------------------------
     // test_perfCreateTensorArray

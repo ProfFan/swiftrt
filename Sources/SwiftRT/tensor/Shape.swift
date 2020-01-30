@@ -301,6 +301,44 @@ public extension ShapeProtocol {
         }
         self.init(extents: newExtents, strides: newStrides)
     }
+
+    //--------------------------------------------------------------------------
+    // init(indenting:
+    @inlinable
+    init<S>(indenting other: S) where S: ShapeProtocol {
+        let rank = Self.zeros.count
+        assert(other.rank < rank, "can only expand lower ranked shapes")
+
+        // TODO: find fastest way to copy sequences
+        let start = rank - other.rank
+        var newExtents = Self.ones
+        var newStrides = Self.ones
+        for (i, j) in zip(start..<rank, 0..<other.rank) {
+            newExtents[i] = other.extents[j]
+            newStrides[i] = other.strides[j]
+        }
+        for i in 0..<start {
+            newStrides[i] = other.strides[0]
+        }
+        self.init(extents: newExtents, strides: newStrides)
+    }
+    
+    //--------------------------------------------------------------------------
+    // init(padding:
+    @inlinable
+    init<S>(padding other: S) where S: ShapeProtocol {
+        let rank = Self.zeros.count
+        assert(other.rank < rank, "can only expand lower ranked shapes")
+        
+        // TODO: find fastest way to copy sequences
+        var newExtents = Self.ones
+        var newStrides = Self.ones
+        for i in 0..<other.rank {
+            newExtents[i] = other.extents[i]
+            newStrides[i] = other.strides[i]
+        }
+        self.init(extents: newExtents, strides: newStrides)
+    }
     
     //--------------------------------------------------------------------------
     // init(squeezing:

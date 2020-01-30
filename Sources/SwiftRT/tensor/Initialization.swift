@@ -112,6 +112,26 @@ public extension TensorView {
     }
     
     //--------------------------------------------------------------------------
+    // init(indenting:
+    @inlinable
+    init<T>(indenting other: T) where T: TensorView, T.Element == Element {
+        self.init(shape: Shape(indenting: other.shape),
+                  tensorArray: other.tensorArray,
+                  viewOffset: other.viewOffset,
+                  isMutable: other.isMutable)
+    }
+        
+    //--------------------------------------------------------------------------
+    // init(padding:
+    @inlinable
+    init<T>(padding other: T) where T: TensorView, T.Element == Element {
+        self.init(shape: Shape(padding: other.shape),
+                  tensorArray: other.tensorArray,
+                  viewOffset: other.viewOffset,
+                  isMutable: other.isMutable)
+    }
+    
+    //--------------------------------------------------------------------------
     // expanding
     @inlinable
     @differentiable(where Self: DifferentiableTensorView, T: DifferentiableTensorView)
