@@ -23,11 +23,9 @@ let enableCuda = enableAll || isEnabled("SWIFTRT_ENABLE_CUDA")
 let enableCuda = false
 #endif
 
-let enableVulkan = enableAll || isEnabled("SWIFTRT_ENABLE_VULKAN")
-
-// if using cuda or vulkan then the default is an async cpu
+// if using cuda then the default is an async cpu
 let enableCpuAsync = enableAll || !disableTesting ||
-    isEnabled("SWIFTRT_ENABLE_ASYNC_CPU") || enableCuda || enableVulkan
+    isEnabled("SWIFTRT_ENABLE_ASYNC_CPU") || enableCuda
 
 // synchronous CPU is the default case
 //let enableCpuSync = enableAll || isEnabled("SWIFTRT_ENABLE_SYNC_CPU") ||
@@ -125,23 +123,11 @@ if enableCuda {
 }
 
 //---------------------------------------
-// include the Vulkan service module
-if enableVulkan {
-    products.append(.library(name: "CVulkan", targets: ["CVulkan"]))
-    dependencies.append("CVulkan")
-    targets.append(
-        .systemLibrary(name: "CVulkan",
-                       path: "Modules/Vulkan",
-                       pkgConfig: "mac_vulkan"))
-}
-
-//---------------------------------------
 // excluded unused component code
 if !enableCpuSync  { exclusions.append("device/cpu/sync") }
 if !enableCpuAsync { exclusions.append("device/cpu/async") }
 if !enableTestCpu  { exclusions.append("device/cpu/test") }
 if !enableCuda     { exclusions.append("device/cuda") }
-if !enableVulkan   { exclusions.append("device/vulkan") }
 //print("exclusions: \(exclusions)")
 
 targets.append(
