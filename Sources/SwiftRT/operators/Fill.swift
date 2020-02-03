@@ -60,17 +60,21 @@ public func fill<T>(_ result: inout T, with element: T.Element)
     DeviceContext.currentQueue.fill(result: &result, with: element)
 }
 
+/// fill(result:with range:
+/// fills the tensor with values formed by the specified range
 @inlinable
 public func fill<T, R>(_ result: inout T, with range: R) where
     T: TensorView,
     R: StridedRangeExpression, R.Bound == T.Element
 {
+    assert(result.count == range.stridedRange.count)
     DeviceContext.currentQueue.fill(result: &result, with: range)
 }
 
 public extension TensorView {
     /// filled
-    /// creates a tensor and fills on device
+    /// creates a tensor shaped like Self and fills on device
+    /// - Parameter element: the element value used to fill the tensor
     @inlinable
     func filled(with element: Element) -> Self {
         var result = createDense()
@@ -78,6 +82,8 @@ public extension TensorView {
         return result
     }
     
+    /// creates a tensor shaped like Self and fills on device
+    /// - Parameter range: the range of values used to fill the tensor
     @inlinable
     func filled<R>(with range: R) -> Self
         where R: StridedRangeExpression, R.Bound == Element
@@ -89,20 +95,21 @@ public extension TensorView {
 }
 
 //==============================================================================
-/// fillWithIndex(x:startAt:
-/// fills the view with the spatial sequential index
+/// fillWithIndex
+/// a convenience function to fill the tensor with index values from
+/// `0..<count`. If a different range is desired, use `fill(with range:`
 @inlinable
-public func fillWithIndex<T>(_ result: inout T, startAt index: Int = 0) where
-    T: TensorView, T.Element: AnyNumeric
+public func fillWithIndex<T>(_ result: inout T)
+    where T: TensorView, T.Element: AnyNumeric & RangeBound
 {
-    DeviceContext.currentQueue.fillWithIndex(result: &result, startAt: index)
+    fill(&result, with: 0..<T.Element(any: result.count))
 }
 
-public extension TensorView where Element: AnyNumeric {
+public extension TensorView where Element: AnyNumeric & RangeBound {
     @inlinable
-    func filledWithIndex(startAt index: Int = 0) -> Self {
+    func filledWithIndex() -> Self {
         var result = createDense()
-        SwiftRT.fillWithIndex(&result, startAt: index)
+        fill(&result, with: 0..<Element(any: self.count))
         return result
     }
 }

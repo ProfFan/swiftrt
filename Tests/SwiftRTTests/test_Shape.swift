@@ -28,7 +28,7 @@ class test_Shape: XCTestCase {
     //--------------------------------------------------------------------------
     // test_transposed
     func test_transposed() {
-        let volume = Volume(2,3,4).filled(with: 0..<24).transposed(with: (2,1,0))
+        let volume = Volume(2,3,4).filledWithIndex().transposed(with: (2,1,0))
         XCTAssert(volume.array == [[[ 0.0, 12.0],
                                     [ 4.0, 16.0],
                                     [ 8.0, 20.0]],

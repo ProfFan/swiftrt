@@ -215,7 +215,7 @@ class test_DataMigration: XCTestCase {
             // memory is only allocated on device 1. This also shows how a
             // temporary can be used in a scope. No memory is copied.
             var matrix = using(device1) {
-                Matrix(3, 2).filledWithIndex()
+                Matrix(3, 2).filled(with: 0..<6)
             }
             
             // retreive value on app thread
