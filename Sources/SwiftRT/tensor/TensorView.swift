@@ -351,6 +351,21 @@ public extension TensorView {
                     viewOffset: subViewOffset,
                     isMutable: isMutable)
     }
+    
+    //--------------------------------------------------------------------------
+    /// transposed
+    /// transposes indexing axes of the tensor
+    /// - Parameter with: and optional axes permutation order. If `nil` the
+    /// last two dimensions are swapped.
+    @inlinable
+    func transposed(with permutations: Shape.Tuple? = nil) -> Self {
+        guard self.rank > 1 else { return self }
+        let permuted = self.shape.transposed(with: Shape.Array(permutations))
+        return Self(shape: permuted,
+                    tensorArray: tensorArray,
+                    viewOffset: viewOffset,
+                    isMutable: isMutable)
+    }
 }
 
 //==============================================================================

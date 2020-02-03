@@ -193,7 +193,9 @@ public struct RelativeRange: RangeExpression, PartialRangeExpression {
 
 //==============================================================================
 /// StridedRangeExpression
-public protocol StridedRangeExpression: PartialRangeExpression { }
+public protocol StridedRangeExpression: PartialRangeExpression {
+    var stridedRange: StridedRange<Bound> { get }
+}
 
 //==============================================================================
 /// StridedRange
@@ -205,6 +207,7 @@ public struct StridedRange<Bound>: StridedRangeExpression, Collection
     public let start: Bound
     public let end: Bound
     public let step: Bound
+    public var stridedRange: StridedRange<Bound> { self }
     
     // open range init
     @inlinable
@@ -254,6 +257,11 @@ extension Range: StridedRangeExpression, PartialRangeExpression
     where Bound: RangeBound
 {
     @inlinable
+    public var stridedRange: StridedRange<Bound> {
+        StridedRange(from: lowerBound, to: upperBound, by: step)
+    }
+
+    @inlinable
     public func relativeTo<C>(_ collection: C) -> StridedRange<Bound>
         where C : Collection, Self.Bound == C.Index
     {
@@ -273,13 +281,18 @@ extension ClosedRange: StridedRangeExpression, PartialRangeExpression
     where Bound: RangeBound
 {
     @inlinable
+    public var stridedRange: StridedRange<Bound> {
+        StridedRange(from: lowerBound, through: upperBound, by: step)
+    }
+    
+    @inlinable
     public func relativeTo<C>(_ collection: C) -> StridedRange<Bound>
         where C : Collection, Self.Bound == C.Index
     {
         let count = Bound(exactly: collection.count)!
         let start = lowerBound < 0 ? lowerBound + count : lowerBound
-        let end = (upperBound < 0 ? upperBound + count : upperBound) + step
-        return StridedRange(from: start, to: end, by: step)
+        let end = upperBound < 0 ? upperBound + count : upperBound
+        return StridedRange(from: start, through: end, by: step)
     }
 
     @inlinable

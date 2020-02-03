@@ -60,6 +60,14 @@ public func fill<T>(_ result: inout T, with element: T.Element)
     DeviceContext.currentQueue.fill(result: &result, with: element)
 }
 
+@inlinable
+public func fill<T, R>(_ result: inout T, with range: R) where
+    T: TensorView,
+    R: StridedRangeExpression, R.Bound == T.Element
+{
+    DeviceContext.currentQueue.fill(result: &result, with: range)
+}
+
 public extension TensorView {
     /// filled
     /// creates a tensor and fills on device
@@ -67,6 +75,15 @@ public extension TensorView {
     func filled(with element: Element) -> Self {
         var result = createDense()
         fill(&result, with: element)
+        return result
+    }
+    
+    @inlinable
+    func filled<R>(with range: R) -> Self
+        where R: StridedRangeExpression, R.Bound == Element
+    {
+        var result = createDense()
+        fill(&result, with: range)
         return result
     }
 }

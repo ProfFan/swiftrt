@@ -105,11 +105,17 @@ public protocol DeviceFunctions {
     /// exp
     func exp<T>(x: T, result: inout T) where
         T: TensorView, T.Element: Real
-    /// fill(result:with:
-    func fill<T>(result: inout T, with value: T.Element) where T: TensorView
+    /// fill(result:with element:
+    func fill<T>(result: inout T, with element: T.Element) where T: TensorView
+    /// fill(result:with range:
+    func fill<T, R>(result: inout T, with range: R) where
+        T: TensorView,
+        R: StridedRangeExpression, R.Bound == T.Element
+
     /// fillWithIndex(x:startAt:
     func fillWithIndex<T>(result: inout T, startAt: Int) where
         T: TensorView, T.Element: AnyNumeric
+
     /// greater
     func greater<T>(lhs: T, rhs: T, result: inout T.BoolView)
         where T: TensorView, T.Element: Comparable
@@ -326,6 +332,16 @@ public extension DeviceFunctions where Self: DeviceQueue {
     {
         var elements = result.mutableElements()
         elements.indices.forEach { elements[$0] = value }
+    }
+    /// fill(result:with range:
+    func fill<T, R>(result: inout T, with range: R) where
+        T: TensorView,
+        R: StridedRangeExpression, R.Bound == T.Element
+    {
+        var elements = result.mutableElements()
+        zip(elements.indices, range.stridedRange).forEach {
+            elements[$0] = $1
+        }
     }
     /// fillWithIndex(x:startAt:
     @inlinable

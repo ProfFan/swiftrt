@@ -499,7 +499,7 @@ public extension ShapeProtocol {
                 newStrides[index] = strides[mapping[index]]
             }
         } else {
-            // simple swap
+            // simple swap of last two dimensions
             let r1 = rank-1
             let r2 = rank-2
             newExtents.swapAt(r1, r2)
