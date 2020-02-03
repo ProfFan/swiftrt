@@ -21,6 +21,7 @@ class test_Comparative: XCTestCase {
     //==========================================================================
     // support terminal test run
     static var allTests = [
+        ("test_elementWiseAndOr", test_elementWiseAndOr),
         ("test_elementsAlmostEqual", test_elementsAlmostEqual),
         ("test_equality", test_equality),
         ("test_max", test_max),
@@ -29,6 +30,15 @@ class test_Comparative: XCTestCase {
         ("test_minScalar", test_minScalar),
     ]
 
+    //--------------------------------------------------------------------------
+    // test_elementsAlmostEqual
+    func test_elementWiseAndOr() {
+        let v0 = BoolVector(with: [true, false, true, false, true])
+        let v1 = BoolVector(with: [false, true, false, true, true])
+        XCTAssert((v0 .&& v1) == [false, false, false, false, true])
+        XCTAssert((v0 .|| v1) == [true, true, true, true, true])
+    }
+    
     //--------------------------------------------------------------------------
     // test_elementsAlmostEqual
     func test_elementsAlmostEqual() {

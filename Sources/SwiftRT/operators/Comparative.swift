@@ -32,6 +32,80 @@ func _vjpMinMaxHelper<T>(
 }
 
 //==============================================================================
+/// and
+/// Computes `lhs .&& rhs` element-wise and returns a tensor of Bool values
+public func and<T>(_ lhs: T, _ rhs: T) -> T.BoolView where
+    T: TensorView, T.Element == Bool
+{
+    assert(lhs.extents == rhs.extents, _messageTensorExtentsMismatch)
+    var result = lhs.createBoolTensor()
+    DeviceContext.currentQueue.and(lhs: lhs, rhs: rhs, result: &result)
+    return result
+}
+
+public func and<T>(_ lhs: T, _ rhs: T.Element) -> T.BoolView
+    where T: TensorView, T.Element == Bool
+{
+    and(lhs, T(repeating: rhs, like: lhs))
+}
+
+public func and<T>(_ lhs: T.Element, _ rhs: T) -> T.BoolView
+    where T: TensorView, T.Element == Bool
+{
+    and(T(repeating: lhs, like: rhs), rhs)
+}
+
+infix operator .&& : LogicalConjunctionPrecedence
+
+public extension TensorView where Element == Bool {
+    @inlinable
+    static func .&&(_ lhs: Self, _ rhs: Self) -> BoolView { and(lhs, rhs) }
+    
+    @inlinable
+    static func .&&(_ lhs: Self, _ rhs: Element) -> BoolView { and(lhs, rhs) }
+    
+    @inlinable
+    static func .&&(_ lhs: Element, _ rhs: Self) -> BoolView { and(lhs, rhs) }
+}
+
+//==============================================================================
+/// or
+/// Computes `lhs .&& rhs` element-wise and returns a tensor of Bool values
+public func or<T>(_ lhs: T, _ rhs: T) -> T.BoolView where
+    T: TensorView, T.Element == Bool
+{
+    assert(lhs.extents == rhs.extents, _messageTensorExtentsMismatch)
+    var result = lhs.createBoolTensor()
+    DeviceContext.currentQueue.or(lhs: lhs, rhs: rhs, result: &result)
+    return result
+}
+
+public func or<T>(_ lhs: T, _ rhs: T.Element) -> T.BoolView
+    where T: TensorView, T.Element == Bool
+{
+    or(lhs, T(repeating: rhs, like: lhs))
+}
+
+public func or<T>(_ lhs: T.Element, _ rhs: T) -> T.BoolView
+    where T: TensorView, T.Element == Bool
+{
+    or(T(repeating: lhs, like: rhs), rhs)
+}
+
+infix operator .|| : LogicalConjunctionPrecedence
+
+public extension TensorView where Element == Bool {
+    @inlinable
+    static func .||(_ lhs: Self, _ rhs: Self) -> BoolView { or(lhs, rhs) }
+    
+    @inlinable
+    static func .||(_ lhs: Self, _ rhs: Element) -> BoolView { or(lhs, rhs) }
+    
+    @inlinable
+    static func .||(_ lhs: Element, _ rhs: Self) -> BoolView { or(lhs, rhs) }
+}
+
+//==============================================================================
 /// max
 /// Computes the element-wise maximum of two tensors
 /// - Parameter lhs: left hand tensor

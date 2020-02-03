@@ -86,6 +86,9 @@ public protocol DeviceFunctions {
     /// add
     func add<T>(lhs: T, rhs: T, result: inout T) where
         T: TensorView, T.Element: AdditiveArithmetic
+    /// and
+    func and<T>(lhs: T, rhs: T, result: inout T.BoolView) where
+        T: TensorView, T.Element == Bool
     /// cast
     func cast<T, U>(from view: T, to result: inout U) where
         T: TensorView, T.Element: AnyConvertable,
@@ -142,6 +145,9 @@ public protocol DeviceFunctions {
     /// notEqual
     func notEqual<T>(lhs: T, rhs: T, result: inout T.BoolView) where
         T: TensorView
+    /// or
+    func or<T>(lhs: T, rhs: T, result: inout T.BoolView) where
+        T: TensorView, T.Element == Bool
     /// pow
     func pow<T>(x: T, y: T, result: inout T) where
         T: TensorView, T.Element: Real
@@ -268,6 +274,13 @@ public extension DeviceFunctions where Self: DeviceQueue {
         T: TensorView, T.Element: AdditiveArithmetic
     {
         mapOp(lhs, rhs, &result, +)
+    }
+    /// and
+    @inlinable
+    func and<T>(lhs: T, rhs: T, result: inout T.BoolView) where
+        T: TensorView, T.Element == Bool
+    {
+        mapOp(lhs, rhs, &result) { $0 && $1 }
     }
     /// cast
     @inlinable
@@ -409,6 +422,13 @@ public extension DeviceFunctions where Self: DeviceQueue {
         where T: TensorView
     {
         mapOp(lhs, rhs, &result, !=)
+    }
+    /// or
+    @inlinable
+    func or<T>(lhs: T, rhs: T, result: inout T.BoolView) where
+        T: TensorView, T.Element == Bool
+    {
+        mapOp(lhs, rhs, &result) { $0 || $1 }
     }
     /// pow
     @inlinable
