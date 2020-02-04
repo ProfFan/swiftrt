@@ -52,6 +52,7 @@ public protocol PartialRangeExpression {
 
     var step: Bound { get }
 
+    @_semantics("autodiff.nonvarying")
     func relativeTo<C>(_ collection: C) -> StridedRange<Bound>
         where C : Collection, Self.Bound == C.Index
 }
@@ -77,6 +78,7 @@ public struct PartialStridedRange<Partial>: PartialRangeExpression
     }
     
     @inlinable
+    @_semantics("autodiff.nonvarying")
     public func relativeTo<C>(_ collection: C) -> StridedRange<Bound>
         where C : Collection, Self.Bound == C.Index
     {
@@ -176,6 +178,7 @@ public struct RelativeRange: RangeExpression, PartialRangeExpression {
     public func contains(_ element: Int) -> Bool { true }
     
     @inlinable
+    @_semantics("autodiff.nonvarying")
     public func relativeTo<C>(_ collection: C) -> StridedRange<Bound>
         where C : Collection, Self.Bound == C.Index
     {
@@ -232,6 +235,7 @@ public struct StridedRange<Bound>: StridedRangeExpression, Collection
     }
     
     @inlinable
+    @_semantics("autodiff.nonvarying")
     public func relativeTo<C>(_ collection: C) -> Self
         where C : Collection, Bound == C.Index { self }
     
@@ -257,11 +261,13 @@ extension Range: StridedRangeExpression, PartialRangeExpression
     where Bound: RangeBound
 {
     @inlinable
+    @_semantics("autodiff.nonvarying")
     public var stridedRange: StridedRange<Bound> {
         StridedRange(from: lowerBound, to: upperBound, by: step)
     }
 
     @inlinable
+    @_semantics("autodiff.nonvarying")
     public func relativeTo<C>(_ collection: C) -> StridedRange<Bound>
         where C : Collection, Self.Bound == C.Index
     {
@@ -281,11 +287,13 @@ extension ClosedRange: StridedRangeExpression, PartialRangeExpression
     where Bound: RangeBound
 {
     @inlinable
+    @_semantics("autodiff.nonvarying")
     public var stridedRange: StridedRange<Bound> {
         StridedRange(from: lowerBound, through: upperBound, by: step)
     }
     
     @inlinable
+    @_semantics("autodiff.nonvarying")
     public func relativeTo<C>(_ collection: C) -> StridedRange<Bound>
         where C : Collection, Self.Bound == C.Index
     {
@@ -303,6 +311,7 @@ extension ClosedRange: StridedRangeExpression, PartialRangeExpression
 
 extension PartialRangeFrom: PartialRangeExpression where Bound: RangeBound {
     @inlinable
+    @_semantics("autodiff.nonvarying")
     public func relativeTo<C>(_ collection: C) -> StridedRange<Bound>
         where C : Collection, Self.Bound == C.Index
     {
@@ -321,6 +330,7 @@ extension PartialRangeFrom: PartialRangeExpression where Bound: RangeBound {
 
 extension PartialRangeUpTo: PartialRangeExpression where Bound: RangeBound {
     @inlinable
+    @_semantics("autodiff.nonvarying")
     public func relativeTo<C>(_ collection: C) -> StridedRange<Bound>
         where C : Collection, Self.Bound == C.Index
     {
@@ -341,6 +351,7 @@ extension PartialRangeThrough: PartialRangeExpression
     where Bound: RangeBound
 {
     @inlinable
+    @_semantics("autodiff.nonvarying")
     public func relativeTo<C>(_ collection: C) -> StridedRange<Bound>
         where C : Collection, Self.Bound == C.Index
     {
@@ -361,6 +372,7 @@ extension Int: PartialRangeExpression {
     public typealias Bound = Int
     
     @inlinable
+    @_semantics("autodiff.nonvarying")
     public func relativeTo<C>(_ collection: C) -> StridedRange<Bound>
         where C : Collection, Self.Bound == C.Index
     {
