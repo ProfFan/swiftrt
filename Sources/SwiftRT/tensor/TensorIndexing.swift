@@ -18,7 +18,6 @@ import Foundation
 public extension TensorView where Self: VectorView {
     //--------------------------------------------------------------------------
     @inlinable
-    // TODO: fix this
     @differentiable(where Self: DifferentiableTensorView)
     subscript(index: Int) -> Element {
         get {
@@ -57,7 +56,7 @@ public extension TensorView {
     subscript(range: UnboundedRange) -> Self { self }
     
     @inlinable
-    //    @differentiable(where Self: DifferentiableTensorView)
+    @differentiable(where Self: DifferentiableTensorView)
     subscript<R>(range: R) -> Self
         where R: PartialRangeExpression, R.Bound == Int {
         get {
@@ -73,6 +72,7 @@ public extension TensorView {
     }
     
     @usableFromInline
+    @_semantics("autodiff.nonvarying")
     internal func getItemRange(_ range: StridedRange<Int>) ->
         (Shape.Array, Shape.Array, Shape.Array)
     {
