@@ -19,7 +19,7 @@ public extension TensorView where Self: VectorView {
     //--------------------------------------------------------------------------
     @inlinable
     // TODO: fix this
-    //    @differentiable(where Self: DifferentiableTensorView)
+    @differentiable(where Self: DifferentiableTensorView)
     subscript(index: Int) -> Element {
         get {
             view(at: makePositive(index: (index)),
@@ -41,11 +41,11 @@ public extension TensorView where Self: VectorView {
         where R: PartialRangeExpression, R.Bound == Int
         {
         get {
-            let r = withoutDerivative(at: range.relativeTo(0..<extents[0]))
+            let r = range.relativeTo(0..<extents[0])
             return self[(r.start), (r.end), (r.step)]
         }
         set {
-            let r = withoutDerivative(at: range.relativeTo(0..<extents[0]))
+            let r = range.relativeTo(0..<extents[0])
             self[(r.start), (r.end), (r.step)] = newValue
         }
     }
@@ -53,7 +53,7 @@ public extension TensorView where Self: VectorView {
 
 public extension TensorView {
     @inlinable
-    //    @differentiable(where Self: DifferentiableTensorView)
+    @differentiable(where Self: DifferentiableTensorView)
     subscript(range: UnboundedRange) -> Self { self }
     
     @inlinable
@@ -61,13 +61,13 @@ public extension TensorView {
     subscript<R>(range: R) -> Self
         where R: PartialRangeExpression, R.Bound == Int {
         get {
-            let (start, end, steps) = withoutDerivative(at:
-                getItemRange(range.relativeTo(0..<extents[0])))
+            let (start, end, steps) =
+                getItemRange(range.relativeTo(0..<extents[0]))
             return self[start, end, steps]
         }
         set {
-            let (start, end, steps) = withoutDerivative(at:
-                getItemRange(range.relativeTo(0..<extents[0])))
+            let (start, end, steps) =
+                getItemRange(range.relativeTo(0..<extents[0]))
             self[start, end, steps] = newValue
         }
     }

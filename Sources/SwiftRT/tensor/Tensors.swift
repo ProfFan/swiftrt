@@ -370,7 +370,7 @@ public extension MatrixView {
     // single element
     @inlinable
     // TODO: fix this
-    //    @differentiable(where Self: DifferentiableTensorView)
+    @differentiable(where Self: DifferentiableTensorView)
     subscript(r: Int, c: Int) -> Element {
         get {
             view(at: makePositive(index: (r, c)),
@@ -395,14 +395,14 @@ public extension MatrixView {
         C: PartialRangeExpression, C.Bound == Int
     {
         get {
-            let r = withoutDerivative(at: rows.relativeTo(0..<extents[0]))
-            let c = withoutDerivative(at: cols.relativeTo(0..<extents[1]))
+            let r = rows.relativeTo(0..<extents[0])
+            let c = cols.relativeTo(0..<extents[1])
             return self[(r.start, c.start), (r.end, c.end), (r.step, c.step)]
         }
         
         set {
-            let r = withoutDerivative(at: rows.relativeTo(0..<extents[0]))
-            let c = withoutDerivative(at: cols.relativeTo(0..<extents[1]))
+            let r = rows.relativeTo(0..<extents[0])
+            let c = cols.relativeTo(0..<extents[1])
             self[(r.start, c.start), (r.end, c.end), (r.step, c.step)] = newValue
         }
     }
@@ -634,8 +634,7 @@ public extension VolumeView {
     //--------------------------------------------------------------------------
     // single element
     @inlinable
-    // TODO: fix this
-//    @differentiable(where Self: DifferentiableTensorView)
+    @differentiable(where Self: DifferentiableTensorView)
     subscript(d: Int, r: Int, c: Int) -> Element {
         get { self[(d, r, c), (d + 1, r + 1, c + 1), Shape.ones.tuple].element }
         set {
@@ -653,18 +652,18 @@ public extension VolumeView {
         C: PartialRangeExpression, C.Bound == Int
         {
         get {
-            let d = withoutDerivative(at: deps.relativeTo(0..<extents[0]))
-            let r = withoutDerivative(at: rows.relativeTo(0..<extents[1]))
-            let c = withoutDerivative(at: cols.relativeTo(0..<extents[2]))
+            let d = deps.relativeTo(0..<extents[0])
+            let r = rows.relativeTo(0..<extents[1])
+            let c = cols.relativeTo(0..<extents[2])
             return self[(d.start, r.start, c.start),
                         (d.end, r.end, c.end),
                         (d.step, r.step, c.step)]
         }
         
         set {
-            let d = withoutDerivative(at: deps.relativeTo(0..<extents[0]))
-            let r = withoutDerivative(at: rows.relativeTo(0..<extents[1]))
-            let c = withoutDerivative(at: cols.relativeTo(0..<extents[2]))
+            let d = deps.relativeTo(0..<extents[0])
+            let r = rows.relativeTo(0..<extents[1])
+            let c = cols.relativeTo(0..<extents[2])
             self[(d.start, r.start, c.start),
                  (d.end, r.end, c.end),
                  (d.step, r.step, c.step)] = newValue

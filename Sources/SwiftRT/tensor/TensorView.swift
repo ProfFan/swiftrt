@@ -197,6 +197,7 @@ public extension TensorView where Element: AnyElement {
     /// can get and set the value of a single element tensor.
     /// - Returns: the only element in the tensor
     @inlinable
+    @_semantics("autodiff.nonvarying")
     var element: Element {
         get {
             assert(shape.isScalar, "the `element` property expects " +
@@ -224,6 +225,7 @@ public extension TensorView {
     var count: Int { shape.count }
     /// the extents of the view
     @inlinable
+    @_semantics("autodiff.nonvarying")
     var extents: Shape.Array { shape.extents }
     /// `true` if the values are contiguosly arranged in memory
     @inlinable
@@ -264,6 +266,7 @@ public extension TensorView {
     //--------------------------------------------------------------------------
     /// makePositive(index:
     @inlinable
+    @_semantics("autodiff.nonvarying")
     func makePositive(index: Shape.Tuple) -> Shape.Array {
         var result = Shape.Array(index)
         for i in 0..<result.count {
